@@ -1,5 +1,6 @@
 #include <stdint.h> 
 
+
 typedef struct packet{
     uint16_t type;               //Tipo do pacote(p.ex. DATA| ACK | CMD)
     uint16_t seqn;               //Número de sequência

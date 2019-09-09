@@ -1,3 +1,7 @@
+//Headers
+#include "aplication.h"
+#include "communication.h"
+#include "sync.h"
 
 // Client side implementation of UDP client-server model 
 #include <stdio.h> 

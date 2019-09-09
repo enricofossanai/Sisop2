@@ -1,3 +1,7 @@
+//Headers
+#include "communication.h"
+#include "fileManager.h"
+#include "sync.h"
 
 // Server side implementation of UDP client-server model 
 #include <stdio.h> 
