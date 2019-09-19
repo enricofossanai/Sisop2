@@ -13,8 +13,8 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
   
-#define PORT     8080 
-#define MAXLINE 1024 
+#define PORT     8000 
+#define MAXLINE 102400 
   
 // Driver code 
 int main() { 
@@ -28,9 +28,9 @@ int main() {
         perror("socket creation failed"); 
         exit(EXIT_FAILURE); 
     } 
-  
+    
     memset(&servaddr, 0, sizeof(servaddr)); 
-      
+   
     // Filling server information 
     servaddr.sin_family = AF_INET; 
     servaddr.sin_port = htons(PORT); 
@@ -39,14 +39,29 @@ int main() {
     int n; 
     socklen_t len = sizeof(servaddr);
 
-    sendto(sockfd, (const char *)hello, strlen(hello), 
-        MSG_CONFIRM, (const struct sockaddr *) &servaddr,  
-            sizeof(servaddr)); 
-    printf("Hello message sent.\n"); 
+    
+    packet sentPacket;
+    sentPacket.type = 0;
+    sentPacket.seqn = 1;
+    sentPacket.length = 42;
+    sentPacket.total_size = 2;
+    sentPacket.checksum = 3;
+    sentPacket._payload = "oi";
+
+    
+    char * message = "conectando";
+   // marshallPacket(&sentPacket, message);
+    printf("Depois do Marshall");
+    fflush( stdout );
+
+    sendto(sockfd, (const void *) message, sizeof(message), MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr)); 
+    printf("Packet sent.\n"); 
+    fflush( stdout );
           
     n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len); 
-    buffer[n] = '\0'; 
+
     printf("Server : %s\n", buffer); 
+    fflush( stdout );
   
     close(sockfd); 
     return 0; 

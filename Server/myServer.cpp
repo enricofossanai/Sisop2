@@ -12,10 +12,20 @@
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
 #include <netinet/in.h> 
+#include <pthread.h>
+#include <vector>
   
-#define PORT     8080 
-#define MAXLINE 1024 
+
+using namespace std;
+
+#define PORT     8000 
+#define MAXLINE 102400
+#define MAXNUMCON 100
   
+//header da thread foda-se
+void *do_it_1(void *arg);
+
+
 // Driver code 
 int main() { 
     int sockfd; 
@@ -38,24 +48,46 @@ int main() {
     servaddr.sin_port = htons(PORT); 
       
     // Bind the socket with the server address 
-    if ( bind(sockfd, (const struct sockaddr *)&servaddr,  
-            sizeof(servaddr)) < 0 ) 
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 ) 
     { 
         perror("bind failed"); 
         exit(EXIT_FAILURE); 
     } 
-      
-    int n;
-    socklen_t len = sizeof(servaddr); 
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE,  
-                MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
-                &len); 
-    buffer[n] = '\0'; 
-    printf("Client : %s\n", buffer); 
+    
+    vector<pthread_t> threads(MAXNUMCON);
+    int threadNum = 0;
+    int rc;
+
+    while(1){
+            packet packetBuffer;
+            int n;
+            socklen_t len = sizeof(servaddr); 
+            n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
+
+
+            char* userName = "jucaBatista";
+
+            rc = pthread_create(&threads[threadNum], NULL, connect, (void*)userName);
+    }
+
+    /*
+    unmarshallPacket(&packetBuffer, buffer);
+
+    printf("Client : %hu\n", packetBuffer.type); 
+    printf("Client : %u\n", packetBuffer.total_size);
+    printf("Client : %s\n", packetBuffer._payload);
+
     sendto(sockfd, (const char *)hello, strlen(hello),  
         MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
             len); 
     printf("Hello message sent.\n");  
-      
+    */
+
     return 0; 
 } 
+
+
+//thread executada toda vez que abre uma 
+void *connect(void *arg) {
+    printf("Thread Created Successfully!\n");
+}
