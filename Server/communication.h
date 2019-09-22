@@ -15,3 +15,5 @@ typedef struct packet{
 void marshallPacket(packet* inPacket, char* serialized);
 
 void unmarshallPacket(packet* outPacket, char* serialized);
+
+int checkSum(packet * packet);

@@ -68,6 +68,12 @@ int main() {
 
             memcpy(&packetBuffer, buffer, sizeof(buffer));
 
+            if(!(checkSum(&packetBuffer)))
+                {
+                perror("Verification failed");
+                exit(EXIT_FAILURE);
+                }
+
             printf("Tipo: %d\n", packetBuffer.type);
             printf("Seq: %d\n",packetBuffer.seqn );
             printf("Len: %d\n",packetBuffer.length );

@@ -12,16 +12,31 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <netdb.h>
 
 #define PORT     8000
 #define MAXLINE 102400
+#define MAX_PACKET_SIZE 64000
 
 // Driver code
-int main() {
+int main(int argc, char *argv[]) {
     int sockfd, i;
     char buffer[MAXLINE];
     char *hello = "Hello from client";
     struct sockaddr_in servaddr;
+    struct hostent *server;
+
+    if (argc < 2) {
+		fprintf(stderr, "usage %s hostname\n", argv[0]);
+		exit(0);
+
+	}
+
+    server = gethostbyname(argv[1]);
+	if (server == NULL) {
+        fprintf(stderr,"ERROR, no such host\n");
+        exit(0);
+    }	
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -39,26 +54,23 @@ int main() {
     int n;
     socklen_t len = sizeof(servaddr);
 
-
+  
     packet sentPacket;
     sentPacket.type = 5;
-    sentPacket.seqn = 1;
+    sentPacket.seqn = 100;
     sentPacket.length = 42;
-    sentPacket.total_size = 2;
+    sentPacket.total_size = 7;
     strcpy(sentPacket._payload, "PRA QUE MARSHLING NESSA CACETA ENRICAO");
-    sentPacket.checksum = sizeof(sentPacket)*2;
+    sentPacket.checksum = checkSum(&sentPacket);
 
-
+    fflush(stdout);
     memcpy(buffer, &sentPacket, sizeof(buffer));
 
 
     char * message = "conectando";
-    // marshallPacket(&sentPacket, message);
-    //printf("Depois do Marshall");
-    //fflush( stdout );
+ 
 
-
-    sendto(sockfd, (const void *) buffer, 70 , MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));  // Precisa arrumar o tamanho do que ta enviando
+    sendto(sockfd, (const void *) buffer, MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));  // Precisa arrumar o tamanho do que ta enviando
     printf("Packet sent.\n");                                                                                         // 70 é só um numero cabalistico
     fflush( stdout );
 
