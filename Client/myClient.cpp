@@ -14,14 +14,12 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define PORT     8000
-#define MAXLINE 102400
-#define MAX_PACKET_SIZE 64000
+#define PORT  8000
 
 // Driver code
 int main(int argc, char *argv[]) {
     int sockfd, i;
-    char buffer[MAXLINE];
+    char buffer[MAX_PACKET_SIZE];
     char *hello = "Hello from client";
     struct sockaddr_in servaddr;
     struct hostent *server;
@@ -36,7 +34,7 @@ int main(int argc, char *argv[]) {
 	if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
-    }	
+    }
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -54,7 +52,7 @@ int main(int argc, char *argv[]) {
     int n;
     socklen_t len = sizeof(servaddr);
 
-  
+
     packet sentPacket;
     sentPacket.type = 5;
     sentPacket.seqn = 100;
@@ -68,13 +66,13 @@ int main(int argc, char *argv[]) {
 
 
     char * message = "conectando";
- 
+
 
     sendto(sockfd, (const void *) buffer, MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));  // Precisa arrumar o tamanho do que ta enviando
-    printf("Packet sent.\n");                                                                                         // 70 é só um numero cabalistico
+    printf("Packet sent.\n");                                                                                                     // 70 é só um numero cabalistico
     fflush( stdout );
 
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
 
     printf("Server : %s\n", buffer);
     fflush( stdout );

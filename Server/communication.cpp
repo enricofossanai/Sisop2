@@ -27,7 +27,7 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
 
     }
 
-    
+
     Sum = type + seqn + lenght + total_size + Sumchar;
 
     if (Sum==packet->checksum)
@@ -36,5 +36,5 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
     {
         return -1;
     }
-    
+
 }
