@@ -18,7 +18,6 @@
 #include <sys/stat.h> 
 #include <sys/types.h> 
 
-<<<<<<< HEAD
 #define PORT     8000
 #define MAXLINE 102400
 #define MAX_PACKET_SIZE 64000
@@ -30,15 +29,6 @@ int main(int argc, char *argv[]) {
     int sockfd, i,flag=FALSE;
     char buffer[MAXLINE];
     char username[20],command[20],option[20];
-=======
-#define PORT  8000
-
-// Driver code
-int main(int argc, char *argv[]) {
-    int sockfd, i;
-    char buffer[MAX_PACKET_SIZE];
-    char *hello = "Hello from client";
->>>>>>> d36a1feb5d60732dca4cc9b1034048fa0e1a2848
     struct sockaddr_in servaddr;
     struct hostent *server;
 
@@ -99,10 +89,6 @@ int main(int argc, char *argv[]) {
     printf("Packet sent.\n");                                                                                                     // 70 é só um numero cabalistico
     fflush( stdout );
 
-<<<<<<< HEAD
-=======
-    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
->>>>>>> d36a1feb5d60732dca4cc9b1034048fa0e1a2848
 
     while (flag == FALSE) {
 
