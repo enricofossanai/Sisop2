@@ -17,17 +17,20 @@
 
 #define PORT  8000
 
+struct sockaddr_in servaddr;
+
 //thread that sends messages to the server
 void *sender(void *arg);
 
 
 // Driver code
 int main(int argc, char *argv[]) {
-    int sockfd, i;
+    int i;
+    int sockfd;
     char buffer[MAX_PACKET_SIZE];
 	char auxarg[MAX_PACKET_SIZE];
-    char *hello = "Hello from client";
-    struct sockaddr_in servaddr;
+    
+    
     struct hostent *server;
 
     if (argc < 2) {
@@ -53,7 +56,7 @@ int main(int argc, char *argv[]) {
     // Filling server information
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_addr = *((struct in_addr *)server->h_addr);
 
     int n;
     socklen_t len = sizeof(servaddr);
@@ -70,8 +73,8 @@ int main(int argc, char *argv[]) {
     fflush(stdout);
     memcpy(buffer, &sentPacket, sizeof(buffer));
 
-    //sends initial message to server to connect
-    char * message = "conectando";
+    
+    
     sendto(sockfd, (const void *) buffer, MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));  // Precisa arrumar o tamanho do que ta enviando
     printf("Packet sent.\n");                                                                                                     // 70 é só um numero cabalistico
     fflush( stdout );
@@ -89,6 +92,8 @@ int main(int argc, char *argv[]) {
     pthread_create(&threadSender, NULL, sender, (void*) auxarg);
 
     close(sockfd);
+    while(1)
+       int juca = 1;
     return 0;
 }
 
@@ -97,15 +102,18 @@ void *sender(void *arg) {
     printf("Thread is listening!\n");
 
     char buffer[MAX_PACKET_SIZE];
-    struct socketInfo hostInfo;
-	memcpy(&hostInfo, &arg, sizeof(hostInfo));
-    int sockfd = hostInfo.sockfd;
-    struct sockaddr_in servaddr = hostInfo.servaddr;
-    socklen_t len = hostInfo.len;
-	int n;
+    socklen_t len = sizeof(servaddr);
+	int n,sockfd;
 	
+	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
 
-    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
+    if (n  < 0)
+        printf("\nERROR on rcvfrom\n");
+        
     printf("Server : %s\n", buffer);
     fflush( stdout );
 }

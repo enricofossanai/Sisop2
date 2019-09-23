@@ -32,7 +32,6 @@ int main() {
     int sockfd;
     char buffer[MAXLINE];
 	char auxarg[MAXLINE];	
-    char *hello = "Hello from server";
     struct sockaddr_in servaddr, cliaddr;
 
     // Creating socket file descriptor
@@ -69,6 +68,7 @@ int main() {
 
 
             memcpy(&packetBuffer, buffer, sizeof(buffer));
+            
 
             if(!(checkSum(&packetBuffer)))
                 {
@@ -86,7 +86,7 @@ int main() {
 			memcpy(auxarg, &cliaddr, sizeof(cliaddr));
 
             char* userName = (char *) malloc(sizeof(char)*10);
-            rc = pthread_create(&threads[threadNum], NULL, connect, (void *) auxarg);
+            rc = pthread_create(&threads[threadNum], NULL, connect, (void *) cliaddr);
     }
 
     return 0;
@@ -94,14 +94,17 @@ int main() {
 
 //thread executada toda vez que abre uma
 void *connect(void *arg) {
+    printf("entering connection thread");
+    fflush(stdout);
   int sockfd, sendToError;
   char buffer[MAXLINE];
-  char *hello = "Hello from nem server thread";
   struct sockaddr_in servaddr;
   struct sockaddr_in cliaddr;
-  int port = PORT + 1;
+  int port = 8001;
 
   memcpy(&cliaddr, arg, sizeof(cliaddr));
+  
+  
 
   // Creating socket file descriptor
   if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -123,8 +126,13 @@ void *connect(void *arg) {
       perror("bind failed");
       exit(EXIT_FAILURE);
   }
-  sendToError = sendto(sockfd, "Got your message\n", 17, 0,(struct sockaddr *) &cliaddr, sizeof(struct sockaddr));
+  
+  sendToError = sendto(sockfd, "Got your message\n", 17, 0,(const struct sockaddr *) &cliaddr, sizeof(struct sockaddr));
   if (sendToError  < 0)
     printf("ERROR on sendto");
+  else
+    printf("TESTE");
+    
+   fflush( stdout );
 
 }
