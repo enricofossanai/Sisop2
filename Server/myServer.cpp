@@ -26,10 +26,6 @@ using namespace std;
 void *connect(void *arg){
     printf("conectando\n");
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 7fb4b777a20901d07a8fe5e4e4912981f453800f
 
 // Driver code
 int main() {
@@ -89,10 +85,6 @@ int main() {
             char* userName = (char *) malloc(sizeof(char)*10);
             strcpy(userName, "Juca Batista");
             rc = pthread_create(&threads[threadNum], NULL, connect, &userName);
-<<<<<<< HEAD
-=======
-
->>>>>>> 7fb4b777a20901d07a8fe5e4e4912981f453800f
     }
 
     return 0;
