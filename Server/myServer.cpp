@@ -23,7 +23,7 @@ using namespace std;
 #define MAXNUMCON 100
 
 //header da thread foda-se
-void *do_it_1(void *arg);
+void *connect(void *arg);
 
 
 // Driver code
@@ -54,9 +54,9 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    //vector<pthread_t> threads(MAXNUMCON);
-    //int threadNum = 0;
-    //int rc;
+    vector<pthread_t> threads(MAXNUMCON);
+    int threadNum = 0;
+    int rc;
 
     while(1){
             packet packetBuffer;
@@ -81,23 +81,10 @@ int main() {
             printf("Check: %d\n", packetBuffer.checksum );
             printf("Payload: %s\n",packetBuffer._payload);
 
-            //char* userName = "jucaBatista";
+            char* userName = "jucaBatista";
 
-            //rc = pthread_create(&threads[threadNum], NULL, connect, (void*)userName);
+            rc = pthread_create(&threads[threadNum], NULL, connect, (void*)userName);
     }
-
-    /*
-    unmarshallPacket(&packetBuffer, buffer);
-
-    printf("Client : %hu\n", packetBuffer.type);
-    printf("Client : %u\n", packetBuffer.total_size);
-    printf("Client : %s\n", packetBuffer._payload);
-
-    sendto(sockfd, (const char *)hello, strlen(hello),
-        MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
-            len);
-    printf("Hello message sent.\n");
-    */
 
     return 0;
 }

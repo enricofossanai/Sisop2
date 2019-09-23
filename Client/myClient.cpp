@@ -13,24 +13,39 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <bits/stdc++.h> 
+#include <iostream> 
+#include <sys/stat.h> 
+#include <sys/types.h> 
 
 #define PORT     8000
 #define MAXLINE 102400
 #define MAX_PACKET_SIZE 64000
+#define TRUE 1
+#define FALSE 0
 
 // Driver code
 int main(int argc, char *argv[]) {
-    int sockfd, i;
+    int sockfd, i,flag=FALSE;
     char buffer[MAXLINE];
-    char *hello = "Hello from client";
+    char username[20],command[20],option[20];
     struct sockaddr_in servaddr;
     struct hostent *server;
 
-    if (argc < 2) {
-		fprintf(stderr, "usage %s hostname\n", argv[0]);
+    if (argc < 3) {
+		fprintf(stderr, "usage %s hostname username\n", argv[0]);
 		exit(0);
 
 	}
+
+    strcpy (username,argv[2]);
+
+    if (!(mkdir(username,0777))) 
+        printf("Directory created\n"); 
+    else { 
+        printf("Unable to create directory\n"); 
+        exit(0); 
+    } 
 
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
@@ -74,10 +89,33 @@ int main(int argc, char *argv[]) {
     printf("Packet sent.\n");                                                                                         // 70 é só um numero cabalistico
     fflush( stdout );
 
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
 
-    printf("Server : %s\n", buffer);
-    fflush( stdout );
+    while (flag == FALSE) {
+
+        printf("\nEnter the Command: ");
+        bzero(command, 20);
+        fgets(command, 20, stdin);
+
+
+        // Switch for options
+        if(strcmp(command,"exit\n") == 0) {
+            flag = TRUE;
+        } else if (strcmp(command, "upload") == 0) { // upload from path
+            
+        } else if (strcmp(command, "download") == 0) { // download to exec folder
+            
+        } else if (strcmp(command, "delete") == 0) { // delete from syncd dir
+            
+        } else if (strcmp(command, "list_server") == 0) { // list user's saved files on dir
+            
+        } else if (strcmp(command, "list_client") == 0) { // list saved files on dir
+            
+        } else if (strcmp(command, "get_sync_dir") == 0) { // creates sync_dir_<username> and syncs
+            
+        } else if (strcmp(command, "printar") == 0) { // creates sync_dir_<username> and syncs
+        }
+
+    }
 
     close(sockfd);
     return 0;

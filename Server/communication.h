@@ -12,8 +12,5 @@ typedef struct packet{
     char _payload[100];             //Dados do pacote
     } packet;
 
-void marshallPacket(packet* inPacket, char* serialized);
-
-void unmarshallPacket(packet* outPacket, char* serialized);
 
 int checkSum(packet * packet);
