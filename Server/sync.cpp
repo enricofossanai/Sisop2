@@ -8,4 +8,3 @@
 #include <netdb.h>
 #include <iostream>
 
-printf("Hello world!");

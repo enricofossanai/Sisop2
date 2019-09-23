@@ -13,6 +13,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <pthread.h>
 
 #define PORT  8000
 
@@ -24,6 +25,7 @@ void *sender(void *arg);
 int main(int argc, char *argv[]) {
     int sockfd, i;
     char buffer[MAX_PACKET_SIZE];
+	char auxarg[MAX_PACKET_SIZE];
     char *hello = "Hello from client";
     struct sockaddr_in servaddr;
     struct hostent *server;
@@ -77,13 +79,14 @@ int main(int argc, char *argv[]) {
 
     //prepara para enviar argumento para nova thread
     struct socketInfo hostInfo;
-    socketInfo.sockfd = sockfd;
-    socketInfo.servaddr = servaddr;
-    socketInfo.len = len;
+    hostInfo.sockfd = sockfd;
+    hostInfo.servaddr = servaddr;
+    hostInfo.len = len;
 
+	memcpy(auxarg, &hostInfo, sizeof(hostInfo));
     //cria thread que envia
     pthread_t threadSender;
-    pthread_create(&threadSender, NULL, sender, (void*) hostInfo);
+    pthread_create(&threadSender, NULL, sender, (void*) auxarg);
 
     close(sockfd);
     return 0;
@@ -94,10 +97,13 @@ void *sender(void *arg) {
     printf("Thread is listening!\n");
 
     char buffer[MAX_PACKET_SIZE];
-    struct socketInfo hostInfo = arg;
-    int sockfd = hostInfo.socketfd;
-    struct sockaddr_in servaddr = socketInfo.servaddr;
-    socklen_t len = socketInfo.len;
+    struct socketInfo hostInfo;
+	memcpy(&hostInfo, &arg, sizeof(hostInfo));
+    int sockfd = hostInfo.sockfd;
+    struct sockaddr_in servaddr = hostInfo.servaddr;
+    socklen_t len = hostInfo.len;
+	int n;
+	
 
     n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
     printf("Server : %s\n", buffer);

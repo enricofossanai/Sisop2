@@ -19,7 +19,7 @@
 using namespace std;
 
 #define PORT        8000
-#define MAXLINE     102400
+#define MAXLINE     64000
 #define MAXNUMCON   100
 
 //header da thread foda-se
@@ -31,6 +31,7 @@ void *connect(void *arg);
 int main() {
     int sockfd;
     char buffer[MAXLINE];
+	char auxarg[MAXLINE];	
     char *hello = "Hello from server";
     struct sockaddr_in servaddr, cliaddr;
 
@@ -82,9 +83,10 @@ int main() {
             printf("Check: %d\n", packetBuffer.checksum );
             printf("Payload: %s\n",packetBuffer._payload);
 
+			memcpy(auxarg, &cliaddr, sizeof(cliaddr));
+
             char* userName = (char *) malloc(sizeof(char)*10);
-            strcpy(userName, "Juca Batista");
-            rc = pthread_create(&threads[threadNum], NULL, connect, &userName);
+            rc = pthread_create(&threads[threadNum], NULL, connect, (void *) auxarg);
     }
 
     return 0;
@@ -96,8 +98,10 @@ void *connect(void *arg) {
   char buffer[MAXLINE];
   char *hello = "Hello from nem server thread";
   struct sockaddr_in servaddr;
-  struct sockaddr_in cliaddr = arg;
+  struct sockaddr_in cliaddr;
   int port = PORT + 1;
+
+  memcpy(&cliaddr, arg, sizeof(cliaddr));
 
   // Creating socket file descriptor
   if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -119,7 +123,7 @@ void *connect(void *arg) {
       perror("bind failed");
       exit(EXIT_FAILURE);
   }
-  sendToError = sendto(sockfd, "Got your message\n", 17, 0,(struct sockaddr *) &cli_addr, sizeof(struct sockaddr));
+  sendToError = sendto(sockfd, "Got your message\n", 17, 0,(struct sockaddr *) &cliaddr, sizeof(struct sockaddr));
   if (sendToError  < 0)
     printf("ERROR on sendto");
 
