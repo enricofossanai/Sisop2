@@ -28,7 +28,7 @@ int checkSum(packet * packet) //faz a soma dos dados do pacote
 
     }
 
-    
+
     Sum = type + seqn + lenght + total_size + Sumchar;
 
     return Sum;

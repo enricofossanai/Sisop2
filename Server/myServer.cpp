@@ -18,12 +18,18 @@
 
 using namespace std;
 
-#define PORT     8000
-#define MAXLINE 102400
-#define MAXNUMCON 100
+#define PORT        8000
+#define MAXLINE     102400
+#define MAXNUMCON   100
 
 //header da thread foda-se
+<<<<<<< HEAD
 void *connect(void *arg);
+=======
+void *connect(void *arg){
+    printf("conectando\n");
+}
+>>>>>>> d36a1feb5d60732dca4cc9b1034048fa0e1a2848
 
 
 // Driver code
@@ -81,16 +87,16 @@ int main() {
             printf("Check: %d\n", packetBuffer.checksum );
             printf("Payload: %s\n",packetBuffer._payload);
 
+<<<<<<< HEAD
             char* userName = "jucaBatista";
 
             rc = pthread_create(&threads[threadNum], NULL, connect, (void*)userName);
+=======
+            char* userName = (char *) malloc(sizeof(char)*10);
+            strcpy(userName, "Juca Batista");
+            rc = pthread_create(&threads[threadNum], NULL, connect, &userName);
+>>>>>>> d36a1feb5d60732dca4cc9b1034048fa0e1a2848
     }
 
     return 0;
-}
-
-
-//thread executada toda vez que abre uma
-void *connect(void *arg) {
-    printf("Thread Created Successfully!\n");
 }
