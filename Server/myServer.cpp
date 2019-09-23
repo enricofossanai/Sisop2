@@ -23,7 +23,9 @@ using namespace std;
 #define MAXNUMCON   100
 
 //header da thread foda-se
-void *do_it_1(void *arg);
+void *connect(void *arg){
+    printf("conectando\n");
+}
 
 
 // Driver code
@@ -81,14 +83,10 @@ int main() {
             printf("Check: %d\n", packetBuffer.checksum );
             printf("Payload: %s\n",packetBuffer._payload);
 
-            char* userName = "jucaBatista";
-            rc = pthread_create(&threads[threadNum], NULL, connect, (void*)userName);
+            char* userName = (char *) malloc(sizeof(char)*10);
+            strcpy(userName, "Juca Batista");
+            rc = pthread_create(&threads[threadNum], NULL, connect, &userName);
     }
 
     return 0;
-}
-
-//thread executada toda vez que abre uma
-void *connect(void *arg) {
-    printf("Thread Created Successfully!\n");
 }
