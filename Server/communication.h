@@ -12,8 +12,4 @@ typedef struct packet{
     char _payload[62000];             //Dados do pacote
     } packet;
 
-<<<<<<< HEAD
-
-=======
->>>>>>> d36a1feb5d60732dca4cc9b1034048fa0e1a2848
 int checkSum(packet * packet);
