@@ -7,3 +7,5 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <iostream>
+
+printf("Hello world!");

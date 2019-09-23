@@ -13,5 +13,11 @@ typedef struct packet{
     } packet;
 
 
+typedef struct socketInfo{
+    int sockfd;
+    struct sockaddr_in servaddr;
+    socklen_t len;
+    } socketInfo;
+
 
 int checkSum(packet * packet);

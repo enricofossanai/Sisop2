@@ -23,9 +23,9 @@ using namespace std;
 #define MAXNUMCON   100
 
 //header da thread foda-se
-void *connect(void *arg){
-    printf("conectando\n");
-}
+
+void *connect(void *arg);
+
 
 // Driver code
 int main() {
@@ -85,8 +85,42 @@ int main() {
             char* userName = (char *) malloc(sizeof(char)*10);
             strcpy(userName, "Juca Batista");
             rc = pthread_create(&threads[threadNum], NULL, connect, &userName);
-
     }
 
     return 0;
+}
+
+//thread executada toda vez que abre uma
+void *connect(void *arg) {
+  int sockfd, sendToError;
+  char buffer[MAXLINE];
+  char *hello = "Hello from nem server thread";
+  struct sockaddr_in servaddr;
+  struct sockaddr_in cliaddr = arg;
+  int port = PORT + 1;
+
+  // Creating socket file descriptor
+  if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+      perror("socket creation failed");
+      exit(EXIT_FAILURE);
+  }
+
+  memset(&servaddr, 0, sizeof(servaddr));
+  memset(&cliaddr, 0, sizeof(cliaddr));
+
+  // Filling server information
+  servaddr.sin_family    = AF_INET; // IPv4
+  servaddr.sin_addr.s_addr = INADDR_ANY;
+  servaddr.sin_port = htons(port);
+
+  // Bind the socket with the server address
+  if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
+  {
+      perror("bind failed");
+      exit(EXIT_FAILURE);
+  }
+  sendToError = sendto(sockfd, "Got your message\n", 17, 0,(struct sockaddr *) &cli_addr, sizeof(struct sockaddr));
+  if (sendToError  < 0)
+    printf("ERROR on sendto");
+
 }

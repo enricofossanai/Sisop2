@@ -13,39 +13,26 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <bits/stdc++.h> 
-#include <iostream> 
-#include <sys/stat.h> 
-#include <sys/types.h> 
 
-#define PORT     8000
-#define MAXLINE 102400
-#define MAX_PACKET_SIZE 64000
-#define TRUE 1
-#define FALSE 0
+#define PORT  8000
+
+//thread that sends messages to the server
+void *sender(void *arg);
+
 
 // Driver code
 int main(int argc, char *argv[]) {
-    int sockfd, i,flag=FALSE;
-    char buffer[MAXLINE];
-    char username[20],command[20],option[20];
+    int sockfd, i;
+    char buffer[MAX_PACKET_SIZE];
+    char *hello = "Hello from client";
     struct sockaddr_in servaddr;
     struct hostent *server;
 
-    if (argc < 3) {
-		fprintf(stderr, "usage %s hostname username\n", argv[0]);
+    if (argc < 2) {
+		fprintf(stderr, "usage %s hostname\n", argv[0]);
 		exit(0);
 
 	}
-
-    strcpy (username,argv[2]);
-
-    if (!(mkdir(username,0777))) 
-        printf("Directory created\n"); 
-    else { 
-        printf("Unable to create directory\n"); 
-        exit(0); 
-    } 
 
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
@@ -69,7 +56,7 @@ int main(int argc, char *argv[]) {
     int n;
     socklen_t len = sizeof(servaddr);
 
-
+    // Filling packet for test
     packet sentPacket;
     sentPacket.type = 5;
     sentPacket.seqn = 100;
@@ -81,42 +68,38 @@ int main(int argc, char *argv[]) {
     fflush(stdout);
     memcpy(buffer, &sentPacket, sizeof(buffer));
 
-
+    //sends initial message to server to connect
     char * message = "conectando";
-
-
     sendto(sockfd, (const void *) buffer, MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));  // Precisa arrumar o tamanho do que ta enviando
     printf("Packet sent.\n");                                                                                                     // 70 é só um numero cabalistico
     fflush( stdout );
 
 
-    while (flag == FALSE) {
+    //prepara para enviar argumento para nova thread
+    struct socketInfo hostInfo;
+    socketInfo.sockfd = sockfd;
+    socketInfo.servaddr = servaddr;
+    socketInfo.len = len;
 
-        printf("\nEnter the Command: ");
-        bzero(command, 20);
-        fgets(command, 20, stdin);
-
-
-        // Switch for options
-        if(strcmp(command,"exit\n") == 0) {
-            flag = TRUE;
-        } else if (strcmp(command, "upload") == 0) { // upload from path
-            
-        } else if (strcmp(command, "download") == 0) { // download to exec folder
-            
-        } else if (strcmp(command, "delete") == 0) { // delete from syncd dir
-            
-        } else if (strcmp(command, "list_server") == 0) { // list user's saved files on dir
-            
-        } else if (strcmp(command, "list_client") == 0) { // list saved files on dir
-            
-        } else if (strcmp(command, "get_sync_dir") == 0) { // creates sync_dir_<username> and syncs
-            
-        } else if (strcmp(command, "printar") == 0) { // creates sync_dir_<username> and syncs
-        }
-
-    }
+    //cria thread que envia
+    pthread_t threadSender;
+    pthread_create(&threadSender, NULL, sender, (void*) hostInfo);
 
     close(sockfd);
     return 0;
+}
+
+
+void *sender(void *arg) {
+    printf("Thread is listening!\n");
+
+    char buffer[MAX_PACKET_SIZE];
+    struct socketInfo hostInfo = arg;
+    int sockfd = hostInfo.socketfd;
+    struct sockaddr_in servaddr = socketInfo.servaddr;
+    socklen_t len = socketInfo.len;
+
+    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+    printf("Server : %s\n", buffer);
+    fflush( stdout );
 }
