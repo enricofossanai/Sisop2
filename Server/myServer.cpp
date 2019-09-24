@@ -26,12 +26,11 @@ using namespace std;
 
 void *connect(void *arg);
 
-
 // Driver code
 int main() {
     int sockfd;
     char buffer[MAXLINE];
-	char auxarg[MAXLINE];	
+	char auxarg[MAXLINE];
     struct sockaddr_in servaddr, cliaddr;
 
     // Creating socket file descriptor
@@ -64,11 +63,7 @@ int main() {
             int n, i;
             socklen_t len = sizeof(servaddr);
 
-            n = recvfrom(sockfd, buffer, MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
-
-
-            memcpy(&packetBuffer, buffer, sizeof(buffer));
-            
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
 
             if(!(checkSum(&packetBuffer)))
                 {
@@ -83,10 +78,9 @@ int main() {
             printf("Check: %d\n", packetBuffer.checksum );
             printf("Payload: %s\n",packetBuffer._payload);
 
-			memcpy(auxarg, &cliaddr, sizeof(cliaddr));
 
             char* userName = (char *) malloc(sizeof(char)*10);
-            rc = pthread_create(&threads[threadNum], NULL, connect, (void *) cliaddr);
+            rc = pthread_create(&threads[threadNum], NULL, connect, reinterpret_cast<void *> (&cliaddr));
     }
 
     return 0;
@@ -94,45 +88,38 @@ int main() {
 
 //thread executada toda vez que abre uma
 void *connect(void *arg) {
-    printf("entering connection thread");
+    printf("\nConnection thread\n");
     fflush(stdout);
-  int sockfd, sendToError;
-  char buffer[MAXLINE];
-  struct sockaddr_in servaddr;
-  struct sockaddr_in cliaddr;
-  int port = 8001;
+    int sockfd, sendToError;
+    char buffer[MAXLINE];
+    struct sockaddr_in servaddr;
+    struct sockaddr_in cliaddr;
+    int port = 8001;
 
-  memcpy(&cliaddr, arg, sizeof(cliaddr));
-  
-  
+    // Creating socket file descriptor
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
 
-  // Creating socket file descriptor
-  if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-      perror("socket creation failed");
-      exit(EXIT_FAILURE);
-  }
+    memset(&servaddr, 0, sizeof(servaddr));
+    memset(&cliaddr, 0, sizeof(cliaddr));
 
-  memset(&servaddr, 0, sizeof(servaddr));
-  memset(&cliaddr, 0, sizeof(cliaddr));
+    // Filling server information
+    servaddr.sin_family    = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(port);
 
-  // Filling server information
-  servaddr.sin_family    = AF_INET; // IPv4
-  servaddr.sin_addr.s_addr = INADDR_ANY;
-  servaddr.sin_port = htons(port);
+    // Bind the socket with the server address
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
 
-  // Bind the socket with the server address
-  if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
-  {
-      perror("bind failed");
-      exit(EXIT_FAILURE);
-  }
-  
-  sendToError = sendto(sockfd, "Got your message\n", 17, 0,(const struct sockaddr *) &cliaddr, sizeof(struct sockaddr));
-  if (sendToError  < 0)
-    printf("ERROR on sendto");
-  else
-    printf("TESTE");
-    
-   fflush( stdout );
+    sendToError = sendto(sockfd, "É os guri ou não é?????\n", 50, 0,(const struct sockaddr *) arg, sizeof(struct sockaddr));
+    if (sendToError  < 0)
+        printf("ERROR on sendto\n");
 
+    fflush( stdout );
 }
