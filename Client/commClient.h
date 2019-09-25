@@ -41,3 +41,5 @@ void *sender(void *arg);
 
 void firstConnect (int sockfd , struct hostent *server);
 
+long tamFile (FILE *f);
+

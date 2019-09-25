@@ -64,3 +64,19 @@ void firstConnect (int sockfd , struct hostent *server){
 	fflush( stdout );
 
 }
+
+long sizeFile (FILE *f){
+	long size;
+
+	if (f != NULL) {
+        fseek(f, 0, SEEK_END); 
+        // pega a posição corrente de leitura no arquivo
+        size = ftell(f);
+		return size;
+     
+    } else {
+        printf("Arquivo inexistente");
+		return -1;
+    }
+ 
+}
