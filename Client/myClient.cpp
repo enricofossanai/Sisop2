@@ -1,7 +1,6 @@
 //Headers
 #include "aplication.h"
-#include "communication.h"
-#include "sync.h"
+#include "commClient.h"
 
 // Client side implementation of UDP client-server model
 #include <stdio.h>
@@ -76,12 +75,6 @@ int main(int argc, char *argv[]) {
     printf("Packet sent.\n");
     fflush( stdout );
 
-    //prepara para enviar argumento para nova thread
-    struct socketInfo hostInfo;
-    hostInfo.sockfd = sockfd;
-    hostInfo.servaddr = servaddr;
-    hostInfo.len = len;
-
     //cria thread que envia
     pthread_t threadSender;
     pthread_create(&threadSender, NULL, sender, NULL);
@@ -108,3 +101,4 @@ void *sender(void *arg) {
     printf("Server : %s\n", buffer);
     fflush( stdout );
 }
+

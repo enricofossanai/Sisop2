@@ -1,7 +1,6 @@
  //Headers
-#include "communication.h"
+#include "commServer.h"
 #include "fileManager.h"
-#include "sync.h"
 
 // Server side implementation of UDP client-server model
 #include <stdio.h>
@@ -17,14 +16,7 @@
 
 
 using namespace std;
-
-#define PORT        8000
-#define MAXLINE     64000
-#define MAXNUMCON   100
-
-//header da thread foda-se
-
-void *connect(void *arg);
+int curPort = 8000;
 
 // Driver code
 int main() {
@@ -65,7 +57,7 @@ int main() {
 
             n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
 
-            if(!(checkSum(&packetBuffer)))
+            if(!(checkSum(&packetBuffer)))		// Verificação de CheckSum
                 {
                 perror("Verification failed");
                 exit(EXIT_FAILURE);
@@ -81,12 +73,12 @@ int main() {
 
             char* userName = (char *) malloc(sizeof(char)*10);
             rc = pthread_create(&threads[threadNum], NULL, connect, reinterpret_cast<void *> (&cliaddr));
+			threadNum++;
     }
 
     return 0;
 }
 
-//thread executada toda vez que abre uma
 void *connect(void *arg) {
     printf("\nConnection thread\n");
     fflush(stdout);
@@ -94,7 +86,8 @@ void *connect(void *arg) {
     char buffer[MAXLINE];
     struct sockaddr_in servaddr;
     struct sockaddr_in cliaddr;
-    int port = 8001;
+	
+	curPort++;						// Lembrar que é global, protege ou não?
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -108,7 +101,7 @@ void *connect(void *arg) {
     // Filling server information
     servaddr.sin_family    = AF_INET; // IPv4
     servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(port);
+    servaddr.sin_port = htons(curPort);
 
     // Bind the socket with the server address
     if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
@@ -123,3 +116,5 @@ void *connect(void *arg) {
 
     fflush( stdout );
 }
+
+
