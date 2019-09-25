@@ -110,6 +110,8 @@ int fileToBuffer (FILE *f){
 }
 
 int sendFile(char *fileName){
+  //FILE *fd = fopen( “testfile.txt”, “rb” );  //<<<<<<<<<<<<<PROBLEMA AQUI
 
+  //fclose(fd);
   return 0;
 }
