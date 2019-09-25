@@ -14,21 +14,13 @@
 #include <netdb.h>
 #include <pthread.h>
 
-#define PORT  8000
-
 struct sockaddr_in servaddr;
 int sockfd;
-
-//thread that sends messages to the server
-void *sender(void *arg);
-
 
 // Driver code
 int main(int argc, char *argv[]) {
     int i;
     char buffer[MAX_PACKET_SIZE];
-	char auxarg[MAX_PACKET_SIZE];
-
 
     struct hostent *server;
 
@@ -50,30 +42,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    memset(&servaddr, 0, sizeof(servaddr));
-
-    // Filling server information
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr = *((struct in_addr *)server->h_addr);
-
-    int n;
-    socklen_t len = sizeof(servaddr);
-
-    // Filling packet for test
-    packet sentPacket;
-    sentPacket.type = 5;
-    sentPacket.seqn = 100;
-    sentPacket.length = 42;
-    sentPacket.total_size = 7;
-    strcpy(sentPacket._payload, "PRA QUE MARSHLING NESSA CACETA ENRICAO");
-    sentPacket.checksum = checkSum(&sentPacket);
-
-    fflush(stdout);
-
-    sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
-    printf("Packet sent.\n");
-    fflush( stdout );
+	firstConnect(sockfd,server);
 
     //cria thread que envia
     pthread_t threadSender;
