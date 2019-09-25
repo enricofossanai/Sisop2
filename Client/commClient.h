@@ -49,3 +49,6 @@ long sizeFile (FILE *f);
 
 //copies file to buffer
 int fileToBuffer (FILE *f);
+
+//sends file
+int sendFile(char *fileName);

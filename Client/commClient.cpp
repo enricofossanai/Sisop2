@@ -96,8 +96,20 @@ long sizeFile (FILE *f){
 //copies file to buffer
 int fileToBuffer (FILE *f){
   long size = sizeFile(f);
-  fileBuffer = (char*)malloc(size * sizeof(char));
+  fileBuffer = (char*)malloc((size) * sizeof(char));
 
+  //Read file contents into buffer
+  size_t paulo = fread(fileBuffer, 1, size, f);
+  if(paulo != size) {
+      fprintf(stderr, "Erro ao tentar ler o arquivo inteiro.\n");
+      return -1;
+  }
+  printf("%s",fileBuffer);
   free(fileBuffer);
+  return 0;
+}
+
+int sendFile(char *fileName){
+
   return 0;
 }
