@@ -13,16 +13,26 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
-#include <bits/stdc++.h> 
-#include <iostream> 
-#include <sys/stat.h> 
-#include <sys/types.h> 
+#include <bits/stdc++.h>
+#include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
+
+//global variables
 struct sockaddr_in servaddr;
 int sockfd;
+char * fileBuffer;
 
 // Driver code
 int main(int argc, char *argv[]) {
+
+
+//////USANDO AREA PARA TESTAR PODE APAGAR DEPOIS
+//fileBuffer = "me diz que funfou";
+///////////////////////////////////////////////
+
+
     int i,flag=FALSE;
 	char username[20],command[20],option[20];
     char buffer[MAX_PACKET_SIZE];
@@ -37,12 +47,12 @@ int main(int argc, char *argv[]) {
 
     strcpy (username,argv[2]);
 
-    if (!(mkdir(username,0777))) 
-        printf("Directory created\n"); 
-    else { 
-        printf("Unable to create directory\n"); 
-        
-    } 
+    if (!(mkdir(username,0777)))
+        printf("Directory created\n");
+    else {
+        printf("Unable to create directory\n");
+
+    }
 
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
@@ -73,17 +83,17 @@ int main(int argc, char *argv[]) {
         if(strcmp(command,"exit\n") == 0) {
             flag = TRUE;
         } else if (strcmp(command, "upload") == 0) { // upload from path
-            
+
         } else if (strcmp(command, "download") == 0) { // download to exec folder
-            
+
         } else if (strcmp(command, "delete") == 0) { // delete from syncd dir
-            
+
         } else if (strcmp(command, "list_server") == 0) { // list user's saved files on dir
-            
+
         } else if (strcmp(command, "list_client") == 0) { // list saved files on dir
-            
+
         } else if (strcmp(command, "get_sync_dir") == 0) { // creates sync_dir_<username> and syncs
-            
+
         } else if (strcmp(command, "printar") == 0) { // creates sync_dir_<username> and syncs
         }
 
@@ -109,4 +119,3 @@ void *sender(void *arg) {
     printf("Server : %s\n", buffer);
     fflush( stdout );
 }
-

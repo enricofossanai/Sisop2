@@ -41,7 +41,11 @@ int checkSum(packet * packet);
 //thread that sends messages to the server
 void *sender(void *arg);
 
+//send first message to server to connect
 void firstConnect (int sockfd , struct hostent *server);
 
-long tamFile (FILE *f);
+//return size of file or -1 if error
+long sizeFile (FILE *f);
 
+//copies file to buffer
+int fileToBuffer (FILE *f);

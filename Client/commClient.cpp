@@ -15,6 +15,9 @@
 
 #include "commClient.h"
 
+//chamando as variabeis globais
+extern char * fileBuffer;
+
 int checkSum(packet * packet) //faz a soma dos dados do pacote
 {
     int Sum = 0,Sumchar=0,i;
@@ -26,7 +29,7 @@ int checkSum(packet * packet) //faz a soma dos dados do pacote
 
     }
 
-    
+
     Sum = type + seqn + lenght + total_size + Sumchar;
 
     return Sum;
@@ -60,8 +63,16 @@ void firstConnect (int sockfd , struct hostent *server){
         printf("\nERROR on sendto First Connect\n");
    	else
 		printf("Connection Made\n");
-    
+
 	fflush( stdout );
+
+
+
+/////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
+//  printf("%s",fileBuffer);
+//  fflush( stdout );
+////////////////////////////////////
+
 
 }
 
@@ -69,15 +80,24 @@ long sizeFile (FILE *f){
 	long size;
 
 	if (f != NULL) {
-        fseek(f, 0, SEEK_END); 
-        // pega a posição corrente de leitura no arquivo
-        size = ftell(f);
+    fseek(f, 0, SEEK_END);
+    // pega a posição corrente de leitura no arquivo
+    size = ftell(f);
 		fseek(f,0,SEEK_SET);
 		return size;
-     
+
     } else {
         printf("Arquivo inexistente");
 		return -1;
     }
- 
+
+}
+
+//copies file to buffer
+int fileToBuffer (FILE *f){
+  long size = sizeFile(f);
+  fileBuffer = (char*)malloc(size * sizeof(char));
+
+  free(fileBuffer);
+  return 0;
 }
