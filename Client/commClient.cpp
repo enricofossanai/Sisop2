@@ -72,6 +72,7 @@ long sizeFile (FILE *f){
         fseek(f, 0, SEEK_END); 
         // pega a posição corrente de leitura no arquivo
         size = ftell(f);
+		fseek(f,0,SEEK_SET);
 		return size;
      
     } else {
