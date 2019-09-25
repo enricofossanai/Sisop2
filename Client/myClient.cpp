@@ -13,22 +13,36 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <bits/stdc++.h> 
+#include <iostream> 
+#include <sys/stat.h> 
+#include <sys/types.h> 
 
 struct sockaddr_in servaddr;
 int sockfd;
 
 // Driver code
 int main(int argc, char *argv[]) {
-    int i;
+    int i,flag=FALSE;
+	char username[20],command[20],option[20];
     char buffer[MAX_PACKET_SIZE];
 
     struct hostent *server;
 
-    if (argc < 2) {
-		fprintf(stderr, "usage %s hostname\n", argv[0]);
+    if (argc < 3) {
+		fprintf(stderr, "usage %s hostname username\n", argv[0]);
 		exit(0);
 
 	}
+
+    strcpy (username,argv[2]);
+
+    if (!(mkdir(username,0777))) 
+        printf("Directory created\n"); 
+    else { 
+        printf("Unable to create directory\n"); 
+        
+    } 
 
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
@@ -48,8 +62,33 @@ int main(int argc, char *argv[]) {
     pthread_t threadSender;
     pthread_create(&threadSender, NULL, sender, NULL);
 
-    while(1)
-       int juca = 1;
+   while (flag == FALSE) {
+
+        printf("\nEnter the Command: ");
+        bzero(command, 20);
+        fgets(command, 20, stdin);
+
+
+        // Switch for options
+        if(strcmp(command,"exit\n") == 0) {
+            flag = TRUE;
+        } else if (strcmp(command, "upload") == 0) { // upload from path
+            
+        } else if (strcmp(command, "download") == 0) { // download to exec folder
+            
+        } else if (strcmp(command, "delete") == 0) { // delete from syncd dir
+            
+        } else if (strcmp(command, "list_server") == 0) { // list user's saved files on dir
+            
+        } else if (strcmp(command, "list_client") == 0) { // list saved files on dir
+            
+        } else if (strcmp(command, "get_sync_dir") == 0) { // creates sync_dir_<username> and syncs
+            
+        } else if (strcmp(command, "printar") == 0) { // creates sync_dir_<username> and syncs
+        }
+
+    }
+
 
     close(sockfd);
 

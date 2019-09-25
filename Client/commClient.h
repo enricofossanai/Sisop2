@@ -12,6 +12,8 @@
 
 #define MAX_PACKET_SIZE     	64000
 #define PORT  			8000
+#define TRUE 1
+#define FALSE 0
 
 #define DATA			0
 #define ACK			1
