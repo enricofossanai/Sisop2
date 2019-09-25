@@ -1,7 +1,10 @@
 #include <stdint.h>
 
 
-#define MAX_PACKET_SIZE     64000
+#define MAX_PACKET_SIZE     	64000
+#define MAXLINE        		64000
+#define MAXNUMCON   		100
+#define PORT	   		8000
 
 typedef struct packet{
     uint16_t type;                  //Tipo do pacote(p.ex. DATA| ACK | CMD)
@@ -13,3 +16,6 @@ typedef struct packet{
     } packet;
 
 int checkSum(packet * packet);
+
+void *connect(void *arg);
+

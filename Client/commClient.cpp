@@ -13,7 +13,7 @@
 #include <dirent.h>
 #include <time.h>
 
-#include "communication.h"
+#include "commClient.h"
 
 
 

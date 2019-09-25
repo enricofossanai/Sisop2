@@ -13,7 +13,7 @@
 #include <dirent.h>
 #include <time.h>
 
-#include "communication.h"
+#include "commServer.h"
 
 
 int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
@@ -38,3 +38,5 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
     }
 
 }
+
+
