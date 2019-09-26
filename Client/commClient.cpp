@@ -7,6 +7,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <errno.h>
 #include <sys/inotify.h>
@@ -109,8 +110,13 @@ int fileToBuffer (FILE *f){
 }
 
 int sendFile(char *fileName){
+<<<<<<< HEAD
   FILE *fd = fopen( "testfile.txt", "rb" );
   if (fd!=NULL){
+=======
+  FILE *fd;
+  fd = fopen("myfile", "rb");
+>>>>>>> 792447d379a65c8fc771ddf507d9f993e6166a63
 
 
     fclose (fd);
