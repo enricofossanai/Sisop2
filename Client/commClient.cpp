@@ -70,7 +70,7 @@ void firstConnect (int sockfd , struct hostent *server){
 
 
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  sendFile("oitenta");
+//  sendFile("oitenta");
 ////////////////////////////////////
 
 
@@ -105,20 +105,18 @@ int fileToBuffer (FILE *f){
       return -1;
   }
   printf("%s",fileBuffer);
-  free(fileBuffer);
   return 0;
 }
 
 int sendFile(char *fileName){
-<<<<<<< HEAD
   FILE *fd = fopen( "testfile.txt", "rb" );
   if (fd!=NULL){
-=======
-  FILE *fd;
-  fd = fopen("myfile", "rb");
->>>>>>> 792447d379a65c8fc771ddf507d9f993e6166a63
+
+    fileToBuffer(fd);
 
 
+    //closes file and free the buffer
+    free(fileBuffer);
     fclose (fd);
     return 0;
   }
