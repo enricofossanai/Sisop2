@@ -69,8 +69,7 @@ void firstConnect (int sockfd , struct hostent *server){
 
 
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-//  printf("%s",fileBuffer);
-//  fflush( stdout );
+  sendFile("oitenta");
 ////////////////////////////////////
 
 
@@ -110,8 +109,14 @@ int fileToBuffer (FILE *f){
 }
 
 int sendFile(char *fileName){
-  //FILE *fd = fopen( “testfile.txt”, “rb” );  //<<<<<<<<<<<<<PROBLEMA AQUI
+  FILE *fd = fopen( "testfile.txt", "rb" );
+  if (fd!=NULL){
 
-  //fclose(fd);
-  return 0;
+
+    fclose (fd);
+    return 0;
+  }
+  else
+      printf("Erro na abertura do arquivo");
+  return -1;
 }
