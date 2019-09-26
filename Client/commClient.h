@@ -11,6 +11,7 @@
 
 
 #define MAX_PACKET_SIZE     	64000
+#define MAX_PAYLOAD_SIZE      62000
 #define PORT  			8000
 #define TRUE 1
 #define FALSE 0
@@ -48,7 +49,7 @@ void firstConnect (int sockfd , struct hostent *server);
 long sizeFile (FILE *f);
 
 //copies file to buffer
-int fileToBuffer (FILE *f);
+long fileToBuffer (FILE *f);
 
 //sends file
 int sendFile(char *fileName);

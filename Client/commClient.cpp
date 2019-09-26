@@ -18,6 +18,9 @@
 
 //chamando as variabeis globais
 extern char * fileBuffer;
+extern struct sockaddr_in servaddr;
+extern int sockfd;
+extern int fileParts;
 
 int checkSum(packet * packet) //faz a soma dos dados do pacote
 {
@@ -70,7 +73,7 @@ void firstConnect (int sockfd , struct hostent *server){
 
 
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-//  sendFile("oitenta");
+  sendFile("oitenta");
 ////////////////////////////////////
 
 
@@ -94,7 +97,7 @@ long sizeFile (FILE *f){
 }
 
 //copies file to buffer
-int fileToBuffer (FILE *f){
+long fileToBuffer (FILE *f){
   long size = sizeFile(f);
   fileBuffer = (char*)malloc((size) * sizeof(char));
 
@@ -105,15 +108,23 @@ int fileToBuffer (FILE *f){
       return -1;
   }
   printf("%s",fileBuffer);
-  return 0;
+  return size;
 }
 
 int sendFile(char *fileName){
   FILE *fd = fopen( "testfile.txt", "rb" );
   if (fd!=NULL){
 
-    fileToBuffer(fd);
+    long fileSize = fileToBuffer(fd);
 
+    printf("\nsizeofbuffer:%ld\n",fileSize);
+
+    if (fileSize <= MAX_PAYLOAD_SIZE){
+      printf("\nonly Sending one Package\n");
+    }
+    else{
+      printf("\nsending multiple packages\n");
+    }
 
     //closes file and free the buffer
     free(fileBuffer);

@@ -23,6 +23,7 @@
 struct sockaddr_in servaddr;
 int sockfd;
 char * fileBuffer;
+int fileParts;
 
 // Driver code
 int main(int argc, char *argv[]) {
