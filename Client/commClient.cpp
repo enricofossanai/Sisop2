@@ -135,3 +135,52 @@ int sendFile(char *fileName){
       printf("Erro na abertura do arquivo");
   return -1;
 }
+
+void ackSequence (node *list, int seqn){
+  if (list!=NULL){
+    node *newNode = (node*)malloc(sizeof(node));
+    newNode->data = seqn;
+    newNode->next = list->next;
+    list->next = newNode;
+    list->data++;
+    return;
+  }
+  else{
+    node *secondNode;
+    list = (node*)malloc(sizeof(node));
+    secondNode = (node*)malloc(sizeof(node));
+    list->data = 1;
+    list->next = secondNode;
+    secondNode->data = seqn;
+  }
+  printf("ListSize = %d\n", list->data);
+  printf("FirstNode = %d\n", list->next->data);
+}
+
+void deleteList(node* head)  {
+
+  node *current = head;
+  node *next;
+  while (current != NULL){
+    next = current->next;
+    free(current);
+    current = next;
+  }
+  head = NULL;
+}
+
+//usado apenas para testes
+void displayList(node* head)
+{
+  node *temp;
+  if(head == NULL){
+    printf("List is empty.");
+  }
+  else{
+    temp = head;
+    while(temp != NULL){
+      printf("Data = %d\n", temp->data); // Print data of current node
+      temp = temp->next;                 // Move to next node
+    }
+  }
+}
