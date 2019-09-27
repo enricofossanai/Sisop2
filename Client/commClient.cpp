@@ -111,50 +111,20 @@ long fileToBuffer (FILE *f){
   return size;
 }
 
-int sendFile(char *fileName){
-  FILE *fd = fopen( "testfile.txt", "rb" );
-  if (fd!=NULL){
-
-    long fileSize = fileToBuffer(fd);
-
-    printf("\nsizeofbuffer:%ld\n",fileSize);
-
-    if (fileSize <= MAX_PAYLOAD_SIZE){
-      printf("\nonly Sending one Package\n");
-    }
-    else{
-      printf("\nsending multiple packages\n");
-    }
-
-    //closes file and free the buffer
-    free(fileBuffer);
-    fclose (fd);
-    return 0;
-  }
-  else
-      printf("Erro na abertura do arquivo");
-  return -1;
-}
-
-void ackSequence (node *list, int seqn){
+void ackSequence (node **list, int seqn){
   if (list!=NULL){
     node *newNode = (node*)malloc(sizeof(node));
     newNode->data = seqn;
-    newNode->next = list->next;
-    list->next = newNode;
-    list->data++;
+    newNode->next = (*list)->next;
+    (*list)->next = newNode;
+    (*list)->data++;
+
+    printf("ListSize = %d\n", (*list)->data);
+    fflush( stdout );
+    printf("FirstNode = %d\n", (*list)->next->data);
+    fflush( stdout );
     return;
   }
-  else{
-    node *secondNode;
-    list = (node*)malloc(sizeof(node));
-    secondNode = (node*)malloc(sizeof(node));
-    list->data = 1;
-    list->next = secondNode;
-    secondNode->data = seqn;
-  }
-  printf("ListSize = %d\n", list->data);
-  printf("FirstNode = %d\n", list->next->data);
 }
 
 void deleteList(node* head)  {
@@ -169,18 +139,63 @@ void deleteList(node* head)  {
   head = NULL;
 }
 
-//usado apenas para testes
 void displayList(node* head)
 {
   node *temp;
   if(head == NULL){
     printf("List is empty.");
+    fflush( stdout );
   }
   else{
     temp = head;
+    printf("\n");
     while(temp != NULL){
-      printf("Data = %d\n", temp->data); // Print data of current node
+      printf("Data = %d ", temp->data); // Print data of current node
+      fflush( stdout );
       temp = temp->next;                 // Move to next node
     }
+    printf("\n");
   }
+}
+
+
+
+int sendFile(char *fileName){
+  FILE *fd = fopen( "testfile.txt", "rb" );
+  if (fd!=NULL){
+
+    long fileSize = fileToBuffer(fd);
+
+    printf("\nsizeofbuffer:%ld\n",fileSize);
+
+    if (fileSize <= MAX_PAYLOAD_SIZE){
+      printf("\nonly Sending one Package\n");
+      //send single package
+    }
+    else{
+      printf("\nsending multiple packages\n");
+
+      //creating and initializing list o seqAcks
+      node *list = (node*)malloc(sizeof(node));
+      list->data = 0;
+
+      //while stick acks missing keeps retransmiting
+      /*while (numbeOfAcks < numberOfSequences){
+
+      }
+      */
+      //deleting the list
+      deleteList(list);
+      free(list);
+      list = NULL;
+    }
+
+    //closes file and free the buffer
+    free(fileBuffer);
+    fclose (fd);
+    return 0;
+  }
+  else
+      printf("Erro na abertura do arquivo");
+  return -1;
 }
