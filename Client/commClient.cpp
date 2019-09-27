@@ -158,6 +158,12 @@ void displayList(node* head)
   }
 }
 
+//check if already recieved ack from sent data packages
+//returns 1 if yes and 0 if no
+int checkSeqAck(){
+  return 0;
+}
+
 
 
 int sendFile(char *fileName){
