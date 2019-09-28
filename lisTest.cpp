@@ -14,6 +14,9 @@
 #include <dirent.h>
 #include <time.h>
 
+#define MAX_PACKET_SIZE     	64000
+#define MAXLINE        		64000
+#define MAXNUMCON   		100
 #define PORT 4000
 
 
@@ -23,6 +26,7 @@ typedef struct node{
         node *next;
      } node;
 
+char * fileBuffer;
 
 void ackSequence (node **list, int seqn){
   if (list!=NULL){
@@ -93,7 +97,7 @@ int main(char *fileName){
       //while stick acks missing keeps retransmiting
       int acks,totalSeqs;
       while (acks < totalSeqs){
-        
+
       }
 
       //deleting the list
