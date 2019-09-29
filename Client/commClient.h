@@ -28,7 +28,7 @@ typedef struct packet{
     uint16_t length;                  //Comprimento do payload
     uint32_t total_size;              //Número total de fragmentos
     uint32_t checksum;                //Checksum
-    char _payload[62000];             //Dados do pacote
+    char _payload[MAX_PAYLOAD_SIZE];             //Dados do pacote
     } packet;
 
 

@@ -20,6 +20,15 @@
 #define MAXNUMCON   		100
 #define PORT 4000
 
+
+typedef struct packet{
+    uint16_t type;                    //Tipo do pacote(p.ex. DATA| ACK | CMD)
+    uint16_t seqn;                    //Número de sequência
+    uint16_t length;                  //Comprimento do payload
+    uint32_t total_size;              //Número total de fragmentos
+    uint32_t checksum;                //Checksum
+    char _payload[MAX_PAYLOAD_SIZE];             //Dados do pacote
+    } packet;
 //node of a linked list, being used to store the packege seq that arrived
 typedef struct node{
         int data;     //first node is number of seqAck than we have and others are acks recived seqs
@@ -117,7 +126,6 @@ int main(int argc, char *argv[]){
   struct sockaddr_in serv_addr, from;
   struct hostent *server;
 
-  char buffer[256];
   if (argc < 2) {
     fprintf(stderr, "usage %s hostname\n", argv[0]);
     exit(0);
@@ -145,14 +153,17 @@ int main(int argc, char *argv[]){
   FILE *fd = fopen( "testfile.txt", "rb" );
     if (fd!=NULL){
 
+
+      char buffer[MAX_PACKET_SIZE];
       long fileSize = fileToBuffer(fd);
 
       printf("\nsizeofbuffer:%ld\n",fileSize);
 
       if (fileSize <= MAX_PAYLOAD_SIZE){
         printf("\nonly Sending one Package\n");
+        packet sentPacket;
         //send single package
-      	n = sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *) &serv_addr, sizeof(struct sockaddr_in));
+      	n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &serv_addr, sizeof(struct sockaddr_in));
       	if (n < 0)
       		printf("ERROR sendto");
 
