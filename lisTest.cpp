@@ -15,10 +15,10 @@
 #include <time.h>
 
 #define MAX_PACKET_SIZE     	64000
+#define MAX_PAYLOAD_SIZE      62000
 #define MAXLINE        		64000
 #define MAXNUMCON   		100
 #define PORT 4000
-
 
 //node of a linked list, being used to store the packege seq that arrived
 typedef struct node{
@@ -27,6 +27,37 @@ typedef struct node{
      } node;
 
 char * fileBuffer;
+
+long sizeFile (FILE *f){
+	long size;
+
+	if (f != NULL) {
+    fseek(f, 0, SEEK_END);
+    // pega a posição corrente de leitura no arquivo
+    size = ftell(f);
+		fseek(f,0,SEEK_SET);
+		return size;
+
+    } else {
+        printf("Arquivo inexistente");
+		return -1;
+    }
+
+}
+
+long fileToBuffer (FILE *f){
+  long size = sizeFile(f);
+  fileBuffer = (char*)malloc((size) * sizeof(char));
+
+  //Read file contents into buffer
+  size_t paulo = fread(fileBuffer, 1, size, f);
+  if(paulo != size) {
+      fprintf(stderr, "Erro ao tentar ler o arquivo inteiro.\n");
+      return -1;
+  }
+  printf("%s",fileBuffer);
+  return size;
+}
 
 void ackSequence (node **list, int seqn){
   if (list!=NULL){
@@ -75,39 +106,87 @@ void displayList(node* head)
   }
 }
 
-int main(char *fileName){
+int main(int argc, char *argv[]){
+
+  //opening socket
+  #define MAX_PACKET_SIZE     	64000
+  #define MAX_PAYLOAD_SIZE      62000
+
+  int sockfd, n;
+  unsigned int length;
+  struct sockaddr_in serv_addr, from;
+  struct hostent *server;
+
+  char buffer[256];
+  if (argc < 2) {
+    fprintf(stderr, "usage %s hostname\n", argv[0]);
+    exit(0);
+
+  }
+
+  server = gethostbyname(argv[1]);
+  if (server == NULL) {
+      fprintf(stderr,"ERROR, no such host\n");
+      exit(0);
+  }
+
+  if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+    printf("ERROR opening socket");
+
+
+  length = sizeof(struct sockaddr_in);
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_port = htons(PORT);
+  serv_addr.sin_addr = *((struct in_addr *)server->h_addr);
+  bzero(&(serv_addr.sin_zero), 8);
+
+
+
   FILE *fd = fopen( "testfile.txt", "rb" );
-  if (fd!=NULL){
+    if (fd!=NULL){
 
-    long fileSize = fileToBuffer(fd);
+      long fileSize = fileToBuffer(fd);
 
-    printf("\nsizeofbuffer:%ld\n",fileSize);
+      printf("\nsizeofbuffer:%ld\n",fileSize);
 
-    if (fileSize <= MAX_PAYLOAD_SIZE){
-      printf("\nonly Sending one Package\n");
-      //send single package
-    }
-    else{
-      printf("\nsending multiple packages\n");
+      if (fileSize <= MAX_PAYLOAD_SIZE){
+        printf("\nonly Sending one Package\n");
+        //send single package
+      	n = sendto(sockfd, buffer, strlen(buffer), 0, (const struct sockaddr *) &serv_addr, sizeof(struct sockaddr_in));
+      	if (n < 0)
+      		printf("ERROR sendto");
 
-      //creating and initializing list o seqAcks
-      node *list = (node*)malloc(sizeof(node));
-      list->data = 0;
+      	length = sizeof(struct sockaddr_in);
+      	n = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr *) &from, &length);
+      	if (n < 0)
+      		printf("ERROR recvfrom");
 
-      //while stick acks missing keeps retransmiting
-      int acks,totalSeqs;
-      while (acks < totalSeqs){
+      	printf("Got an ack: %s\n", buffer);
+        }
 
+      else{
+        printf("\nsending multiple packages\n");
+
+        //creating and initializing list o seqAcks
+        node *list = (node*)malloc(sizeof(node));
+        list->data = 0;
+
+        //while stick acks missing keeps retransmiting
+        int acks,totalSeqs;
+        while (acks < totalSeqs){
+
+        }
+
+        //deleting the list
+        deleteList(list);
+        free(list);
+        list = NULL;
       }
 
-      //deleting the list
-      deleteList(list);
-      free(list);
-      list = NULL;
+      //closes file and free the buffer
+      free(fileBuffer);
+      close(sockfd);
+      fclose (fd);
+      return 0;
     }
-
-    //closes file and free the buffer
-    free(fileBuffer);
-    fclose (fd);
-    return 0;
   }
