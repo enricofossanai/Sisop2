@@ -111,6 +111,7 @@ long fileToBuffer (FILE *f){
   return size;
 }
 
+/*
 void ackSequence (node **list, int seqn){
   if (list!=NULL){
     node *newNode = (node*)malloc(sizeof(node));
@@ -163,38 +164,38 @@ void displayList(node* head)
 int checkSeqAck(){
   return 0;
 }
-
+*/
 
 
 int sendFile(char *fileName){
   FILE *fd = fopen( "testfile.txt", "rb" );
   if (fd!=NULL){
 
+		//allocate a buffer (*fileBuffer) and return the size of the file
     long fileSize = fileToBuffer(fd);
+		int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
+		int curSeq = 0;
+		int curAck = 0;
+		packet sentPacket;
 
-    printf("\nsizeofbuffer:%ld\n",fileSize);
+		printf("\nsizeofbuffer:%ld\n",fileSize);
 
-    if (fileSize <= MAX_PAYLOAD_SIZE){
-      printf("\nonly Sending one Package\n");
-      //send single package
-    }
-    else{
-      printf("\nsending multiple packages\n");
+		//while still have packages to send
+		while (curSeq < numSeqs){
+			//while didnt recieved the ack from the package
+			while (curAck = curSeq){
+   			sentPacket.type = DATA;
+    		sentPacket.seqn = curSeq;
+    		sentPacket.length = 0;
+    		sentPacket.total_size = 0;
+    		strcpy(sentPacket._payload, "");
+    		sentPacket.checksum = checkSum(&sentPacket);
 
-      //creating and initializing list o seqAcks
-      node *list = (node*)malloc(sizeof(node));
-      list->data = 0;
+				
+			}
 
-      //while stick acks missing keeps retransmiting
-      /*while (numbeOfAcks < numberOfSequences){
-
-      }
-      */
-      //deleting the list
-      deleteList(list);
-      free(list);
-      list = NULL;
-    }
+			curSeq++;
+		}
 
     //closes file and free the buffer
     free(fileBuffer);
@@ -204,4 +205,9 @@ int sendFile(char *fileName){
   else
       printf("Erro na abertura do arquivo");
   return -1;
+}
+
+
+int sendMessage(char *fileName){
+	return 0;
 }
