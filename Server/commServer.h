@@ -17,5 +17,6 @@ typedef struct packet{
 
 int checkSum(packet * packet);
 
-void *connect(void *arg);
+void *sender(void *arg);
 
+void *receiver(void *arg);

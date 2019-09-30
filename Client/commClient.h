@@ -46,11 +46,11 @@ typedef struct node{
 
 int checkSum(packet * packet);
 
-//thread that sends messages to the server
-void *sender(void *arg);
+//thread that communicate with the server
+void *clientComm(void *arg);
 
 //send first message to server to connect
-void firstConnect (int sockfd , struct hostent *server);
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server);
 
 //return size of file or -1 if error
 long sizeFile (FILE *f);

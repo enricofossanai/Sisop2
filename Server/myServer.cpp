@@ -46,9 +46,10 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    vector<pthread_t> threads(MAXNUMCON);
-    int threadNum = 0;
-    int rc;
+    vector<pthread_t> threadsS(MAXNUMCON);              ///////////////////////////////////////////
+    vector<pthread_t> threadsR(MAXNUMCON);              // Um vetor para cada thread diferente??
+    int threadNum = 0;                                  //////////////////////////////////////////
+    int rc1,rc2;
 
     while(1){
             packet packetBuffer;
@@ -60,7 +61,7 @@ int main() {
             if(!(checkSum(&packetBuffer)))		// Verificação de CheckSum
                 {
                 perror("Verification failed");
-                exit(EXIT_FAILURE);
+                exit(EXIT_FAILURE);                  // Tem que descartar o pacote
                 }
 
             printf("Tipo: %d\n", packetBuffer.type);
@@ -72,21 +73,22 @@ int main() {
 
 
             char* userName = (char *) malloc(sizeof(char)*10);
-            rc = pthread_create(&threads[threadNum], NULL, connect, reinterpret_cast<void *> (&cliaddr));
+            rc1 = pthread_create(&threadsS[threadNum], NULL, sender, reinterpret_cast<void *> (&cliaddr));
+            rc2 = pthread_create(&threadsR[threadNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
 			threadNum++;
     }
 
     return 0;
 }
 
-void *connect(void *arg) {
+void *sender(void *arg) {                           // Cuida dos Send para os Clientes
     printf("\nConnection thread\n");
     fflush(stdout);
     int sockfd, sendToError;
     char buffer[MAXLINE];
     struct sockaddr_in servaddr;
     struct sockaddr_in cliaddr;
-	
+
 	curPort++;						// Lembrar que é global, protege ou não?
 
     // Creating socket file descriptor
@@ -118,3 +120,19 @@ void *connect(void *arg) {
 }
 
 
+
+
+void *receiver(void *arg){                              // Cuida dos Receive dos Clients
+}
+/*    char buffer[MAXLINE];
+    int n;
+    socklen_t len = sizeof(servaddr);
+
+    while(1){
+        n = recvfrom(sockfd, buffer , MAXLINE, MSG_WAITALL, ( struct sockaddr *) arg, &len);
+        printf("\n\nTeste: %s\nVim da porta: %d\n", buffer, servaddr.sin_port );
+        fflush(stdout);
+        }
+}
+
+*/

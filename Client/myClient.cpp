@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
 //fileBuffer = "me diz que funfou";
 ///////////////////////////////////////////////
 
-
     int i,flag=FALSE;
 	char username[20],command[20],option[20];
     char buffer[MAX_PACKET_SIZE];
@@ -67,15 +66,16 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	firstConnect(sockfd,server);
+	servaddr = firstConnect(sockfd,server);
 
     //cria thread que envia
     pthread_t threadSender;
-    pthread_create(&threadSender, NULL, sender, NULL);
+    pthread_create(&threadSender, NULL, clientComm, NULL);
 
    while (flag == FALSE) {
 
         printf("\nEnter the Command: ");
+        fflush(stdout);
         bzero(command, 20);
         fgets(command, 20, stdin);
 
@@ -83,19 +83,25 @@ int main(int argc, char *argv[]) {
         // Switch for options
         if(strcmp(command,"exit\n") == 0) {
             flag = TRUE;
-        } else if (strcmp(command, "upload") == 0) { // upload from path
+        } else if (strcmp(command, "upload\n") == 0) { // upload from path
 
-        } else if (strcmp(command, "download") == 0) { // download to exec folder
+        } else if (strcmp(command, "download\n") == 0) { // download to exec folder
 
-        } else if (strcmp(command, "delete") == 0) { // delete from syncd dir
+        } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
 
-        } else if (strcmp(command, "list_server") == 0) { // list user's saved files on dir
+        } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
 
-        } else if (strcmp(command, "list_client") == 0) { // list saved files on dir
+    } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
 
-        } else if (strcmp(command, "get_sync_dir") == 0) { // creates sync_dir_<username> and syncs
+        } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
 
-        } else if (strcmp(command, "printar") == 0) { // creates sync_dir_<username> and syncs
+        } else if (strcmp(command, "teste\n") == 0) { // Pra testes
+            i = sendto(sockfd, "teste do juca", 30, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+            if (i  < 0)
+                printf("\nERROR on sendto Teste\n");
+            else
+                printf("Mandei\n");
+                fflush(stdout);
         }
 
     }
@@ -106,7 +112,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void *sender(void *arg) {
+void *clientComm(void *arg) {
     printf("Thread is listening!\n");
 
     char buffer[MAX_PACKET_SIZE];

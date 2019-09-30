@@ -39,7 +39,7 @@ int checkSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
-void firstConnect (int sockfd , struct hostent *server){
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server){
 	struct sockaddr_in servaddr;
 	int i;
     char buffer[MAX_PACKET_SIZE];
@@ -70,11 +70,11 @@ void firstConnect (int sockfd , struct hostent *server){
 
 	fflush( stdout );
 
-
-
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  sendFile("oitenta");
+//  sendFile("oitenta");
 ////////////////////////////////////
+
+    return servaddr;
 
 
 }
