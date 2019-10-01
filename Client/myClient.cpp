@@ -27,8 +27,6 @@ int fileParts;
 
 // Driver code
 int main(int argc, char *argv[]) {
-
-
 //////USANDO AREA PARA TESTAR PODE APAGAR DEPOIS
 //fileBuffer = "me diz que funfou";
 ///////////////////////////////////////////////
@@ -66,7 +64,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	servaddr = firstConnect(sockfd,server);
+	servaddr = firstConnect(sockfd,server,username);
 
     //cria thread que envia
     pthread_t threadSender;
@@ -113,7 +111,6 @@ int main(int argc, char *argv[]) {
 }
 
 void *clientComm(void *arg) {
-    printf("Thread is listening!\n");
 
     char buffer[MAX_PACKET_SIZE];
     socklen_t len = sizeof(servaddr);

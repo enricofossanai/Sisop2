@@ -11,14 +11,17 @@
 
 
 #define MAX_PACKET_SIZE     	64000
-#define MAX_PAYLOAD_SIZE      62000
-#define PORT  			8000
+#define MAX_PAYLOAD_SIZE        62000
+#define PORT  			       8000
 #define TRUE 1
 #define FALSE 0
 
-#define DATA			0
+#define DATA		0
 #define ACK			1
 #define CMD			2
+#define CN          3
+
+
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -50,7 +53,7 @@ int checkSum(packet * packet);
 void *clientComm(void *arg);
 
 //send first message to server to connect
-struct sockaddr_in firstConnect (int sockfd , struct hostent *server);
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username);
 
 //return size of file or -1 if error
 long sizeFile (FILE *f);

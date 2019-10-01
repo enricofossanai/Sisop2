@@ -39,7 +39,7 @@ int checkSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
-struct sockaddr_in firstConnect (int sockfd , struct hostent *server){
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username){
 	struct sockaddr_in servaddr;
 	int i;
     char buffer[MAX_PACKET_SIZE];
@@ -55,18 +55,18 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server){
 
     // Filling packet for test
     packet sentPacket;
-    sentPacket.type = 2;
+    sentPacket.type = CN;
     sentPacket.seqn = 0;
     sentPacket.length = 0;
     sentPacket.total_size = 0;
-    strcpy(sentPacket._payload, "");
+    strcpy(sentPacket._payload, username);
     sentPacket.checksum = checkSum(&sentPacket);
 
     i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
 	if (i  < 0)
         printf("\nERROR on sendto First Connect\n");
-   	else
-		printf("Connection Made\n");
+    else
+        printf("Connection Made\n");
 
 	fflush( stdout );
 
@@ -75,8 +75,6 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server){
 ////////////////////////////////////
 
     return servaddr;
-
-
 }
 
 long sizeFile (FILE *f){
@@ -191,7 +189,7 @@ int sendFile(char *fileName){
     		strcpy(sentPacket._payload, "");
     		sentPacket.checksum = checkSum(&sentPacket);
 
-				
+
 			}
 
 			curSeq++;

@@ -16,7 +16,9 @@
 
 
 using namespace std;
+
 int curPort = 8000;
+user Users [MAXNUMCON];
 
 // Driver code
 int main() {
@@ -46,50 +48,53 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    vector<pthread_t> threadsS(MAXNUMCON);              ///////////////////////////////////////////
-    vector<pthread_t> threadsR(MAXNUMCON);              // Um vetor para cada thread diferente??
-    int threadNum = 0;                                  //////////////////////////////////////////
+    vector<pthread_t> threadsS(MAXNUMCON);              ////////////////////////////////////////////
+    vector<pthread_t> threadsR(MAXNUMCON);              // Um vetor para cada thread diferente?? //
+    int cliNum = 0;                                     ///////////////////////////////////////////
     int rc1,rc2;
 
+
+
     while(1){
-            packet packetBuffer;
-            int n, i;
-            socklen_t len = sizeof(servaddr);
+        packet packetBuffer;
+        int n, i;
+        socklen_t len = sizeof(servaddr);
 
-            n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
+        n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
+        if (n < 0)
+            printf("Error recvfrom\n");
 
-            if(!(checkSum(&packetBuffer)))		// Verificação de CheckSum
-                {
-                perror("Verification failed");
-                exit(EXIT_FAILURE);                  // Tem que descartar o pacote
+        if(!(checkSum(&packetBuffer)))		    // Verificação de CheckSum
+            perror("Verification failed");
+        else{
+
+            if(packetBuffer.type == CN){                                 //Testa se é o firstConnect
+
+                user client;
+
+                strcpy(client.username, packetBuffer._payload);
+                client.cliaddr = cliaddr;
+
+                Users[cliNum] = client;                                  // Vetor de Usuários para testar se já ta conectado
+
+                rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
+                //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
+                cliNum++;
                 }
-
-            printf("Tipo: %d\n", packetBuffer.type);
-            printf("Seq: %d\n",packetBuffer.seqn );
-            printf("Len: %d\n",packetBuffer.length );
-            printf("Size: %d\n",packetBuffer.total_size);
-            printf("Check: %d\n", packetBuffer.checksum );
-            printf("Payload: %s\n",packetBuffer._payload);
-
-
-            char* userName = (char *) malloc(sizeof(char)*10);
-            rc1 = pthread_create(&threadsS[threadNum], NULL, sender, reinterpret_cast<void *> (&cliaddr));
-            rc2 = pthread_create(&threadsR[threadNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
-			threadNum++;
+        }
+        fflush(stdout);
     }
 
     return 0;
 }
 
-void *sender(void *arg) {                           // Cuida dos Send para os Clientes
-    printf("\nConnection thread\n");
-    fflush(stdout);
+void *cliThread(void *arg) {                           // Cuida dos Clientes
     int sockfd, sendToError;
     char buffer[MAXLINE];
+    user *client;
     struct sockaddr_in servaddr;
-    struct sockaddr_in cliaddr;
 
-	curPort++;						// Lembrar que é global, protege ou não?
+	curPort++;						                   // Lembrar que é global, protege ou não?
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -98,7 +103,10 @@ void *sender(void *arg) {                           // Cuida dos Send para os Cl
     }
 
     memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
+
+    client = reinterpret_cast<user *> (arg);
+
+    printf("Thread do Cliente : %s\n", client->username);
 
     // Filling server information
     servaddr.sin_family    = AF_INET; // IPv4
@@ -112,7 +120,7 @@ void *sender(void *arg) {                           // Cuida dos Send para os Cl
         exit(EXIT_FAILURE);
     }
 
-    sendToError = sendto(sockfd, "É os guri ou não é?????\n", 50, 0,(const struct sockaddr *) arg, sizeof(struct sockaddr));
+    sendToError = sendto(sockfd, "É os guri ou não é?????\n", 50, 0,(const struct sockaddr *) &(client->cliaddr), sizeof(struct sockaddr));
     if (sendToError  < 0)
         printf("ERROR on sendto\n");
 
@@ -120,6 +128,8 @@ void *sender(void *arg) {                           // Cuida dos Send para os Cl
 }
 
 
+void *sender(void *arg) {
+}
 
 
 void *receiver(void *arg){                              // Cuida dos Receive dos Clients
