@@ -33,7 +33,6 @@ int checkSum(packet * packet) //faz a soma dos dados do pacote
 
     }
 
-
     Sum = type + seqn + lenght + total_size + Sumchar;
 
     return Sum;
@@ -52,10 +51,10 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr = *((struct in_addr *)server->h_addr);
 
-
-    // Filling packet for test
+    // Filling packet for connect
     packet sentPacket;
     sentPacket.type = CN;
+    sentPacket.cmd = 0;
     sentPacket.seqn = 0;
     sentPacket.length = 0;
     sentPacket.total_size = 0;

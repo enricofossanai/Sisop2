@@ -23,8 +23,7 @@ user Users [MAXNUMCON];
 // Driver code
 int main() {
     int sockfd;
-    char buffer[MAXLINE];
-	char auxarg[MAXLINE];
+    char buffer[MAX_PAYLOAD_SIZE];
     struct sockaddr_in servaddr, cliaddr;
 
     // Creating socket file descriptor
@@ -60,7 +59,7 @@ int main() {
         int n, i;
         socklen_t len = sizeof(servaddr);
 
-        n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAXLINE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
+        n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
         if (n < 0)
             printf("Error recvfrom\n");
 
@@ -89,10 +88,14 @@ int main() {
 }
 
 void *cliThread(void *arg) {                           // Cuida dos Clientes
-    int sockfd, sendToError;
-    char buffer[MAXLINE];
+    int sockfd;
+    int i,n;
+    char buffer[MAX_PAYLOAD_SIZE];
     user *client;
     struct sockaddr_in servaddr;
+    packet sendPacket;
+    packet recPacket;
+    socklen_t len = sizeof(servaddr);
 
 	curPort++;						                   // Lembrar que é global, protege ou não?
 
@@ -120,10 +123,40 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         exit(EXIT_FAILURE);
     }
 
-    sendToError = sendto(sockfd, "É os guri ou não é?????\n", 50, 0,(const struct sockaddr *) &(client->cliaddr), sizeof(struct sockaddr));
-    if (sendToError  < 0)
+    sendPacket.type = CN;
+    sendPacket.seqn = 0;
+    sendPacket.length = 0;
+    sendPacket.total_size = 0;
+    strcpy(sendPacket._payload, "");
+    sendPacket.checksum = checkSum(&sendPacket);
+
+    i = sendto(sockfd,reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,(const struct sockaddr *) &(client->cliaddr), sizeof(struct sockaddr));
+    if (i < 0)
         printf("ERROR on sendto\n");
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    while (1){
+
+        n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *)  &(client->cliaddr), &len);
+        if (n < 0)
+            printf("ERROR\n");
+
+        if (recPacket.type == CMD){
+            switch (recPacket.cmd) {
+                case UPLOAD:;
+                // receiveFile()
+                // Temo que receber o arquivo do cliente
+                case DOWNLOAD:;
+                // sendFile()
+                //Mesma coisa do UPLOAD, só que server -> client
+                case DELETE:;
+                // delete (recPacket._payload)
+                // Recebe o nome do arquivo, apaga da base do Servidor
+
+            }
+        }
+    }
     fflush( stdout );
 }
 

@@ -25,14 +25,15 @@ int sockfd;
 char * fileBuffer;
 int fileParts;
 
-// Driver code
+
 int main(int argc, char *argv[]) {
+
 //////USANDO AREA PARA TESTAR PODE APAGAR DEPOIS
 //fileBuffer = "me diz que funfou";
 ///////////////////////////////////////////////
 
     int i,flag=FALSE;
-	char username[20],command[20],option[20];
+	char username[20],command[20],option[20], sync_dir[40];
     char buffer[MAX_PACKET_SIZE];
 
     struct hostent *server;
@@ -43,39 +44,44 @@ int main(int argc, char *argv[]) {
 
 	}
 
+    strcpy (sync_dir, "sync_dir_");
     strcpy (username,argv[2]);
-
-    if (!(mkdir(username,0777)))
+                                                                            // Cria o Diretório
+    if (!(mkdir(strcat(sync_dir, username),0777)))
         printf("Directory created\n");
     else {
-        printf("Unable to create directory\n");
+        printf("Unable to create directory\n");                             // Tem que testar primeiro se o diretório já não existe
 
     }
 
+    pthread_t threadN;
+    pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
+
+
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
+        fprintf(stderr,"ERROR, no such host\n");                            // Coisa do server
         exit(0);
     }
 
     // Creating socket file descriptor
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {                  // Coisa do Socket
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-	servaddr = firstConnect(sockfd,server,username);
+	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
 
     //cria thread que envia
     pthread_t threadSender;
-    pthread_create(&threadSender, NULL, clientComm, NULL);
+    pthread_create(&threadSender, NULL, clientComm, NULL);                  // Inicia a thread
 
    while (flag == FALSE) {
 
         printf("\nEnter the Command: ");
-        fflush(stdout);
-        bzero(command, 20);
-        fgets(command, 20, stdin);
+        fflush(stdout);                                                     //////////////////////////////////////////////
+        bzero(command, 20);                                                 // Será que o menu não é dentro da thread ????
+        fgets(command, 20, stdin);                                          //////////////////////////////////////////////
 
 
         // Switch for options
@@ -89,7 +95,7 @@ int main(int argc, char *argv[]) {
 
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
 
-    } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
+        } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
 
         } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
 
@@ -111,15 +117,78 @@ int main(int argc, char *argv[]) {
 }
 
 void *clientComm(void *arg) {
-
+    packet recPacket;
     char buffer[MAX_PACKET_SIZE];
     socklen_t len = sizeof(servaddr);
 	int n;
 
-    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
+    n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)
         printf("\nERROR on rcvfrom\n");
 
     printf("Server : %s\n", buffer);
     fflush( stdout );
+}
+
+void *clientNotify(void *arg){
+    int fd, wd ;
+    char buf[1024 * (sizeof(struct inotify_event))];
+    int i, t, l ;
+    fd_set rfds ; /* para select */
+    struct inotify_event *evento ;
+
+    if((fd = inotify_init())<0) {
+        perror("inotify_init") ;
+    }
+
+    wd = inotify_add_watch(fd, (char *) arg, IN_MODIFY | IN_CREATE | IN_DELETE) ;           // ADICIONAR AS FLAGS CERTAS
+    if(wd < 0) {
+        perror("inotify_add_watch") ;
+    }
+
+    while(1) {
+        FD_ZERO(&rfds) ;
+        FD_SET(fd, &rfds) ;
+
+        // Verifica se há dados no descritor
+        t = select(FD_SETSIZE, &rfds, NULL, NULL, NULL) ;
+        if(t<0) {
+            perror("select") ;
+        }
+
+        /* Sem dados. */
+        if(t == 0) continue ;
+
+        /* Aqui temos dados. */
+
+        /* Lê o máximo de eventos. */
+        l = read(fd, buf, 1024 * (sizeof(struct inotify_event))) ;
+
+        /* Percorre cada evento lido. */
+        i=0 ;
+        while(i<l) {
+            /* Obtém dados na forma da struct. */
+            evento = (struct inotify_event *)&buf[i] ;
+
+            /* Se o campo len não é nulo, então temos
+             * um nome no campo name. */
+            if(evento->len) {
+                printf("[+] Arquivo `%s': ", evento->name) ;
+            } else {
+                printf("[+] Arquivo desconhecido: ") ;                            // ISSO AQUI TAMBEM
+            }
+
+            /* Obtém o evento. */
+            if(evento->mask & IN_MODIFY) {
+                printf("Modificado.\n") ;
+            } else if(evento->mask & IN_DELETE) {                                   // O IMPORTANTE TÀ AQUI
+                printf("Deletado.\n") ;                                             // AINDA NÂO TÀ 100%
+            } else {
+                printf("Criado.\n") ;
+            }
+
+            /* Avança para o próximo evento. */
+            i += (sizeof(struct inotify_event)) + evento->len ;
+        }
+    }
 }
