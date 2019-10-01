@@ -102,10 +102,10 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "teste\n") == 0) { // Pra testes
             i = sendto(sockfd, "teste do juca", 30, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
             if (i  < 0)
-                printf("\nERROR on sendto Teste\n");
+                perror("sendto");
             else
                 printf("Mandei\n");
-                fflush(stdout);
+            fflush(stdout);
         }
 
     }
@@ -141,7 +141,7 @@ void *clientNotify(void *arg){
         perror("inotify_init") ;
     }
 
-    wd = inotify_add_watch(fd, (char *) arg, IN_MODIFY | IN_CREATE | IN_DELETE) ;           // ADICIONAR AS FLAGS CERTAS
+    wd = inotify_add_watch(fd, (char *) arg, IN_MOVED_FROM | IN_MODIFY | IN_DELETE | IN_CREATE | IN_MOVED_TO) ;           // ADICIONAR AS FLAGS CERTAS
     if(wd < 0) {
         perror("inotify_add_watch") ;
     }
@@ -175,15 +175,15 @@ void *clientNotify(void *arg){
             if(evento->len) {
                 printf("[+] Arquivo `%s': ", evento->name) ;
             } else {
-                printf("[+] Arquivo desconhecido: ") ;                            // ISSO AQUI TAMBEM
+                printf("[+] Arquivo desconhecido: ") ;                              // Nome do Arquivo modificado
             }
 
             /* Obtém o evento. */
-            if(evento->mask & IN_MODIFY) {
+            if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 printf("Modificado.\n") ;
-            } else if(evento->mask & IN_DELETE) {                                   // O IMPORTANTE TÀ AQUI
-                printf("Deletado.\n") ;                                             // AINDA NÂO TÀ 100%
-            } else {
+            } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O POBLEMA DO UBUNTU
+                printf("Deletado.\n") ;
+            } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                 printf("Criado.\n") ;
             }
 
