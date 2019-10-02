@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
 
         } else if (strcmp(command, "teste\n") == 0) { // Pra testes
-            i = sendto(sockfd, "teste do juca", 30, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+            i = sendto(sockfd, "teste do juca", 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
             if (i  < 0)
                 perror("sendto");
             else
@@ -122,12 +122,15 @@ void *clientComm(void *arg) {
     socklen_t len = sizeof(servaddr);
 	int n;
 
+    while(1){
+
     n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)
-        printf("\nERROR on rcvfrom\n");
+        perror("recvfrom");
 
     printf("Server : %s\n", buffer);
     fflush( stdout );
+    }
 }
 
 void *clientNotify(void *arg){

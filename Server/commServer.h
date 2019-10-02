@@ -51,5 +51,3 @@ void *cliThread(void *arg);
 int createSocket(user client, int port);
 
 void *sender(void *arg);
-
-void *receiver(void *arg);
