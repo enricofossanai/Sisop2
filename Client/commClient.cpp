@@ -174,6 +174,7 @@ int sendFile(char *fileName){
 		//allocate a buffer (*fileBuffer) and return the size of the file
     long fileSize = fileToBuffer(fd);
 		int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
+    int n;
 		int curSeq = 0;
 		int curAck = 0;
 		packet sentPacket;
@@ -189,24 +190,26 @@ int sendFile(char *fileName){
     }else{
       printf("buffer copiou errado\n");
     }
+    printf("NUMERO DE SEQUENCIAS:%d\n", numSeqs);
 
 //while still have packages to send
-		while (curSeq < numSeqs){
+		while (curSeq <= numSeqs){
       if (fileSize>MAX_PAYLOAD_SIZE){
         bitstoSend = MAX_PAYLOAD_SIZE;
       }
 			//while didnt recieved the ack from the package
-			while (curAck = curSeq){
+			while (curAck == curSeq){
    			sentPacket.type = DATA;
     		sentPacket.seqn = curSeq;
     		sentPacket.length = 0;
     		sentPacket.total_size = 0;
-    		//strcpy(sentPacket._payload, "");
-    		memcpy(sentPacket._payload,(const void *)fileBuffer,bitstoSend);
+    		memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
 
 
         //SENDING PACKAGE
-
+        //n = sendto( , , , , );
+      	//if (n < 0)
+      	//	printf("ERROR sendto");
 
 
 			}
