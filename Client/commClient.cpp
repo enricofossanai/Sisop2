@@ -52,7 +52,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     servaddr.sin_addr = *((struct in_addr *)server->h_addr);
 
     // Filling packet for connect
-    packet sentPacket;
+    packet sentPacket, recPacket;
     sentPacket.type = CN;
     sentPacket.cmd = 0;
     sentPacket.seqn = 0;
@@ -63,12 +63,15 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
     i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
 	if (i  < 0)
-        printf("\nERROR on sendto First Connect\n");
+        perror("sendto");
+
+    i = recv(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0);
+    if (i  < 0)
+        perror("recv");
     else
-        printf("Connection Made\n");
+        printf("Recebido : %d\n", recPacket.type);
 
 	fflush( stdout );
-
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
 //  sendFile("oitenta");
 ////////////////////////////////////

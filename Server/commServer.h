@@ -41,11 +41,14 @@ typedef struct packet{
 typedef struct user{
     char username [100];
     struct sockaddr_in cliaddr;
+    int socket;
 } user;
 
 int checkSum(packet * packet);
 
 void *cliThread(void *arg);
+
+int createSocket(user client, int port);
 
 void *sender(void *arg);
 

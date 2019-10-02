@@ -76,6 +76,10 @@ int main() {
 
                 Users[cliNum] = client;                                  // Vetor de Usuários para testar se já ta conectado
 
+                curPort ++;
+                client.socket = createSocket(client, curPort);
+
+
                 rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
                 //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
                 cliNum++;
@@ -88,59 +92,32 @@ int main() {
 }
 
 void *cliThread(void *arg) {                           // Cuida dos Clientes
-    int sockfd;
-    int i,n;
+    int n;
     char buffer[MAX_PAYLOAD_SIZE];
     user *client;
-    struct sockaddr_in servaddr;
     packet sendPacket;
     packet recPacket;
-    socklen_t len = sizeof(servaddr);
-
-	curPort++;						                   // Lembrar que é global, protege ou não?
-
-    // Creating socket file descriptor
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
-
-    memset(&servaddr, 0, sizeof(servaddr));
+    socklen_t len = sizeof(struct sockaddr_in);
 
     client = reinterpret_cast<user *> (arg);
 
-    printf("Thread do Cliente : %s\n", client->username);
-
-    // Filling server information
-    servaddr.sin_family    = AF_INET; // IPv4
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(curPort);
-
-    // Bind the socket with the server address
-    if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-
-    sendPacket.type = CN;
-    sendPacket.seqn = 0;
-    sendPacket.length = 0;
-    sendPacket.total_size = 0;
-    strcpy(sendPacket._payload, "");
-    sendPacket.checksum = checkSum(&sendPacket);
-
-    i = sendto(sockfd,reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,(const struct sockaddr *) &(client->cliaddr), sizeof(struct sockaddr));
-    if (i < 0)
-        printf("ERROR on sendto\n");
-
+    printf("Thread do Cliente : %s\nCom Socket : %d\n", client->username, client->socket);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     while (1){
 
-        n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *)  &(client->cliaddr), &len);
+        n = sendto(client->socket, "QUE CARAIO", MAX_PACKET_SIZE, 0,(const struct sockaddr *) &(client->cliaddr), sizeof(struct sockaddr));
         if (n < 0)
-            printf("ERROR\n");
+            perror("sendto");
+        else
+            printf("Mandei esse caraio\n");
+
+        n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *)  &(client->cliaddr), &len);
+        if (n < 0)
+            perror("recvfrom");
+
+        printf("Tipo : %d\n", recPacket.type);
+        printf("Paylod : %s\n", recPacket._payload);
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {

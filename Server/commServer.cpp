@@ -39,4 +39,50 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
 
 }
 
+int createSocket(user client, int port){
+    int sockfd;
+    int i,n;
+    struct sockaddr_in servaddr;
+    packet sendPacket;
+    socklen_t len = sizeof(servaddr);
 
+
+    // Creating socket file descriptor
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&servaddr, 0, sizeof(servaddr));
+
+
+    printf("Criando Socket do Cliente : %s\n", client.username);
+
+    // Filling server information
+    servaddr.sin_family    = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(port);
+
+    // Bind the socket with the server address
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    sendPacket.type = ACK;
+    sendPacket.cmd = 0;
+    sendPacket.seqn = 0;
+    sendPacket.length = 0;
+    sendPacket.total_size = 0;
+    strcpy(sendPacket._payload, "");
+    sendPacket.checksum = checkSum(&sendPacket);
+
+    i = sendto(sockfd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,(const struct sockaddr *) &(client.cliaddr), sizeof(struct sockaddr));
+    if (i < 0)
+        printf("ERROR on sendto\n");
+    else
+        printf("ACK enviado, Socket Criado : %d\n" , sockfd);
+
+    return(sockfd);
+}
