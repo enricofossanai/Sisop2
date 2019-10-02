@@ -96,20 +96,7 @@ long sizeFile (FILE *f){
 
 }
 
-//copies file to buffer
-long fileToBuffer (FILE *f){
-  long size = sizeFile(f);
-  fileBuffer = (char*)malloc((size) * sizeof(char));
 
-  //Read file contents into buffer
-  size_t paulo = fread(fileBuffer, 1, size, f);
-  if(paulo != size) {
-      fprintf(stderr, "Erro ao tentar ler o arquivo inteiro.\n");
-      return -1;
-  }
-  printf("%s",fileBuffer);
-  return size;
-}
 
 /*
 void ackSequence (node **list, int seqn){
@@ -170,9 +157,18 @@ int checkSeqAck(){
 int sendFile(char *fileName){
   FILE *fd = fopen( "testfile.txt", "rb" );
   if (fd!=NULL){
+    char * fileBuffer;
+    long fileSize = sizeFile(fd);
+    fileBuffer = (char*)malloc((fileSize) * sizeof(char));
 
-		//allocate a buffer (*fileBuffer) and return the size of the file
-    long fileSize = fileToBuffer(fd);
+    //Read file contents into buffer
+    size_t paulo = fread(fileBuffer, 1, fileSize, fd);
+    if(paulo != fileSize) {
+        fprintf(stderr, "Erro ao tentar ler o arquivo inteiro.\n");
+        return -1;
+    }
+    printf("%s",fileBuffer);
+
 		int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
     int n;
 		int curSeq = 0;
