@@ -73,7 +73,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-//  sendFile("oitenta");
+  sendFile("oitenta");
 ////////////////////////////////////
 
     return servaddr;
@@ -177,23 +177,40 @@ int sendFile(char *fileName){
 		int curSeq = 0;
 		int curAck = 0;
 		packet sentPacket;
+    long placeinBuffer = 0;
+    long bitstoSend = fileSize;
 
 		printf("\nsizeofbuffer:%ld\n",fileSize);
-
 		//while still have packages to send
+
+    memcpy(sentPacket._payload,(const void *)fileBuffer,fileSize);
+    if (strcmp(fileBuffer,sentPacket._payload) == 0){
+      printf("buffer copiado corretamente\n");
+    }else{
+      printf("buffer copiou errado\n");
+    }
+
+//while still have packages to send
 		while (curSeq < numSeqs){
+      if (fileSize>MAX_PAYLOAD_SIZE){
+        bitstoSend = MAX_PAYLOAD_SIZE;
+      }
 			//while didnt recieved the ack from the package
 			while (curAck = curSeq){
    			sentPacket.type = DATA;
     		sentPacket.seqn = curSeq;
     		sentPacket.length = 0;
     		sentPacket.total_size = 0;
-    		strcpy(sentPacket._payload, "");
-    		sentPacket.checksum = checkSum(&sentPacket);
+    		//strcpy(sentPacket._payload, "");
+    		memcpy(sentPacket._payload,(const void *)fileBuffer,bitstoSend);
+
+
+        //SENDING PACKAGE
+
 
 
 			}
-
+      placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
 			curSeq++;
 		}
 
@@ -208,6 +225,6 @@ int sendFile(char *fileName){
 }
 
 
-int sendMessage(char *fileName){
-	return 0;
+int receiveFile(){
+
 }
