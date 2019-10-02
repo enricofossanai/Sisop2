@@ -18,8 +18,6 @@
 
 //chamando as variabeis globais
 extern char * fileBuffer;
-extern struct sockaddr_in servaddr;
-extern int sockfd;
 extern int fileParts;
 
 int checkSum(packet * packet) //faz a soma dos dados do pacote
@@ -74,7 +72,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  sendFile("oitenta");
+  	sendFile("oitenta" , servaddr, sockfd);
 ////////////////////////////////////
     return servaddr;
 }
@@ -154,8 +152,8 @@ int checkSeqAck(){
 */
 
 
-int sendFile(char *fileName){
-  FILE *fd = fopen( "testfile.txt", "rb" );
+int sendFile(char *fileName , struct sockaddr_in servaddr, int sockfd){
+  FILE *fd = fopen( "testFile.txt", "rb" );
   if (fd!=NULL){
     char * fileBuffer;
     long fileSize = sizeFile(fd);
@@ -167,57 +165,73 @@ int sendFile(char *fileName){
         fprintf(stderr, "Erro ao tentar ler o arquivo inteiro.\n");
         return -1;
     }
-    printf("%s",fileBuffer);
 
-		int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
+	int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
     int n;
-		int curSeq = 0;
-		int curAck = 0;
-		packet sentPacket, rcvdPacket;
+	int curSeq = 0;
+	int curAck = 0;
+	packet sentPacket, rcvdPacket;
     long placeinBuffer = 0;
     long bitstoSend = fileSize;
 
-		printf("\nsizeofbuffer:%ld\n",fileSize);
-		//while still have packages to send
+	printf("\nsize of buffer:%ld\n",fileSize);
+	//while still have packages to send
 
-    memcpy(sentPacket._payload,(const void *)fileBuffer,fileSize);
-    if (strcmp(fileBuffer,sentPacket._payload) == 0){
-      printf("buffer copiado corretamente\n");
-    }else{
-      printf("buffer copiou errado\n");
-    }
+
     printf("NUMERO DE SEQUENCIAS:%d\n", numSeqs);
 
 //while still have packages to send
-		while (curSeq <= numSeqs){
-      if (fileSize>MAX_PAYLOAD_SIZE){
-        bitstoSend = MAX_PAYLOAD_SIZE;
-      }
+	while (curSeq <= numSeqs){
+    	
+		if (fileSize > MAX_PAYLOAD_SIZE){
+    		bitstoSend = MAX_PAYLOAD_SIZE;
+      	}
+
+		else
+			bitstoSend = fileSize;
+
+
 			//while didnt recieved the ack from the package
-			while (curAck == curSeq){
-   			sentPacket.type = DATA;
-    		sentPacket.seqn = curSeq;
-    		sentPacket.length = 0;
-    		sentPacket.total_size = 0;
-    		memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
+		while (curAck == curSeq){
+	   		sentPacket.type = DATA;
+			sentPacket.seqn = curSeq;
+			sentPacket.length = 0;
+			sentPacket.total_size = 0;
+			
+			memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
 
 
-        //SENDING PACKAGE
-        //n = sendto( , , , , );
-      	//if (n < 0)
-      	//	printf("ERROR sendto");
-        //RECIEVING ACK NEED TIMEOUT
-        //n = rcvfrom( , , , , );
-        //if (n < 0)
-      	//	printf("ERROR recvfrom");
-        //if(rcvdPacket.seqn == curAck){
-        //curAck++;
-      //}
+		    //SENDING PACKAGE
+		    //n = sendto( , , , , );
+		  	//if (n < 0)
+		  	//	printf("ERROR sendto");
+		    //RECIEVING ACK NEED TIMEOUT
+		    //n = rcvfrom( , , , , );
+		    //if (n < 0)
+		  	//	printf("ERROR recvfrom");
+
+		  	//}
+
+			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr,  sizeof(servaddr));
+			if (n  < 0)
+        		perror("sendto");
+
+			// Timeout? RecvFrom é bloqueante e se o ACK não chegar?
+
+   			//n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
+    		//if (n  < 0)
+        	//	perror("recvfrom");
+			//if(rcvdPacket.seqn == curAck)
+		    	curAck++;
 
 			}
-      placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
-			curSeq++;
-		}
+		
+		printf("Onde estamos : %d\nNa sequencia : %d\n", placeinBuffer, curSeq);
+		placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
+		fileSize = fileSize - bitstoSend;
+		curSeq++;
+	}
+
 
     //closes file and free the buffer
     free(fileBuffer);

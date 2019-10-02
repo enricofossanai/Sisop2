@@ -14,13 +14,13 @@
 
 #define MAX_PACKET_SIZE     	64000
 #define MAX_PAYLOAD_SIZE        62000
-#define PORT  			        8000
+#define PORT  			8000
 #define TRUE 1
 #define FALSE 0
 
 #define DATA		0
 #define ACK			1
-#define CMD			2
+#define CMD		2
 #define CN          3               // Connect
 
 #define UPLOAD		0
@@ -70,4 +70,4 @@ long sizeFile (FILE *f);
 long fileToBuffer (FILE *f);
 
 //sends file
-int sendFile(char *fileName);
+int sendFile(char *fileName, struct sockaddr_in servaddr, int sockfd);
