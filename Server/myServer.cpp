@@ -109,7 +109,7 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         if (n < 0)
             perror("recvfrom");
 
-        printf("Tipo : %d\nRecebido de : %s\nPayload : %s\n", recPacket.type, client->username, recPacket._payload);
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\nSeq : %d\nRecebido de : %s\nPayload : %s\n\n\n\n\n\n\n\n\n\n\n\n\n\n", recPacket.seqn, client->username, recPacket._payload);
         fflush( stdout );
 
         if (recPacket.type == CMD){
