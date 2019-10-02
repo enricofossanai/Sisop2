@@ -173,7 +173,7 @@ int sendFile(char *fileName){
     int n;
 		int curSeq = 0;
 		int curAck = 0;
-		packet sentPacket;
+		packet sentPacket, rcvdPacket;
     long placeinBuffer = 0;
     long bitstoSend = fileSize;
 
@@ -206,7 +206,13 @@ int sendFile(char *fileName){
         //n = sendto( , , , , );
       	//if (n < 0)
       	//	printf("ERROR sendto");
-
+        //RECIEVING ACK NEED TIMEOUT
+        //n = rcvfrom( , , , , );
+        //if (n < 0)
+      	//	printf("ERROR recvfrom");
+        //if(rcvdPacket.seqn == curAck){
+        //curAck++;
+      //}
 
 			}
       placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
