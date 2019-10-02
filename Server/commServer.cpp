@@ -70,7 +70,7 @@ int createSocket(user client, int port){
         exit(EXIT_FAILURE);
     }
 
-    sendPacket.type = ACK;
+    sendPacket.type = CMD;
     sendPacket.cmd = 0;
     sendPacket.seqn = 0;
     sendPacket.length = 0;
@@ -78,11 +78,10 @@ int createSocket(user client, int port){
     strcpy(sendPacket._payload, "");
     sendPacket.checksum = checkSum(&sendPacket);
 
-    i = sendto(sockfd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,(const struct sockaddr *) &(client.cliaddr), sizeof(struct sockaddr));
-    if (i < 0)
-        printf("ERROR on sendto\n");
-    else
-        printf("ACK enviado, Socket Criado : %d\n" , sockfd);
+    n = sendto(sockfd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,( struct sockaddr *) &(client.cliaddr), sizeof(struct sockaddr));
+    if (n < 0)
+        perror("sendto");
 
-    return(sockfd);
+    fflush( stdout );
+    return sockfd;
 }

@@ -101,23 +101,16 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
 
     client = reinterpret_cast<user *> (arg);
 
-    printf("Thread do Cliente : %s\nCom Socket : %d\n", client->username, client->socket);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     while (1){
 
-        n = sendto(client->socket, "QUE CARAIO", MAX_PACKET_SIZE, 0,(const struct sockaddr *) &(client->cliaddr), sizeof(struct sockaddr));
-        if (n < 0)
-            perror("sendto");
-        else
-            printf("Mandei esse caraio\n");
-
-        n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *)  &(client->cliaddr), &len);
+        n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), &len);
         if (n < 0)
             perror("recvfrom");
 
-        printf("Tipo : %d\n", recPacket.type);
-        printf("Paylod : %s\n", recPacket._payload);
+        printf("Tipo : %d\nRecebido de : %s\n", recPacket.type, client->username);
+        fflush( stdout );
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
@@ -134,25 +127,8 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
             }
         }
     }
-    fflush( stdout );
 }
 
 
 void *sender(void *arg) {
 }
-
-
-void *receiver(void *arg){                              // Cuida dos Receive dos Clients
-}
-/*    char buffer[MAXLINE];
-    int n;
-    socklen_t len = sizeof(servaddr);
-
-    while(1){
-        n = recvfrom(sockfd, buffer , MAXLINE, MSG_WAITALL, ( struct sockaddr *) arg, &len);
-        printf("\n\nTeste: %s\nVim da porta: %d\n", buffer, servaddr.sin_port );
-        fflush(stdout);
-        }
-}
-
-*/

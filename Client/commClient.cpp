@@ -42,7 +42,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 	struct sockaddr_in servaddr;
 	int i;
     char buffer[MAX_PACKET_SIZE];
-	socklen_t len = sizeof(servaddr);
+	socklen_t len = sizeof(struct sockaddr_in);
 
 	memset(&servaddr, 0, sizeof(servaddr));
 
@@ -65,17 +65,17 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 	if (i  < 0)
         perror("sendto");
 
-    i = recv(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0);
+    i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
     if (i  < 0)
-        perror("recv");
+        perror("recvfrom");
     else
         printf("Recebido : %d\n", recPacket.type);
+
 
 	fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
   sendFile("oitenta");
 ////////////////////////////////////
-
     return servaddr;
 }
 
