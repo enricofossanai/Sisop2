@@ -32,7 +32,7 @@ typedef struct packet{
     uint16_t type;                              //Tipo do pacote(p.ex. DATA| ACK | CMD)
     uint16_t cmd;                               //Comandos Possiveis \ UPLOAD | DOWNLOAD | DELETE | ...
     uint16_t seqn;                              //Número de sequência
-    uint16_t length;                            //Comprimento do payload
+    uint32_t length;                            //Comprimento do payload
     uint32_t total_size;                        //Número total de fragmentos
     uint32_t checksum;                          //Checksum
     char _payload[MAX_PAYLOAD_SIZE];             //Dados do pacote

@@ -92,15 +92,14 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
     //if (fd!=NULL){
 
     char *fileBuffer;
-    fileBuffer = (char*)malloc((fileSize) * sizeof(char));
+    fileBuffer = (char*)malloc(fileSize * sizeof(char));
     socklen_t len = sizeof(struct sockaddr_in);
 
     int numSeqs = ceil(fileSize/MAX_PAYLOAD_SIZE);
     int n;
     int curSeq = 0;
-    int allSeq [numSeqs] = {};
+    int allSeq [numSeqs + 1] = {};
     packet sentPacket, rcvdPacket;
-    long placeinBuffer = 0;
     long bitstoReceive = fileSize;
 
     //while still have packages to receive
@@ -115,7 +114,7 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
         if(n < 0)
             perror("recvfrom");
 
-        memcpy((fileBuffer + placeinBuffer), (sentPacket._payload + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), bitstoReceive);
+        memcpy((fileBuffer + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
 
         sentPacket.type = ACK;
         sentPacket.seqn = rcvdPacket.seqn;
@@ -134,7 +133,6 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
     }
 
     //closes file and free the buffer
-    free(allSeq);
     printf("PUTA VIDA : %s\n", fileBuffer);
     free(fileBuffer);
     return 0;

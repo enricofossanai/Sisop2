@@ -73,7 +73,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  	sendFile("revistaJuca.txt" , servaddr, sockfd);
+  	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
 ////////////////////////////////////
     printf("TO MANDANDO VER\n");
 
@@ -99,11 +99,11 @@ long sizeFile (FILE *f){
 
 
 int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
-    FILE *fd = fopen( fileName, "rb" );
+    FILE *fd = fopen( "revistaJuca.txt", "rb" );
     if (fd!=NULL){
     char * fileBuffer;
     long fileSize = sizeFile(fd);
-    fileBuffer = (char*)malloc((fileSize) * sizeof(char));
+    fileBuffer = (char*)malloc(fileSize * sizeof(char));
     socklen_t len = sizeof(struct sockaddr_in);
 
     //Read file contents into buffer
@@ -130,15 +130,12 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
     //while still have packages to send
-	while (curSeq < numSeqs){
+	while (curSeq <= numSeqs){
 
-		if (fileSize > MAX_PAYLOAD_SIZE){
+		if (fileSize > MAX_PAYLOAD_SIZE)
     		bitstoSend = MAX_PAYLOAD_SIZE;
-      	}
-
 		else
 			bitstoSend = fileSize;
-
 
 		//while didnt recieved the ack from the package
 		while (curAck == curSeq){
@@ -151,8 +148,6 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
 			if (n  < 0)
         		perror("sendto");
-
-
 
             n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
 			if(rcvdPacket.seqn == curAck && n >= 0)
@@ -169,7 +164,6 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     struct timeval notimeout = {0,0}; //set timeout for 2 seconds
     setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
 
-    //closes file and free the buffer
     free(fileBuffer);
 
     return 0;
