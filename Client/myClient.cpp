@@ -1,7 +1,6 @@
 //Headers
 #include "aplication.h"
-#include "communication.h"
-#include "sync.h"
+#include "commClient.h"
 
 // Client side implementation of UDP client-server model
 #include <stdio.h>
@@ -13,93 +12,186 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <pthread.h>
+#include <bits/stdc++.h>
+#include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-#define PORT  8000
 
-//thread that sends messages to the server
-void *sender(void *arg);
+//global variables
+struct sockaddr_in servaddr;
+int sockfd;
+char * fileBuffer;
+int fileParts;
 
 
-// Driver code
 int main(int argc, char *argv[]) {
-    int sockfd, i;
+
+//////USANDO AREA PARA TESTAR PODE APAGAR DEPOIS
+//fileBuffer = "me diz que funfou";
+///////////////////////////////////////////////
+
+    int i,flag=FALSE;
+	char username[20],command[20],option[20], sync_dir[40];
     char buffer[MAX_PACKET_SIZE];
-    char *hello = "Hello from client";
-    struct sockaddr_in servaddr;
+
     struct hostent *server;
 
-    if (argc < 2) {
-		fprintf(stderr, "usage %s hostname\n", argv[0]);
+    if (argc < 3) {
+		fprintf(stderr, "usage %s hostname username\n", argv[0]);
 		exit(0);
 
 	}
 
+    strcpy (sync_dir, "sync_dir_");
+    strcpy (username,argv[2]);
+                                                                            // Cria o Diretório
+    if (!(mkdir(strcat(sync_dir, username),0777)))
+        printf("Directory created\n");
+    else {
+        printf("Unable to create directory\n");                             // Tem que testar primeiro se o diretório já não existe
+
+    }
+
+    pthread_t threadN;
+    pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
+
+
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
+        fprintf(stderr,"ERROR, no such host\n");                            // Coisa do server
         exit(0);
     }
 
     // Creating socket file descriptor
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {                  // Coisa do Socket
         perror("socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    memset(&servaddr, 0, sizeof(servaddr));
-
-    // Filling server information
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-
-    int n;
-    socklen_t len = sizeof(servaddr);
-
-    // Filling packet for test
-    packet sentPacket;
-    sentPacket.type = 5;
-    sentPacket.seqn = 100;
-    sentPacket.length = 42;
-    sentPacket.total_size = 7;
-    strcpy(sentPacket._payload, "PRA QUE MARSHLING NESSA CACETA ENRICAO");
-    sentPacket.checksum = checkSum(&sentPacket);
-
-    fflush(stdout);
-    memcpy(buffer, &sentPacket, sizeof(buffer));
-
-    //sends initial message to server to connect
-    char * message = "conectando";
-    sendto(sockfd, (const void *) buffer, MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));  // Precisa arrumar o tamanho do que ta enviando
-    printf("Packet sent.\n");                                                                                                     // 70 é só um numero cabalistico
-    fflush( stdout );
-
-
-    //prepara para enviar argumento para nova thread
-    struct socketInfo hostInfo;
-    socketInfo.sockfd = sockfd;
-    socketInfo.servaddr = servaddr;
-    socketInfo.len = len;
+	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
 
     //cria thread que envia
     pthread_t threadSender;
-    pthread_create(&threadSender, NULL, sender, (void*) hostInfo);
+    pthread_create(&threadSender, NULL, clientComm, NULL);                  // Inicia a thread
+
+   while (flag == FALSE) {
+
+        printf("\nEnter the Command: ");
+        fflush(stdout);                                                     //////////////////////////////////////////////
+        bzero(command, 20);                                                 // Será que o menu não é dentro da thread ????
+        fgets(command, 20, stdin);                                          //////////////////////////////////////////////
+
+
+        // Switch for options
+        if(strcmp(command,"exit\n") == 0) {
+            flag = TRUE;
+        } else if (strcmp(command, "upload\n") == 0) { // upload from path
+
+        } else if (strcmp(command, "download\n") == 0) { // download to exec folder
+
+        } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
+
+        } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
+
+        } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
+
+        } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
+
+        } else if (strcmp(command, "teste\n") == 0) { // Pra testes
+            i = sendto(sockfd, "teste do juca", 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+            if (i  < 0)
+                perror("sendto");
+            else
+                printf("Mandei\n");
+            fflush(stdout);
+        }
+
+    }
+
 
     close(sockfd);
+
     return 0;
 }
 
-
-void *sender(void *arg) {
-    printf("Thread is listening!\n");
-
+void *clientComm(void *arg) {
+    packet recPacket;
     char buffer[MAX_PACKET_SIZE];
-    struct socketInfo hostInfo = arg;
-    int sockfd = hostInfo.socketfd;
-    struct sockaddr_in servaddr = socketInfo.servaddr;
-    socklen_t len = socketInfo.len;
+    socklen_t len = sizeof(servaddr);
+	int n;
 
-    n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+    while(1){
+
+    n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
+    if (n  < 0)
+        perror("recvfrom");
+
     printf("Server : %s\n", buffer);
     fflush( stdout );
+    }
+}
+
+void *clientNotify(void *arg){
+    int fd, wd ;
+    char buf[1024 * (sizeof(struct inotify_event))];
+    int i, t, l ;
+    fd_set rfds ; /* para select */
+    struct inotify_event *evento ;
+
+    if((fd = inotify_init())<0) {
+        perror("inotify_init") ;
+    }
+
+    wd = inotify_add_watch(fd, (char *) arg, IN_MOVED_FROM | IN_MODIFY | IN_DELETE | IN_CREATE | IN_MOVED_TO) ;           // ADICIONAR AS FLAGS CERTAS
+    if(wd < 0) {
+        perror("inotify_add_watch") ;
+    }
+
+    while(1) {
+        FD_ZERO(&rfds) ;
+        FD_SET(fd, &rfds) ;
+
+        // Verifica se há dados no descritor
+        t = select(FD_SETSIZE, &rfds, NULL, NULL, NULL) ;
+        if(t<0) {
+            perror("select") ;
+        }
+
+        /* Sem dados. */
+        if(t == 0) continue ;
+
+        /* Aqui temos dados. */
+
+        /* Lê o máximo de eventos. */
+        l = read(fd, buf, 1024 * (sizeof(struct inotify_event))) ;
+
+        /* Percorre cada evento lido. */
+        i=0 ;
+        while(i<l) {
+            /* Obtém dados na forma da struct. */
+            evento = (struct inotify_event *)&buf[i] ;
+
+            /* Se o campo len não é nulo, então temos
+             * um nome no campo name. */
+            if(evento->len) {
+                printf("[+] Arquivo `%s': ", evento->name) ;
+            } else {
+                printf("[+] Arquivo desconhecido: ") ;                              // Nome do Arquivo modificado
+            }
+
+            /* Obtém o evento. */
+            if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
+                printf("Modificado.\n") ;
+            } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O POBLEMA DO UBUNTU
+                printf("Deletado.\n") ;
+            } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
+                printf("Criado.\n") ;
+            }
+
+            /* Avança para o próximo evento. */
+            i += (sizeof(struct inotify_event)) + evento->len ;
+        }
+    }
 }
