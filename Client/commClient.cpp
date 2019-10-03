@@ -71,7 +71,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
         printf("Recebido : %d\n", recPacket.type);
 
 
-	fflush( stdout );
+	  fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
   	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
 ////////////////////////////////////
@@ -122,6 +122,10 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     long bitstoSend = fileSize;
     sentPacket.length = fileSize;
 
+    printf("\nTOTAL DE SEQUENCIAS PARA ENVIAR: %d",numSeqs);
+    printf("\nTAMANHO DO ARQUIVO: %d\n\n",fileSize);
+    fflush(stdout);
+
     n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
     if (n  < 0)
         perror("sendto");
@@ -132,6 +136,8 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     //while still have packages to send
 	while (curSeq <= numSeqs){
 
+    printf("\nENVIANDO NUMERO DE SEQUENCIA: %d\n\n",curSeq);
+    fflush(stdout);
 		if (fileSize > MAX_PAYLOAD_SIZE)
     		bitstoSend = MAX_PAYLOAD_SIZE;
 		else
@@ -160,10 +166,10 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 		curSeq++;
 	}
 
-
     struct timeval notimeout = {0,0}; //set timeout for 2 seconds
     setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
 
+    fclose(fd);
     free(fileBuffer);
 
     return 0;
