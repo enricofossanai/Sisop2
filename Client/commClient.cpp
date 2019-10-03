@@ -13,6 +13,7 @@
 #include <sys/inotify.h>
 #include <dirent.h>
 #include <time.h>
+#include <math.h>
 
 #include "commClient.h"
 
@@ -72,8 +73,10 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  	sendFile("oitenta" , servaddr, sockfd);
+  	sendFile("revistaJuca.txt" , servaddr, sockfd);
 ////////////////////////////////////
+    printf("TO MANDANDO VER\n");
+
     return servaddr;
 }
 
@@ -96,7 +99,7 @@ long sizeFile (FILE *f){
 
 
 int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
-    FILE *fd = fopen( "testFile.txt", "rb" );
+    FILE *fd = fopen( fileName, "rb" );
     if (fd!=NULL){
     char * fileBuffer;
     long fileSize = sizeFile(fd);
@@ -110,16 +113,24 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
         return -1;
     }
 
-	int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
+	int numSeqs = ceil(fileSize/MAX_PAYLOAD_SIZE);
     int n;
 	int curSeq = 0;
 	int curAck = 0;
 	packet sentPacket, rcvdPacket;
     long placeinBuffer = 0;
     long bitstoSend = fileSize;
+    sentPacket.length = fileSize;
+
+    n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
+    if (n  < 0)
+        perror("sendto");
+
+    struct timeval timeout={2,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
     //while still have packages to send
-	while (curSeq <= numSeqs){
+	while (curSeq < numSeqs){
 
 		if (fileSize > MAX_PAYLOAD_SIZE){
     		bitstoSend = MAX_PAYLOAD_SIZE;
@@ -133,42 +144,42 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 		while (curAck == curSeq){
 	   		sentPacket.type = DATA;
 			sentPacket.seqn = curSeq;
-			sentPacket.length = 0;
 			sentPacket.total_size = 0;
 
-			memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
+            memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
 
 			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
 			if (n  < 0)
         		perror("sendto");
 
-            struct timeval timeout={2,0}; //set timeout for 2 seconds
-            setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
-   			n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
 			if(rcvdPacket.seqn == curAck && n >= 0)
 		    	curAck++;
 
 			}
+
 		placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
 		fileSize = fileSize - bitstoSend;
 		curSeq++;
 	}
 
-    struct timeval timeout={0,0}; //set timeout for 2 seconds
-    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+
+    struct timeval notimeout = {0,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
+
     //closes file and free the buffer
     free(fileBuffer);
-    fclose (fd);
+
     return 0;
   }
   else{
       printf("Erro na abertura do arquivo");
   return -1;
  }
+ return 0;
 }
 
 
-int receiveFile(){
-
-}
+// int receiveFile(){}

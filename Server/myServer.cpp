@@ -109,8 +109,10 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         if (n < 0)
             perror("recvfrom");
 
-        printf("Seq : %d\nRecebido de : %s\n\n\nPayload : %s\n\n", recPacket.seqn, client->username, recPacket._payload);
+        printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
+
+        n = receiveFile("revistaJuca" , recPacket.length, client->cliaddr, client->socket);
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
