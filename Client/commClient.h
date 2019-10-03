@@ -70,4 +70,4 @@ long sizeFile (FILE *f);
 long fileToBuffer (FILE *f);
 
 //sends file
-int sendFile(char *fileName, struct sockaddr_in servaddr, int sockfd);
+int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);

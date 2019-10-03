@@ -95,69 +95,13 @@ long sizeFile (FILE *f){
 }
 
 
-
-/*
-void ackSequence (node **list, int seqn){
-  if (list!=NULL){
-    node *newNode = (node*)malloc(sizeof(node));
-    newNode->data = seqn;
-    newNode->next = (*list)->next;
-    (*list)->next = newNode;
-    (*list)->data++;
-
-    printf("ListSize = %d\n", (*list)->data);
-    fflush( stdout );
-    printf("FirstNode = %d\n", (*list)->next->data);
-    fflush( stdout );
-    return;
-  }
-}
-
-void deleteList(node* head)  {
-
-  node *current = head;
-  node *next;
-  while (current != NULL){
-    next = current->next;
-    free(current);
-    current = next;
-  }
-  head = NULL;
-}
-
-void displayList(node* head)
-{
-  node *temp;
-  if(head == NULL){
-    printf("List is empty.");
-    fflush( stdout );
-  }
-  else{
-    temp = head;
-    printf("\n");
-    while(temp != NULL){
-      printf("Data = %d ", temp->data); // Print data of current node
-      fflush( stdout );
-      temp = temp->next;                 // Move to next node
-    }
-    printf("\n");
-  }
-}
-
-//check if already recieved ack from sent data packages
-//returns 1 if yes and 0 if no
-int checkSeqAck(){
-  return 0;
-}
-*/
-
-
-int sendFile(char *fileName , struct sockaddr_in servaddr, int sockfd){
-  FILE *fd = fopen( "testFile.txt", "rb" );
-  if (fd!=NULL){
+int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
+    FILE *fd = fopen( "testFile.txt", "rb" );
+    if (fd!=NULL){
     char * fileBuffer;
     long fileSize = sizeFile(fd);
     fileBuffer = (char*)malloc((fileSize) * sizeof(char));
+    socklen_t len = sizeof(struct sockaddr_in);
 
     //Read file contents into buffer
     size_t paulo = fread(fileBuffer, 1, fileSize, fd);
@@ -174,15 +118,9 @@ int sendFile(char *fileName , struct sockaddr_in servaddr, int sockfd){
     long placeinBuffer = 0;
     long bitstoSend = fileSize;
 
-	printf("\nsize of buffer:%ld\n",fileSize);
-	//while still have packages to send
-
-
-    printf("NUMERO DE SEQUENCIAS:%d\n", numSeqs);
-
-//while still have packages to send
+    //while still have packages to send
 	while (curSeq <= numSeqs){
-    	
+
 		if (fileSize > MAX_PAYLOAD_SIZE){
     		bitstoSend = MAX_PAYLOAD_SIZE;
       	}
@@ -191,56 +129,43 @@ int sendFile(char *fileName , struct sockaddr_in servaddr, int sockfd){
 			bitstoSend = fileSize;
 
 
-			//while didnt recieved the ack from the package
+		//while didnt recieved the ack from the package
 		while (curAck == curSeq){
 	   		sentPacket.type = DATA;
 			sentPacket.seqn = curSeq;
 			sentPacket.length = 0;
 			sentPacket.total_size = 0;
-			
+
 			memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
 
-
-		    //SENDING PACKAGE
-		    //n = sendto( , , , , );
-		  	//if (n < 0)
-		  	//	printf("ERROR sendto");
-		    //RECIEVING ACK NEED TIMEOUT
-		    //n = rcvfrom( , , , , );
-		    //if (n < 0)
-		  	//	printf("ERROR recvfrom");
-
-		  	//}
-
-			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr,  sizeof(servaddr));
+			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
 			if (n  < 0)
         		perror("sendto");
 
-			// Timeout? RecvFrom é bloqueante e se o ACK não chegar?
+            struct timeval timeout={2,0}; //set timeout for 2 seconds
+            setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
-   			//n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
-    		//if (n  < 0)
-        	//	perror("recvfrom");
-			//if(rcvdPacket.seqn == curAck)
+   			n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+			if(rcvdPacket.seqn == curAck && n >= 0)
 		    	curAck++;
 
 			}
-		
-		printf("Onde estamos : %d\nNa sequencia : %d\n", placeinBuffer, curSeq);
 		placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
 		fileSize = fileSize - bitstoSend;
 		curSeq++;
 	}
 
-
+    struct timeval timeout={0,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     //closes file and free the buffer
     free(fileBuffer);
     fclose (fd);
     return 0;
   }
-  else
+  else{
       printf("Erro na abertura do arquivo");
   return -1;
+ }
 }
 
 

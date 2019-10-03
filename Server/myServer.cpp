@@ -109,13 +109,13 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         if (n < 0)
             perror("recvfrom");
 
-        printf("\n\n\n\n\n\n\n\n\n\n\n\n\nSeq : %d\nRecebido de : %s\nPayload : %s\n\n\n\n\n\n\n\n\n\n\n\n\n\n", recPacket.seqn, client->username, recPacket._payload);
+        printf("Seq : %d\nRecebido de : %s\n\n\nPayload : %s\n\n", recPacket.seqn, client->username, recPacket._payload);
         fflush( stdout );
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
                 case UPLOAD:;
-                // receiveFile()
+                // receiveFile()                     // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
                 case DOWNLOAD:;
                 // sendFile()

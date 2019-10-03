@@ -50,4 +50,10 @@ void *cliThread(void *arg);
 
 int createSocket(user client, int port);
 
+int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
+
+int receiveFile(char *fileName , int legnth,  struct sockaddr_in addr, int sockfd);
+
+long sizeFile (FILE *f);
+
 void *sender(void *arg);
