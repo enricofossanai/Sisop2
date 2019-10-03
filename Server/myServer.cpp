@@ -23,14 +23,8 @@ using namespace std;
 #define MAXNUMCON   100
 
 //header da thread foda-se
-<<<<<<< HEAD
-void *connect(void *arg){
-    printf("conectando\n");
-}
-=======
 void *connect(void *arg);
 
->>>>>>> c67c5607a874cfeb9a0a41a25e196ad75634d05d
 
 // Driver code
 int main() {
@@ -87,14 +81,8 @@ int main() {
             printf("Check: %d\n", packetBuffer.checksum );
             printf("Payload: %s\n",packetBuffer._payload);
 
-<<<<<<< HEAD
-            char* userName = (char *) malloc(sizeof(char)*10);
-            strcpy(userName, "Juca Batista");
-            rc = pthread_create(&threads[threadNum], NULL, connect, &userName);
-=======
             char* userName = "jucaBatista";
             rc = pthread_create(&threads[threadNum], NULL, connect, (void*)cliaddr);
->>>>>>> c67c5607a874cfeb9a0a41a25e196ad75634d05d
     }
 
     return 0;
