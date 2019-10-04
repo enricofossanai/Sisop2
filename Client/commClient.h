@@ -23,9 +23,10 @@
 #define CMD		2
 #define CN          3               // Connect
 
-#define UPLOAD		0
-#define DOWNLOAD	1
-#define DELETE		2
+
+#define CREATE		0
+#define DELETE			1
+#define MODIFY		2
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -68,3 +69,5 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 
 //list files from user sync_dir
 int list_client(char * dirName);
+
+int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd);

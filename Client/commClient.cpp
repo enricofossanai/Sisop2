@@ -71,7 +71,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	  fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
+  	//i = sendFile("revistaJuca.txt" , servaddr, sockfd);
 ////////////////////////////////////
     printf("TO MANDANDO VER\n");
 
@@ -210,4 +210,33 @@ int list_client(char *dirName){
 
 }
 
-// int receiveFile(){}
+
+//sends message to delete file
+int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd){
+  //filling packet info
+    socklen_t len = sizeof(struct sockaddr_in);
+    packet sentPacket, rcvdPacket;
+    sentPacket.type = CMD;
+    sentPacket.cmd = DELETE;
+    int n;
+    //struct timeval timeout={2,0}; //set timeout for 2 seconds
+    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    //sending packet
+    int ack = 0;
+    while (ack == 0){
+        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+        if (n  < 0)
+            perror("sendto");
+
+        n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+        if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
+            ack = 1;
+            printf("\nserver recieved delete command\n");
+        }
+
+    }
+    //struct timeval timeout={0,0}; //set timeout to return to block
+    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    return 0;
+
+}

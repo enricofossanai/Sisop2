@@ -22,9 +22,9 @@
 #define CMD			2
 #define CN          3
 
-#define UPLOAD		0
-#define DOWNLOAD	1
-#define DELETE		2
+#define CREATE		0
+#define DELETE			1
+#define MODIFY		2
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG

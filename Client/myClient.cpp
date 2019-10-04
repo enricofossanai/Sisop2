@@ -46,8 +46,8 @@ int main(int argc, char *argv[]) {
     if (!(mkdir(dirName,0777)))
         printf("Directory created\n");
     else {
-        printf("Unable to create directory\n");                             // Tem que testar primeiro se o diretório já não existe
-
+        printf("Client Logged\n");                             // Tem que testar primeiro se o diretório já não existe
+        //FAZER O SYNC DIR AQUI!!!!
     }
 
     pthread_t threadN;
