@@ -16,6 +16,8 @@
 
 #include "commServer.h"
 
+using namespace std;
+
 int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
 {
     int Sum = 0,Sumchar=0,i;
@@ -77,7 +79,7 @@ int createSocket(user client, int port){
     }
     else{
         mkdir(client.username,0777);
-        printf("Directory created\n");                            
+        printf("Directory created\n");
         }
     memset(&servaddr, 0, sizeof(servaddr));
 
@@ -114,6 +116,7 @@ int createSocket(user client, int port){
 
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
     FILE *fd = fopen( fileName , "wb" );
+    unsigned char *fileBuffer = new unsigned char[fileSize];
 
     if (fd == NULL){
         printf("Deu pau no arquivo\n");
@@ -121,8 +124,6 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
     }
 
     else{
-
-        char *fileBuffer = (char*)malloc((fileSize * 8 * sizeof(char)) + 1);
         socklen_t len = sizeof(struct sockaddr_in);
 
         int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
@@ -153,6 +154,7 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
                 sentPacket.seqn = rcvdPacket.seqn;
                 sentPacket.length = 0;
                 sentPacket.total_size = 0;
+                strcpy(sentPacket._payload, "");
                 sentPacket.checksum = makeSum(&sentPacket);
 
                 n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
@@ -169,7 +171,6 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
             }
         }
 
-        printf("CACETE : %s\n", fileBuffer );
         //closes file and free the buffer
         size_t jubileu = fwrite(fileBuffer, 1, toWrite, fd);
         if(jubileu != toWrite) {
@@ -179,7 +180,7 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 
         fclose(fd);
         free(allSeq);
-        free(fileBuffer);
+        delete fileBuffer;
 
         printf("ONDE QUE EU CHEGO O MERDA0\n");
         return 0;
@@ -206,6 +207,7 @@ long int sizeFile (FILE *f){
 }
 
 int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             // Lembrar do // nos pathname!!!!!
+
     FILE *fd = fopen( fileName , "rb" );
     if (fd!=NULL){
     char * fileBuffer;
@@ -274,4 +276,3 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
   return -1;
  }
 }
-

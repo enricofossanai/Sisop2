@@ -14,7 +14,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <bits/stdc++.h>
-//#include <iostream>
+#include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -142,6 +142,11 @@ void *clientComm(void *arg) {
 	int n;
 
     while(1){
+
+        /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
+            n = sendFile("revistaJuca.txt" , servaddr, sockfd);
+            printf("TO MANDANDO VER\n");
+        ////////////////////////////////////
 
     n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)

@@ -116,12 +116,12 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), &len);
         if (n < 0)
             perror("recvfrom");
-/*
+
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
 
-        n = receiveFile("revistaJuca" , recPacket.length, client->cliaddr, client->socket);
-*/
+        n = receiveFile("revistaJucaS.txt" , recPacket.length, client->cliaddr, client->socket);
+
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
                 case CREATE:;

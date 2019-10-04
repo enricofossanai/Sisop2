@@ -93,12 +93,8 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 
 	  fflush( stdout );
-/////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  	//i = sendFile("revistaJuca.txt" , servaddr, sockfd);
-////////////////////////////////////
-    printf("TO MANDANDO VER\n");
 
-    return servaddr;
+      return servaddr;
 }
 
 long int sizeFile (FILE *f){
@@ -123,7 +119,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 
     FILE *fd = fopen( "revistaJuca.txt", "rb" );
     long int fileSize = sizeFile(fd);
-    char *fileBuffer = (char *)malloc((fileSize * 8 * sizeof(char)) + 1);
+    unsigned char fileBuffer [200000];
 
 
     if (fd == NULL){
@@ -154,7 +150,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     sentPacket.length = fileSize;
 
     printf("\nTOTAL DE SEQUENCIAS PARA ENVIAR: %d",numSeqs);
-    printf("\nTAMANHO DO ARQUIVO: %ld\n\n",fileSize);
+    printf("\nPUTA MERDA : %s\n", fileBuffer);
     fflush(stdout);
 
     n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
@@ -168,7 +164,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
         fflush(stdout);
 
 		if (fileSize > MAX_PAYLOAD_SIZE)
-    		bitstoSend = MAX_PAYLOAD_SIZE;
+    		bitstoSend = MAX_PAYLOAD_SIZE - 1;
 		else
 			bitstoSend = fileSize;
 
@@ -181,15 +177,15 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
             memcpy(sentPacket._payload, &fileBuffer[placeinBuffer], bitstoSend);
             sentPacket.checksum = makeSum(&sentPacket);
 
-			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
 			if (n  < 0)
         		perror("sendto");
 
-            //n = recv(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0);
-			//if(rcvdPacket.seqn == curAck && n >= 0 && (checkSum(&rcvdPacket))){
-		    	curAck++;
-                printf("Passei aqui cacete\n");
-            //}
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
+            if (rcvdPacket.seqn == curAck && n > 0){
+		    	    curAck++;
+                    printf("Passei aqui cacete\n");
+                }
 		}
 
 		placeinBuffer = placeinBuffer + bitstoSend; //move the place of the flag in the buffer for nexzt packet
@@ -200,7 +196,8 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 
   printf("COMO PODE SENHOR\n");
 
- free(fileBuffer);
+ //free(fileBuffer);
+ //fileBuffer = NULL;
  fclose(fd);
 
  return 0;
@@ -231,7 +228,6 @@ int list_client(char *dirName){
         }
     fflush(stdout);
     closedir(dir);
-
 
 }
 
