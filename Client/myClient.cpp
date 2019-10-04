@@ -14,7 +14,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <bits/stdc++.h>
-#include <iostream>
+//#include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -23,15 +23,9 @@
 //global variables
 struct sockaddr_in servaddr;
 int sockfd;
-char * fileBuffer;
-int fileParts;
-
 
 int main(int argc, char *argv[]) {
 
-//////USANDO AREA PARA TESTAR PODE APAGAR DEPOIS
-//fileBuffer = "me diz que funfou";
-///////////////////////////////////////////////
 
     int i,flag=FALSE;
 	char dirName[20],username[20],command[20],option[20], sync_dir[40];
@@ -203,13 +197,13 @@ void *clientNotify(void *arg){
             if(evento->len) {
                 printf("[+] Arquivo `%s': ", evento->name) ;
             } else {
-                printf("[+] Arquivo desconhecido: ") ;                              // Nome do Arquivo modificado
+                printf("[+] Arquivo desconhecido: ") ;                               // Nome do Arquivo modificado
             }
 
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 printf("Modificado.\n") ;
-            } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O POBLEMA DO UBUNTU
+            } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("Deletado.\n") ;
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                 printf("Criado.\n") ;

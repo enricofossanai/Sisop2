@@ -14,7 +14,7 @@
 
 #define MAX_PACKET_SIZE     	64000
 #define MAX_PAYLOAD_SIZE        62000
-#define PORT  			8000
+#define PORT  			        8000
 #define TRUE 1
 #define FALSE 0
 
@@ -54,11 +54,7 @@ typedef struct socketInfo{
     socklen_t len;
     } socketInfo;
 
-//node of a linked list, being used to store the packege seq that arrived
-typedef struct node{
-        int data;
-        node *next;
-     } node;
+int makeSum(packet * packet);
 
 int checkSum(packet * packet);
 
@@ -72,7 +68,7 @@ void *clientNotify(void *arg);
 struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username);
 
 //return size of file or -1 if error
-long sizeFile (FILE *f);
+long int sizeFile (FILE *f);
 
 //copies file to buffer
 long fileToBuffer (FILE *f);

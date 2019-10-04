@@ -50,7 +50,9 @@ typedef struct user{
 
 int checkSum(packet * packet);
 
-int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int sockfd);
+int makeSum(packet * packet);
+
+int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 
 void *cliThread(void *arg);
 
@@ -58,7 +60,7 @@ int createSocket(user client, int port);
 
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 
-long sizeFile (FILE *f);
+long int sizeFile (FILE *f);
 
 void *sender(void *arg);
 

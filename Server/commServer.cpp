@@ -16,7 +16,6 @@
 
 #include "commServer.h"
 
-
 int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
 {
     int Sum = 0,Sumchar=0,i;
@@ -38,6 +37,22 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
         return -1;
     }
 
+}
+
+int makeSum(packet * packet) //faz a soma dos dados do pacote
+{
+    int Sum = 0,Sumchar=0,i;
+    int type=packet->type,seqn=packet->seqn,lenght=packet->type,total_size=packet->total_size;
+
+    for(i=0;i<strlen(packet->_payload);i++)
+    {
+        Sumchar = Sumchar + packet->_payload[i];
+
+    }
+
+    Sum = type + seqn + lenght + total_size + Sumchar;
+
+    return Sum;
 }
 
 int createSocket(user client, int port){
@@ -97,67 +112,84 @@ int createSocket(user client, int port){
     return sockfd;
 }
 
-int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int sockfd){
-    //FILE *fd = fopen( fileName , "rb" );
-    //if (fd!=NULL){
+int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
+    FILE *fd = fopen( fileName , "wb" );
 
-    char *fileBuffer;
-    fileBuffer = (char*)malloc(fileSize * sizeof(char));
-    socklen_t len = sizeof(struct sockaddr_in);
-
-    int numSeqs = ceil(fileSize/MAX_PAYLOAD_SIZE);
-    int n;
-    int curSeq = 0;
-    int allSeq [numSeqs + 1] = {};
-    packet sentPacket, rcvdPacket;
-    long bitstoReceive = fileSize;
-
-    //while still have packages to receive
-    while (curSeq <= numSeqs){
-
-        if (fileSize > MAX_PAYLOAD_SIZE)
-            bitstoReceive = MAX_PAYLOAD_SIZE;
-        else
-            bitstoReceive = fileSize;
-
-        n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
-        if(n < 0)
-            perror("recvfrom");
-
-        memcpy((fileBuffer + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
-
-        sentPacket.type = ACK;
-        sentPacket.seqn = rcvdPacket.seqn;
-        sentPacket.length = 0;
-        sentPacket.total_size = 0;
-
-        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
-        if (n  < 0)
-            perror("sendto");
-
-        if (allSeq[rcvdPacket.seqn] == 0){
-        fileSize = fileSize - bitstoReceive;
-        curSeq++;
-        allSeq[rcvdPacket.seqn] = 1;
-        }
+    if (fd == NULL){
+        printf("Deu pau no arquivo\n");
+        return -1;
     }
 
-    //closes file and free the buffer
-    printf("PUTA VIDA : %s\n", fileBuffer);
-    free(fileBuffer);
-    return 0;
-//    }
+    else{
 
-//    else{
-//        printf("Erro na abertura do arquivo");
-//    return -1;
-//    }
+        char *fileBuffer = (char*)malloc((fileSize * 8 * sizeof(char)) + 1);
+        socklen_t len = sizeof(struct sockaddr_in);
+
+        int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
+        int n;
+        int curSeq = 0;
+        int *allSeq = (int *)malloc((numSeqs * sizeof(int)) + 1);
+        packet sentPacket, rcvdPacket;
+        long bitstoReceive = 0;
+        long int toWrite = fileSize;
+
+        //while still have packages to receive
+        while (curSeq <= numSeqs){
+
+            if (fileSize > MAX_PAYLOAD_SIZE)
+                bitstoReceive = MAX_PAYLOAD_SIZE;
+            else
+                bitstoReceive = fileSize;
+
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+            if(n < 0)
+                perror("recvfrom");
+
+            if((checkSum(&rcvdPacket))){		                                    // Verificação de CheckSum
+
+                memcpy(fileBuffer + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn), rcvdPacket._payload, bitstoReceive);
+
+                sentPacket.type = ACK;
+                sentPacket.seqn = rcvdPacket.seqn;
+                sentPacket.length = 0;
+                sentPacket.total_size = 0;
+                sentPacket.checksum = makeSum(&sentPacket);
+
+                n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+                if (n  < 0)
+                    perror("sendto");
+
+                if (allSeq[rcvdPacket.seqn] == 0){
+                    fileSize = fileSize - bitstoReceive;
+                    curSeq++;
+                    allSeq[rcvdPacket.seqn] = 1;
+                }
+
+
+            }
+        }
+
+        printf("CACETE : %s\n", fileBuffer );
+        //closes file and free the buffer
+        size_t jubileu = fwrite(fileBuffer, 1, toWrite, fd);
+        if(jubileu != toWrite) {
+            printf("Erro ao tentar escrever o arquivo inteiro.\n");
+            return -1;
+        }
+
+        fclose(fd);
+        free(allSeq);
+        free(fileBuffer);
+
+        printf("ONDE QUE EU CHEGO O MERDA0\n");
+        return 0;
+    }
 }
 
 
 
-long sizeFile (FILE *f){
-	long size;
+long int sizeFile (FILE *f){
+	long int size;
 
 	if (f != NULL) {
     fseek(f, 0, SEEK_END);
@@ -177,7 +209,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
     FILE *fd = fopen( fileName , "rb" );
     if (fd!=NULL){
     char * fileBuffer;
-    long fileSize = sizeFile(fd);
+    long int fileSize = sizeFile(fd);
     fileBuffer = (char*)malloc((fileSize) * sizeof(char));
     socklen_t len = sizeof(struct sockaddr_in);
 
@@ -193,8 +225,8 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
 	int curSeq = 0;
 	int curAck = 0;
 	packet sentPacket, rcvdPacket;
-    long placeinBuffer = 0;
-    long bitstoSend = fileSize;
+    long int placeinBuffer = 0;
+    long int bitstoSend = fileSize;
     sentPacket.length = fileSize;
 
     //while still have packages to send
