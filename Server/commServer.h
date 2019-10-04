@@ -46,6 +46,8 @@ typedef struct user{
 
 int checkSum(packet * packet);
 
+int makeSum(packet * packet);
+
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 
 void *cliThread(void *arg);
