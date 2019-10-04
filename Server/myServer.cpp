@@ -17,7 +17,9 @@
 
 using namespace std;
 
-<<<<<<< HEAD
+user Users [MAXNUMCON];
+int curPort = 8000;
+
 #define PORT        8000
 #define MAXLINE     102400
 #define MAXNUMCON   100
@@ -25,10 +27,6 @@ using namespace std;
 //header da thread foda-se
 void *connect(void *arg);
 
-=======
-int curPort = 8000;
-user Users [MAXNUMCON];
->>>>>>> c2d020fbcaafa0b48a212d92884d35d9d7b76d10
 
 // Driver code
 int main() {
@@ -81,17 +79,6 @@ int main() {
 
                 user client;
 
-<<<<<<< HEAD
-            printf("Tipo: %d\n", packetBuffer.type);
-            printf("Seq: %d\n",packetBuffer.seqn );
-            printf("Len: %d\n",packetBuffer.length );
-            printf("Size: %d\n",packetBuffer.total_size);
-            printf("Check: %d\n", packetBuffer.checksum );
-            printf("Payload: %s\n",packetBuffer._payload);
-
-            char* userName = "jucaBatista";
-            rc = pthread_create(&threads[threadNum], NULL, connect, (void*)cliaddr);
-=======
                 strcpy(client.username, packetBuffer._payload);
                 client.cliaddr = cliaddr;
 
@@ -107,7 +94,6 @@ int main() {
                 }
         }
         fflush(stdout);
->>>>>>> c2d020fbcaafa0b48a212d92884d35d9d7b76d10
     }
 
     return 0;
