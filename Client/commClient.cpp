@@ -71,15 +71,15 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	  fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  //	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
+  	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
 ////////////////////////////////////
     printf("TO MANDANDO VER\n");
 
     return servaddr;
 }
 
-long sizeFile (FILE *f){
-	long size;
+long int sizeFile (FILE *f){
+	long int size;
 
 	if (f != NULL) {
     fseek(f, 0, SEEK_END);
@@ -99,7 +99,7 @@ long sizeFile (FILE *f){
 int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     FILE *fd = fopen( "revistaJuca.txt", "rb" );
     if (fd!=NULL){
-    long fileSize = sizeFile(fd);
+    long int fileSize = sizeFile(fd);
     socklen_t len = sizeof(struct sockaddr_in);
     char *fileBuffer = (char *)malloc((fileSize * 8 * sizeof(char)) + 1);
 
@@ -111,16 +111,17 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     }
 
 	int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
-    int n;
+    int n = 0;
 	int curSeq = 0;
 	int curAck = 0;
 	packet sentPacket, rcvdPacket;
-    long placeinBuffer = 0;
-    long bitstoSend = fileSize;
+    long int placeinBuffer = 0;
+    long int bitstoSend = fileSize;
+    sentPacket.cmd = fileSize;
     sentPacket.length = fileSize;
 
     printf("\nTOTAL DE SEQUENCIAS PARA ENVIAR: %d",numSeqs);
-    printf("\nTAMANHO DO ARQUIVO: %d\n\n",fileSize);
+    printf("\nTAMANHO DO ARQUIVO: %ld\n\n",fileSize);
     fflush(stdout);
 
     n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
@@ -146,7 +147,8 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 			sentPacket.seqn = curSeq;
 			sentPacket.total_size = 0;
 
-            strncpy(sentPacket._payload, (&fileBuffer + placeinBuffer), bitstoSend);
+            memcpy(sentPacket._payload, &fileBuffer[placeinBuffer], bitstoSend);
+            sentPacket.checksum = checkSum(&sentPacket);
 
             printf("Passei aqui cacete\n");
 
@@ -168,8 +170,8 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     struct timeval notimeout = {0,0}; //set timeout for 0 seconds
     setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
 
-    fclose(fd);
     free(fileBuffer);
+    fclose(fd);
 
     return 0;
   }
@@ -177,7 +179,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
       printf("Erro na abertura do arquivo");
       return -1;
  }
- //return 0;
+
 }
 
 int list_client(char *dirName){
@@ -195,7 +197,7 @@ int list_client(char *dirName){
             printf("Arquivo:%s\n Modification Time: %.12s\n Access Time:%.12s\n Creation Time:%.12s \n",dent->d_name,4+ctime(&info.st_mtime),4+ctime(&info.st_atime),4+ctime(&info.st_ctime));
         }
 
-            
+
         return 1;
     }
     else{

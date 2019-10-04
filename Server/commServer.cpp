@@ -86,12 +86,11 @@ int createSocket(user client, int port){
     return sockfd;
 }
 
-int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int sockfd){
+int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
     //FILE *fd = fopen( fileName , "rb" );
     //if (fd!=NULL){
 
     char *fileBuffer = (char*)malloc((fileSize * 8 * sizeof(char)) + 1);
-    printf("TESTE1  : %d\n", &fileBuffer );
     socklen_t len = sizeof(struct sockaddr_in);
 
     int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
@@ -113,7 +112,7 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
         if(n < 0)
             perror("recvfrom");
 
-        strncpy((&fileBuffer +(MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
+        memcpy(&fileBuffer[MAX_PAYLOAD_SIZE * rcvdPacket.seqn], rcvdPacket._payload, bitstoReceive);
 
         sentPacket.type = ACK;
         sentPacket.seqn = rcvdPacket.seqn;
@@ -146,8 +145,8 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
 
 
 
-long sizeFile (FILE *f){
-	long size;
+long int sizeFile (FILE *f){
+	long int size;
 
 	if (f != NULL) {
     fseek(f, 0, SEEK_END);
@@ -167,7 +166,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
     FILE *fd = fopen( fileName , "rb" );
     if (fd!=NULL){
     char * fileBuffer;
-    long fileSize = sizeFile(fd);
+    long int fileSize = sizeFile(fd);
     fileBuffer = (char*)malloc((fileSize) * sizeof(char));
     socklen_t len = sizeof(struct sockaddr_in);
 
@@ -183,8 +182,8 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
 	int curSeq = 0;
 	int curAck = 0;
 	packet sentPacket, rcvdPacket;
-    long placeinBuffer = 0;
-    long bitstoSend = fileSize;
+    long int placeinBuffer = 0;
+    long int bitstoSend = fileSize;
     sentPacket.length = fileSize;
 
     //while still have packages to send

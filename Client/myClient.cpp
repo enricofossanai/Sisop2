@@ -14,7 +14,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <bits/stdc++.h>
-#include <iostream>
+//#include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -23,9 +23,6 @@
 //global variables
 struct sockaddr_in servaddr;
 int sockfd;
-
-int fileParts;
-
 
 int main(int argc, char *argv[]) {
 

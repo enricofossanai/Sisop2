@@ -58,7 +58,7 @@ void *clientNotify(void *arg);
 struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username);
 
 //return size of file or -1 if error
-long sizeFile (FILE *f);
+long int sizeFile (FILE *f);
 
 //copies file to buffer
 long fileToBuffer (FILE *f);
