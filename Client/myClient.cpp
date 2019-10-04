@@ -17,6 +17,7 @@
 #include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
 
 
 //global variables
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
 
 
     int i,flag=FALSE;
-	char username[20],command[20],option[20], sync_dir[40];
+	char dirName[20],username[20],command[20],option[20], sync_dir[40];
     char buffer[MAX_PACKET_SIZE];
 
     struct hostent *server;
@@ -43,8 +44,9 @@ int main(int argc, char *argv[]) {
 
     strcpy (sync_dir, "sync_dir_");
     strcpy (username,argv[2]);
+    strcpy(dirName,strcat(sync_dir, username));
                                                                             // Cria o Diretório
-    if (!(mkdir(strcat(sync_dir, username),0777)))
+    if (!(mkdir(dirName,0777)))
         printf("Directory created\n");
     else {
         printf("Unable to create directory\n");                             // Tem que testar primeiro se o diretório já não existe
@@ -93,6 +95,12 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
 
         } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
+            i = list_client(dirName);
+            if (i  > 0)
+                printf("Leu o diretório\n");
+            else
+                printf("Erro no list_client\n");
+            fflush(stdout);
 
         } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
 

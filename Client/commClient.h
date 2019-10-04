@@ -65,3 +65,6 @@ long fileToBuffer (FILE *f);
 
 //sends file
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
+
+//list files from user sync_dir
+int list_client(char * dirName);

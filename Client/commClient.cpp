@@ -14,6 +14,8 @@
 #include <dirent.h>
 #include <time.h>
 #include <math.h>
+#include <dirent.h>
+
 
 #include "commClient.h"
 
@@ -69,7 +71,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
 
 	  fflush( stdout );
 /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-  	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
+  //	i = sendFile("revistaJuca.txt" , servaddr, sockfd);
 ////////////////////////////////////
     printf("TO MANDANDO VER\n");
 
@@ -178,5 +180,32 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
  //return 0;
 }
 
+int list_client(char *dirName){
+
+    DIR *dir;
+    struct dirent *dent;
+    dir = opendir((const char *) dirName);
+
+    if(dir!=NULL)
+    {
+        while((dent=readdir(dir))!=NULL){
+            struct stat info;
+            stat(dent->d_name, &info);
+
+            printf("Arquivo:%s\n Modification Time: %.12s\n Access Time:%.12s\n Creation Time:%.12s \n",dent->d_name,4+ctime(&info.st_mtime),4+ctime(&info.st_atime),4+ctime(&info.st_ctime));
+        }
+
+            
+        return 1;
+    }
+    else{
+        printf("Erro na abertura do diretório\n");
+        return -1;
+        }
+    fflush(stdout);
+    closedir(dir);
+
+
+}
 
 // int receiveFile(){}

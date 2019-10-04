@@ -17,8 +17,16 @@
 
 using namespace std;
 
-int curPort = 8000;
 user Users [MAXNUMCON];
+int curPort = 8000;
+
+#define PORT        8000
+#define MAXLINE     102400
+#define MAXNUMCON   100
+
+//header da thread foda-se
+void *connect(void *arg);
+
 
 // Driver code
 int main() {
