@@ -116,6 +116,10 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), &len);
         if (n < 0)
             perror("recvfrom");
+
+
+        //cmdAndFile lastCommand;
+        //lastCommand = rcv_cmd();
 /*
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
@@ -124,16 +128,19 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
 */
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
-                case CREATE:;
+                case CREATE:
+                break;
                 // receiveFile()                     // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
-                case DELETE:;
+                case DELETE:
+                break;
                 // sendFile()
                 //Mesma coisa do UPLOAD, só que server -> client
-                case MODIFY:;
+                case MODIFY:
+                break;
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
-                case LIST_SERVER:;
+                default:;
 
 
             }

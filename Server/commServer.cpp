@@ -77,7 +77,7 @@ int createSocket(user client, int port){
     }
     else{
         mkdir(client.username,0777);
-        printf("Directory created\n");                            
+        printf("Directory created\n");
         }
     memset(&servaddr, 0, sizeof(servaddr));
 
@@ -275,3 +275,56 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
  }
 }
 
+
+//sends message to delete file
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
+  //filling packet info
+    socklen_t len = sizeof(struct sockaddr_in);
+    packet sentPacket, rcvdPacket;
+    sentPacket.type = CMD;
+    sentPacket.cmd = command;
+    int n;
+    //struct timeval timeout={2,0}; //set timeout for 2 seconds
+    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    //sending packet
+    int ack = 0;
+    while (ack == 0){
+        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+        if (n  < 0)
+            perror("sendto");
+
+        n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+        if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
+            ack = 1;
+            printf("\nserver recieved delete command\n");
+        }
+
+    }
+    //struct timeval timeout={0,0}; //set timeout to return to block
+    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    return;
+}
+
+cmdAndFile rcv_cmd(char *fileName, struct sockaddr_in addr, int sockfd){
+  //filling packet info
+    socklen_t len = sizeof(struct sockaddr_in);
+    packet sentPacket, rcvdPacket;
+    int n;
+    cmdAndFile returnFile;
+    returnFile.command = -1;
+      n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+      if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
+          printf("\nserver recieved command\n");
+          sentPacket.type = ACK;
+          sentPacket.cmd = rcvdPacket.cmd;
+          n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+          if (n  < 0)
+            perror("sendto");
+          returnFile.command = rcvdPacket.cmd;
+          strcpy(returnFile.fileName, rcvdPacket._payload);
+          return returnFile;
+      }
+    //struct timeval timeout={0,0}; //set timeout to return to block
+    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    return returnFile;
+}
