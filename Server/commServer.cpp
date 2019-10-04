@@ -276,8 +276,6 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
   return -1;
  }
 }
-<<<<<<< HEAD
-=======
 
 
 //sends message to delete file
@@ -332,4 +330,3 @@ cmdAndFile rcv_cmd(char *fileName, struct sockaddr_in addr, int sockfd){
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     return returnFile;
 }
->>>>>>> 1b0543bbb4d782d523dd102b9b5efce8b49b5e4e

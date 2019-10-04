@@ -28,17 +28,11 @@
 #define CREATE		             0
 #define DELETE		             1
 #define MODIFY		             2
-<<<<<<< HEAD
-#define CMD_LIST_SERVER          3
-#define CMD_LIST_CLIENT          4
-#define CMD_GET_SYNC_DIR         5
-=======
 #define CMD_LIST_SERVER        3
 #define CMD_LIST_CLIENT        4
 #define CMD_GET_SYNC_DIR       5
 
 
->>>>>>> 1b0543bbb4d782d523dd102b9b5efce8b49b5e4e
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
 typedef struct packet{
