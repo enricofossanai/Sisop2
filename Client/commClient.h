@@ -14,6 +14,7 @@
 
 #define MAX_PACKET_SIZE     	64000
 #define MAX_PAYLOAD_SIZE        62000
+#define MAX_FILE_NAME_SIZE        100
 #define PORT  			        8000
 #define TRUE 1
 #define FALSE 0
@@ -27,9 +28,17 @@
 #define CREATE		             0
 #define DELETE		             1
 #define MODIFY		             2
+<<<<<<< HEAD
 #define CMD_LIST_SERVER          3
 #define CMD_LIST_CLIENT          4
 #define CMD_GET_SYNC_DIR         5
+=======
+#define CMD_LIST_SERVER        3
+#define CMD_LIST_CLIENT        4
+#define CMD_GET_SYNC_DIR       5
+
+
+>>>>>>> 1b0543bbb4d782d523dd102b9b5efce8b49b5e4e
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
 typedef struct packet{
@@ -48,6 +57,11 @@ typedef struct socketInfo{
     struct sockaddr_in servaddr;
     socklen_t len;
     } socketInfo;
+
+typedef struct cmdAndFile{
+    int command;
+    char fileName[MAX_FILE_NAME_SIZE];
+  }cmdAndFile;
 
 int makeSum(packet * packet);
 
@@ -75,4 +89,9 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 //list files from user sync_dir
 int list_client(char * dirName);
 
-int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd);
+//send a command and wait for and ack
+//asks for the name of the file to modify, the server address, the socketfd and the command.
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command);
+
+//revieves a command and return a structure countaining the command and the name of the file to modify
+cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
