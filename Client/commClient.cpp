@@ -237,12 +237,12 @@ int list_client(char *dirName){
 
 
 //sends message to delete file
-int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd){
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
     sentPacket.type = CMD;
-    sentPacket.cmd = DELETE;
+    sentPacket.cmd = command;
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
@@ -262,6 +262,6 @@ int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd){
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
-    return 0;
+    return;
 
 }

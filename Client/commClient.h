@@ -31,9 +31,6 @@
 #define CMD_LIST_CLIENT        4
 #define CMD_GET_SYNC_DIR       5
 
-#define UPLOAD		0
-#define DOWNLOAD	1
-#define DELETE		2
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -80,4 +77,4 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 //list files from user sync_dir
 int list_client(char * dirName);
 
-int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd);
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command);

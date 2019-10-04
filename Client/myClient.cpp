@@ -203,9 +203,12 @@ void *clientNotify(void *arg){
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 printf("Modificado.\n") ;
+                send_cmd(evento->name , servaddr, sockfd, MODIFY);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("Deletado.\n") ;
+                send_cmd(evento->name , servaddr, sockfd, DELETE);
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
+                send_cmd(evento->name , servaddr, sockfd, CREATE);
                 printf("Criado.\n") ;
             }
 
