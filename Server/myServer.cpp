@@ -133,6 +133,8 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                 case MODIFY:;
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
+                case LIST_SERVER:;
+
 
             }
         }

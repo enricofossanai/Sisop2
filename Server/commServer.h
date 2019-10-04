@@ -22,9 +22,13 @@
 #define CMD			2
 #define CN          3
 
-#define CREATE		0
-#define DELETE			1
-#define MODIFY		2
+#define CREATE		             0
+#define DELETE		             1
+#define MODIFY		             2
+#define LIST_SERVER        3
+#define LIST_CLIENT        4
+#define GET_SYNC_DIR       5
+
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -45,6 +49,8 @@ typedef struct user{
 } user;
 
 int checkSum(packet * packet);
+
+int makeSum(packet * packet);
 
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 

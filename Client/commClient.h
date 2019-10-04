@@ -14,19 +14,26 @@
 
 #define MAX_PACKET_SIZE     	64000
 #define MAX_PAYLOAD_SIZE        62000
-#define PORT  			8000
+#define PORT  			        8000
 #define TRUE 1
 #define FALSE 0
 
 #define DATA		0
 #define ACK			1
-#define CMD		2
+#define CMD		    2
 #define CN          3               // Connect
 
+//Commands
+#define CREATE		             0
+#define DELETE		             1
+#define MODIFY		             2
+#define CMD_LIST_SERVER        3
+#define CMD_LIST_CLIENT        4
+#define CMD_GET_SYNC_DIR       5
 
-#define CREATE		0
-#define DELETE			1
-#define MODIFY		2
+#define UPLOAD		0
+#define DOWNLOAD	1
+#define DELETE		2
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -47,6 +54,8 @@ typedef struct socketInfo{
     socklen_t len;
     } socketInfo;
 
+int makeSum(packet * packet);
+
 int checkSum(packet * packet);
 
 //thread that communicate with the server
@@ -66,6 +75,7 @@ long fileToBuffer (FILE *f);
 
 //sends file
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
+
 
 //list files from user sync_dir
 int list_client(char * dirName);
