@@ -117,13 +117,9 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         if (n < 0)
             perror("recvfrom");
 
-<<<<<<< HEAD
-=======
-
         //cmdAndFile lastCommand;
         //lastCommand = rcv_cmd();
-/*
->>>>>>> 1b0543bbb4d782d523dd102b9b5efce8b49b5e4e
+
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
 
