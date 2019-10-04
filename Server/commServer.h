@@ -22,9 +22,13 @@
 #define CMD			2
 #define CN          3
 
-#define UPLOAD		0
-#define DOWNLOAD	1
-#define DELETE		2
+#define UPLOAD		       0
+#define DOWNLOAD	       1
+#define DELETE		       2
+#define LIST_SERVER        3
+#define LIST_CLIENT        4
+#define GET_SYNC_DIR       5
+
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -57,3 +61,5 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 long sizeFile (FILE *f);
 
 void *sender(void *arg);
+
+

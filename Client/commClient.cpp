@@ -195,10 +195,10 @@ int list_client(char *dirName){
             struct stat info;
             stat(dent->d_name, &info);
 
-            printf("Arquivo:%s\n Modification Time: %.12s\n Access Time:%.12s\n Creation Time:%.12s \n",dent->d_name,4+ctime(&info.st_mtime),4+ctime(&info.st_atime),4+ctime(&info.st_ctime));
+            printf("Arquivo:%s\n-Modification Time: %.12s\n-Access Time:%.12s\n-Creation Time:%.12s \n",dent->d_name,4+ctime(&info.st_mtime),4+ctime(&info.st_atime),4+ctime(&info.st_ctime));
         }
 
-            
+
         return 1;
     }
     else{
@@ -210,5 +210,6 @@ int list_client(char *dirName){
 
 
 }
+
 
 // int receiveFile(){}

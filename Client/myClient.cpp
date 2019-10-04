@@ -48,13 +48,19 @@ int main(int argc, char *argv[]) {
     strcpy (sync_dir, "sync_dir_");
     strcpy (username,argv[2]);
     strcpy(dirName,strcat(sync_dir, username));
-                                                                            // Cria o Diretório
-    if (!(mkdir(dirName,0777)))
-        printf("Directory created\n");
-    else {
-        printf("Unable to create directory\n");                             // Tem que testar primeiro se o diretório já não existe
 
+    //Cria diretório sync_dir_username caso ele ainda nao exista                         
+    DIR* dir = opendir(dirName);
+    if(dir){
+        printf("Directory already exits\n");
+        closedir(dir);
     }
+    else{
+        mkdir(dirName,0777);
+        printf("Directory created\n");                            
+        }
+                                                                     // Cria o Diretório
+    
 
     pthread_t threadN;
     pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
@@ -95,7 +101,18 @@ int main(int argc, char *argv[]) {
 
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
 
-        } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
+        } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir       
+            packet pck;
+            pck.type = CMD;
+            pck.cmd = CMD_LIST_SERVER;
+            strcpy(pck._payload,username);
+            pck.checksum = checkSum(&pck);
+            i = sendto(sockfd,reinterpret_cast<void *> (&pck), 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+            if (i  < 0)
+                perror("sendto");
+            else
+                printf("Mandei\n");
+            fflush(stdout);
 
         } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
             i = list_client(dirName);
@@ -105,7 +122,7 @@ int main(int argc, char *argv[]) {
                 printf("Erro no list_client\n");
             fflush(stdout);
 
-        } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
+        } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs       
 
         } else if (strcmp(command, "teste\n") == 0) { // Pra testes
             i = sendto(sockfd, "teste do juca", 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));

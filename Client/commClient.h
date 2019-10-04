@@ -20,8 +20,16 @@
 
 #define DATA		0
 #define ACK			1
-#define CMD		2
+#define CMD		    2
 #define CN          3               // Connect
+
+//Commands
+#define CMD_UPLOAD             0
+#define CMD_DOWNLOAD           1
+#define CMD_DELETE             2
+#define CMD_LIST_SERVER        3
+#define CMD_LIST_CLIENT        4
+#define CMD_GET_SYNC_DIR       5
 
 #define UPLOAD		0
 #define DOWNLOAD	1
@@ -71,6 +79,7 @@ long fileToBuffer (FILE *f);
 
 //sends file
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
+
 
 //list files from user sync_dir
 int list_client(char * dirName);

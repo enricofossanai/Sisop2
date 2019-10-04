@@ -54,6 +54,16 @@ int createSocket(user client, int port){
         exit(EXIT_FAILURE);
     }
 
+    //Create dir for client
+    DIR* dir = opendir(client.username);
+    if(dir){
+        printf("Directory already exists\n");
+        closedir(dir);
+    }
+    else{
+        mkdir(client.username,0777);
+        printf("Directory created\n");                            
+        }
     memset(&servaddr, 0, sizeof(servaddr));
 
 
@@ -232,3 +242,4 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){             
   return -1;
  }
 }
+
