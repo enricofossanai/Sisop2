@@ -46,12 +46,6 @@ typedef struct socketInfo{
     socklen_t len;
     } socketInfo;
 
-//node of a linked list, being used to store the packege seq that arrived
-typedef struct node{
-        int data;
-        node *next;
-     } node;
-
 int checkSum(packet * packet);
 
 //thread that communicate with the server

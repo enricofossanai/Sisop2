@@ -16,7 +16,6 @@
 
 #include "commServer.h"
 
-
 int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
 {
     int Sum = 0,Sumchar=0,i;
@@ -91,14 +90,14 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
     //FILE *fd = fopen( fileName , "rb" );
     //if (fd!=NULL){
 
-    char *fileBuffer;
-    fileBuffer = (char*)malloc(fileSize * sizeof(char));
+    char *fileBuffer = (char*)malloc((fileSize * 8 * sizeof(char)) + 1);
+    printf("TESTE1  : %d\n", &fileBuffer );
     socklen_t len = sizeof(struct sockaddr_in);
 
-    int numSeqs = ceil(fileSize/MAX_PAYLOAD_SIZE);
+    int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
     int n;
     int curSeq = 0;
-    int allSeq [numSeqs + 1] = {};
+    int *allSeq = (int *)malloc((numSeqs * sizeof(int)) + 1);
     packet sentPacket, rcvdPacket;
     long bitstoReceive = fileSize;
 
@@ -114,7 +113,7 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
         if(n < 0)
             perror("recvfrom");
 
-        memcpy((fileBuffer + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
+        strncpy((&fileBuffer +(MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
 
         sentPacket.type = ACK;
         sentPacket.seqn = rcvdPacket.seqn;
@@ -134,6 +133,7 @@ int receiveFile(char *fileName , int fileSize,  struct sockaddr_in addr, int soc
 
     //closes file and free the buffer
     printf("PUTA VIDA : %s\n", fileBuffer);
+    free(allSeq);
     free(fileBuffer);
     return 0;
 //    }

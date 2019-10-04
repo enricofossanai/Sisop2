@@ -17,10 +17,6 @@
 
 #include "commClient.h"
 
-//chamando as variabeis globais
-extern char * fileBuffer;
-extern int fileParts;
-
 int checkSum(packet * packet) //faz a soma dos dados do pacote
 {
     int Sum = 0,Sumchar=0,i;
@@ -101,10 +97,9 @@ long sizeFile (FILE *f){
 int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
     FILE *fd = fopen( "revistaJuca.txt", "rb" );
     if (fd!=NULL){
-    char * fileBuffer;
     long fileSize = sizeFile(fd);
-    fileBuffer = (char*)malloc(fileSize * sizeof(char));
     socklen_t len = sizeof(struct sockaddr_in);
+    char *fileBuffer = (char *)malloc((fileSize * 8 * sizeof(char)) + 1);
 
     //Read file contents into buffer
     size_t paulo = fread(fileBuffer, 1, fileSize, fd);
@@ -113,7 +108,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
         return -1;
     }
 
-	int numSeqs = ceil(fileSize/MAX_PAYLOAD_SIZE);
+	int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
     int n;
 	int curSeq = 0;
 	int curAck = 0;
@@ -149,7 +144,9 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 			sentPacket.seqn = curSeq;
 			sentPacket.total_size = 0;
 
-            memcpy((sentPacket._payload), (fileBuffer + placeinBuffer), bitstoSend);
+            strncpy(sentPacket._payload, (&fileBuffer + placeinBuffer), bitstoSend);
+
+            printf("Passei aqui cacete\n");
 
 			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
 			if (n  < 0)
@@ -166,7 +163,7 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
 		curSeq++;
 	}
 
-    struct timeval notimeout = {0,0}; //set timeout for 2 seconds
+    struct timeval notimeout = {0,0}; //set timeout for 0 seconds
     setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
 
     fclose(fd);
@@ -176,9 +173,9 @@ int sendFile(char *fileName , struct sockaddr_in addr, int sockfd){
   }
   else{
       printf("Erro na abertura do arquivo");
-  return -1;
+      return -1;
  }
- return 0;
+ //return 0;
 }
 
 
