@@ -142,7 +142,7 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
             else
                 bitstoReceive = fileSize;
 
-            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PAYLOAD_SIZE, 0, (struct sockaddr *)  &addr, &len);
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
             if(n < 0)
                 perror("recvfrom");
 

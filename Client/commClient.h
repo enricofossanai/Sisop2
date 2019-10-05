@@ -12,7 +12,7 @@
 #include <netdb.h>
 
 
-#define MAX_PACKET_SIZE     	64000
+#define MAX_PACKET_SIZE     	62020
 #define MAX_PAYLOAD_SIZE        62000
 #define MAX_FILE_NAME_SIZE        100
 #define PORT  			        8000

@@ -177,7 +177,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     			if (n  < 0)
             		perror("sendto");
 
-                n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PAYLOAD_SIZE, 0, NULL, NULL);      // TEM QUE SER PAYLOAD PQ DEUS QUER
+                n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);      // TEM QUE SER PAYLOAD PQ DEUS QUER
                 if (rcvdPacket.seqn == curAck && n > 0){
     		    	    curAck++;
                 }

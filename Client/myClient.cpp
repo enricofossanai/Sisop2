@@ -152,7 +152,7 @@ void *clientComm(void *arg) {
     while(1){
 
         /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-        n = sendFile("dark_familias1.jpg" , servaddr, sockfd);
+        n = sendFile("cheng.pdf" , servaddr, sockfd);
         printf("TO MANDANDO VER\n");
         ////////////////////////////////////
     sleep(200);

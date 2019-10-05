@@ -120,10 +120,12 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         //cmdAndFile lastCommand;
         //lastCommand = rcv_cmd();
 
-        printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
+        printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n\nTAMANHO DO PACOTE: %ld\n", recPacket.length, client->username, recPacket._payload, sizeof(struct packet));
         fflush( stdout );
 
-        n = receiveFile("CARAIO.jpg" , recPacket.length, client->cliaddr, client->socket);
+
+
+        n = receiveFile("toma.pdf" , recPacket.length, client->cliaddr, client->socket);
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {

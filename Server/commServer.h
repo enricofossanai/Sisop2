@@ -10,7 +10,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define MAX_PACKET_SIZE     	64000
+#define MAX_PACKET_SIZE     	62020
 #define MAX_PAYLOAD_SIZE        62000
 #define MAXNUMCON               100
 #define MAX_FILE_NAME_SIZE        100
