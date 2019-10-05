@@ -76,9 +76,11 @@ long int sizeFile (FILE *f);
 //copies file to buffer
 long fileToBuffer (FILE *f);
 
-//sends file
+//Send file
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 
+//Self explained
+int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 
 //list files from user sync_dir
 int list_client(char * dirName);

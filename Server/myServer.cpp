@@ -123,7 +123,7 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
 
-        n = receiveFile("revistaJucaS.txt" , recPacket.length, client->cliaddr, client->socket);
+        n = receiveFile("CARAIO.jpg" , recPacket.length, client->cliaddr, client->socket);
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {

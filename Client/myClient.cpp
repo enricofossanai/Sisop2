@@ -152,10 +152,10 @@ void *clientComm(void *arg) {
     while(1){
 
         /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-            n = sendFile("revistaJuca.txt" , servaddr, sockfd);
-            printf("TO MANDANDO VER\n");
+        n = sendFile("dark_familias1.jpg" , servaddr, sockfd);
+        printf("TO MANDANDO VER\n");
         ////////////////////////////////////
-
+    sleep(200);
     n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)
         perror("recvfrom");
