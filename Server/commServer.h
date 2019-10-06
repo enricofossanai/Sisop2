@@ -26,9 +26,9 @@
 #define CREATE		             0
 #define DELETE		             1
 #define MODIFY		             2
-#define LIST_SERVER        3
-#define LIST_CLIENT        4
-#define GET_SYNC_DIR       5
+#define LIST_SERVER              3
+#define LIST_CLIENT              4
+#define GET_SYNC_DIR             5
 
 
 

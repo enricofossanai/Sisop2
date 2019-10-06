@@ -100,16 +100,21 @@ int main(int argc, char *argv[]) {
           //send_cmd("PUTPATHHERE" , servaddr, sockfd, DELETE);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
-            packet pck;
-            pck.type = CMD;
-            pck.cmd = LIST_SERVER;
-            strcpy(pck._payload,username);
-            pck.checksum = checkSum(&pck);
-            i = sendto(sockfd,reinterpret_cast<void *> (&pck), 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+            packet sendPacket,recPacket;
+            socklen_t len = sizeof(struct sockaddr_in);
+            sendPacket.type = CMD;
+            sendPacket.cmd = LIST_SERVER;
+            strcpy(sendPacket._payload,username);
+            sendPacket.checksum = checkSum(&sendPacket);
+            i = sendto(sockfd,reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
             if (i  < 0)
                 perror("sendto");
-            else
-                printf("Mandei\n");
+            i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
+            if (i < 0)
+                perror("recvfrom");
+            if(recPacket.checksum!=makeSum(&recPacket))
+                perror("erro checksum");
+            printf("%s",recPacket._payload);
             fflush(stdout);
 
         } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
@@ -152,7 +157,7 @@ void *clientComm(void *arg) {
     while(1){
 
         /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-        n = sendFile("cheng.pdf" , servaddr, sockfd);
+       // n = sendFile("cheng.pdf" , servaddr, sockfd);
         printf("TO MANDANDO VER\n");
         ////////////////////////////////////
     sleep(200);

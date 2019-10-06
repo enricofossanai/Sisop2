@@ -118,13 +118,13 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
             perror("recvfrom");
         if(recPacket.checksum!=makeSum(&recPacket))
             perror("erro checksum");
-/*
+
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
 
 
 
-        n = receiveFile("toma.pdf" , recPacket.length, client->cliaddr, client->socket);
+        //n = receiveFile("toma.pdf" , recPacket.length, client->cliaddr, client->socket);
 
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
@@ -141,7 +141,20 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
                 case LIST_SERVER:
-                    list_server(recPacket._payload); 
+                    
+                    list_server(recPacket._payload, buffer);
+                    if (list_server(recPacket._payload, buffer)){
+                        strcpy(sendPacket._payload,buffer);
+                        sendPacket.type = DATA;
+                        sendPacket.checksum = makeSum(&sendPacket);
+                        n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
+                        if (n  < 0)
+                            perror("sendto");
+                        fflush(stdout);
+                        
+                    }
+
+                    
                 
 
 

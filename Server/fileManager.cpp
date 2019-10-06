@@ -16,23 +16,34 @@
 
 #include "fileManager.h"
 
-char * list_server(char *dirName){
+int list_server(char *dirName, char * serverFolderSatus ){
 
     DIR *dir;
     struct dirent *dent;
     dir = opendir((const char *) dirName);
+    
+     
 
     if(dir!=NULL)
     {
         while((dent=readdir(dir))!=NULL){
             struct stat info;
             stat(dent->d_name, &info);
+            strcat(serverFolderSatus,"Arquivo:");
+            strcat(serverFolderSatus,dent->d_name);
+            strcat(serverFolderSatus,"\n-Modification Time:");
+            strcat(serverFolderSatus,4+ctime(&info.st_mtime));
+            strcat(serverFolderSatus,"\n-Access Time:");
+            strcat(serverFolderSatus,4+ctime(&info.st_atime));
+            strcat(serverFolderSatus,"\n-Creation Time:");
+            strcat(serverFolderSatus,4+ctime(&info.st_ctime));
 
-            printf("Arquivo:%s\n-Modification Time: %.12s\n-Access Time:%.12s\n-Creation Time:%.12s \n",dent->d_name,4+ctime(&info.st_mtime),4+ctime(&info.st_atime),4+ctime(&info.st_ctime));
+            
         }
 
-
+        //printf("%s",serverFolderSatus);
         return 1;
+
     }
     else{
         printf("Erro na abertura do diretório\n");
