@@ -116,7 +116,6 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
         //n = receiveFile("toma.jpg" , recPacket.length, client->cliaddr, client->socket);
-
         if (lastCommand.command <= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECIEVED CREATE FILE COMMAND");
