@@ -57,6 +57,40 @@ int makeSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
+void addToONlist (userList **list, user *con){
+  if (list!=NULL){
+    userList *newConnection = (userList*)malloc(sizeof(userList));
+    newConnection->connection = *con;
+    newConnection->next = (*list)->next;
+    (*list)->next = newConnection;
+    return;
+  }
+}
+
+void displayList(userList* head){
+  userList *temp;
+  if(head == NULL){
+    printf("List is empty.");
+    fflush( stdout );
+  }
+  else{
+    temp = head;
+    printf("\nONLINE USERS LIST:");
+    while(temp != NULL){
+      printf("\nUser = %s \nIP: %d", (temp->connection).username, (temp->connection).socket); // Print data of current node
+      fflush( stdout );
+      temp = temp->next;                 // Move to next node
+    }
+    printf("\n");
+  }
+}
+
+
+
+
+
+
+
 int createSocket(user client, int port){
     int sockfd;
     int i,n;

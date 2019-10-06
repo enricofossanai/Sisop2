@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
             printf("\nEnter the file pathname: ");
             fflush(stdout);                                                     //////////////////////////////////////////////
             bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
-            fgets(filename, 40, stdin);      
+            fgets(filename, 40, stdin);
             i = sendFile("../revistajuca.txt" , servaddr, sockfd);
             //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
@@ -115,13 +115,13 @@ int main(int argc, char *argv[]) {
             printf("\nEnter the file name: ");
             fflush(stdout);                                                     //////////////////////////////////////////////
             bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
-            fgets(filename, 40, stdin);          
+            fgets(filename, 40, stdin);
             send_cmd(filename, servaddr, sockfd, DELETE);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            send_cmd("",servaddr,sockfd,LIST_SERVER);
+            send_cmd(NULL,servaddr,sockfd,LIST_SERVER);
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");
