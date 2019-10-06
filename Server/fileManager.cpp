@@ -54,3 +54,23 @@ int list_server(char *dirName, char * serverFolderSatus ){
 
 
 }
+
+int delete_file(char * filename,char * username){
+
+  int status;
+  DIR *dir;
+  struct dirent *dent;
+  dir = opendir((const char *) username);
+  
+  status = remove(filename);
+ 
+  if (status == 0)
+    printf("%s file deleted successfully.\n", filename);
+  else
+  {
+    printf("Unable to delete the file\n");
+    return -1;
+  }
+ 
+  return 1;
+};

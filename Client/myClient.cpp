@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 
 
     int i,flag=FALSE;
-	char dirName[20],username[20],command[20],option[20], sync_dir[40];
+	char dirName[20],username[20],command[20],option[20], sync_dir[40],filename[40];
     char buffer[MAX_PACKET_SIZE];
 
     struct hostent *server;
@@ -88,16 +88,25 @@ int main(int argc, char *argv[]) {
 
         // Switch for options
         if(strcmp(command,"exit\n") == 0) {
-            flag = TRUE;
+                flag = TRUE;
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
-          printf("\nUPLOAD command chosen\n");
-          //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
+            printf("\nUPLOAD command chosen\n");
+            printf("\nEnter the file pathname: ");
+            fflush(stdout);                                                     //////////////////////////////////////////////
+            bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
+            fgets(filename, 40, stdin);      
+            i = sendFile("../a.png" , servaddr, sockfd);
+            //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
-          printf("\nDOWNLOAD command chosen\n");
-          //NAO SAQUEI O DOWNLOAD;
+            printf("\nDOWNLOAD command chosen\n");
+            //NAO SAQUEI O DOWNLOAD;
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
-          printf("\nDELETE command chosen\n");
-          //send_cmd("PUTPATHHERE" , servaddr, sockfd, DELETE);
+            printf("\nDELETE command chosen\n");
+            printf("\nEnter the file name: ");
+            fflush(stdout);                                                     //////////////////////////////////////////////
+            bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
+            fgets(filename, 40, stdin);          
+            send_cmd(filename, servaddr, sockfd, DELETE);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;

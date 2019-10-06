@@ -145,7 +145,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
         }
 
         sentPacket.type = CMD;
-        sentPacket.cmd = 0;
+        sentPacket.cmd = CREATE;
         sentPacket.seqn = 0;
         sentPacket.length = fileSize;
         sentPacket.total_size = 0;
