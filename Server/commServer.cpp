@@ -233,7 +233,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
         }
 
         sentPacket.type = CMD;
-        sentPacket.cmd = CREATE;
+        sentPacket.cmd = 0;
         sentPacket.seqn = 0;
         sentPacket.length = fileSize;
         sentPacket.total_size = 0;
@@ -312,18 +312,20 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     return;
 }
 
-cmdAndFile rcv_cmd(char *fileName, struct sockaddr_in addr, int sockfd){
+cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
     int n;
     cmdAndFile returnFile;
     returnFile.command = -1;
+    printf("\nEsperando Comando...");
       n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
       if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
           printf("\nserver recieved command\n");
           sentPacket.type = ACK;
           sentPacket.cmd = rcvdPacket.cmd;
+          printf("\nEnviando ACk de Comando");
           n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
           if (n  < 0)
             perror("sendto");

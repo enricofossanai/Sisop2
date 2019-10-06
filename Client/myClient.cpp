@@ -152,10 +152,10 @@ void *clientComm(void *arg) {
     while(1){
 
         /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-        n = sendFile("cheng.pdf" , servaddr, sockfd);
-        printf("TO MANDANDO VER\n");
+        //n = sendFile("dark_familias1.jpg" , servaddr, sockfd);
+        //printf("TO MANDANDO VER\n");
         ////////////////////////////////////
-    sleep(200);
+    sleep(200);//ALGUEM SABE PQ ESSE SLEEP TA AQUI????????
     n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)
         perror("recvfrom");
@@ -215,14 +215,14 @@ void *clientNotify(void *arg){
 
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
-                printf("Modificado.\n") ;
+                printf("\nModificado.\n") ;
                 send_cmd(evento->name , servaddr, sockfd, MODIFY);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
-                printf("Deletado.\n") ;
+                printf("\nDeletado.\n") ;
                 send_cmd(evento->name , servaddr, sockfd, DELETE);
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
+                printf("\nCriado.\n") ;
                 send_cmd(evento->name , servaddr, sockfd, CREATE);
-                printf("Criado.\n") ;
             }
 
             /* Avança para o próximo evento. */

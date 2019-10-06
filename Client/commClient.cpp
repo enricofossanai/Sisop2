@@ -145,7 +145,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
         }
 
         sentPacket.type = CMD;
-        sentPacket.cmd = CREATE;
+        sentPacket.cmd = 0;
         sentPacket.seqn = 0;
         sentPacket.length = fileSize;
         sentPacket.total_size = 0;
@@ -236,23 +236,26 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     //sending packet
     int ack = 0;
     while (ack == 0){
+            printf("Enviando mensagem\n") ;
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
         if (n  < 0)
             perror("sendto");
-
+            printf("Esperando Ack\n") ;
         n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+        if (n  < 0)
+            perror("recvfrom");
         if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
             ack = 1;
             printf("\nserver recieved delete command\n");
         }
-
+        printf("Tentando enviar mensagem novamente\n") ;
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     return;
 }
 
-cmdAndFile rcv_cmd(char *fileName, struct sockaddr_in addr, int sockfd){
+cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;

@@ -100,6 +100,7 @@ int main() {
 }
 
 void *cliThread(void *arg) {                           // Cuida dos Clientes
+    printf("\nCriada a thread do cliente");
     int n;
     char buffer[MAX_PAYLOAD_SIZE];
     user *client;
@@ -108,47 +109,28 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     socklen_t len = sizeof(struct sockaddr_in);
 
     client = reinterpret_cast<user *> (arg);
-
+    cmdAndFile lastCommand;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     while (1){
+        lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-        n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), &len);
-        if (n < 0)
-            perror("recvfrom");
+        //n = receiveFile("toma.jpg" , recPacket.length, client->cliaddr, client->socket);
 
-        //cmdAndFile lastCommand;
-        //lastCommand = rcv_cmd();
-
-        printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n\nTAMANHO DO PACOTE: %ld\n", recPacket.length, client->username, recPacket._payload, sizeof(struct packet));
-        fflush( stdout );
-
-
-
-        n = receiveFile("toma.pdf" , recPacket.length, client->cliaddr, client->socket);
-
-        if (recPacket.type == CMD){
-            switch (recPacket.cmd) {
-                case CREATE:
-                break;
+        if (lastCommand.command <= 0){ // if recieved command wasnt corrupted
+            if(lastCommand.command == CREATE) {
+                printf("\nRECIEVED CREATE FILE COMMAND");
                 // receiveFile()                     // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
-                case DELETE:
-                break;
-                // sendFile()
-                //Mesma coisa do UPLOAD, só que server -> client
-                case MODIFY:
-                break;
+            }
+            else if(lastCommand.command == DELETE) {
+                printf("\nRECIEVED DELETE FILE COMMAND");
+              }
+            else if (lastCommand.command == MODIFY){
+                printf("\nRECIEVED MODIFY FILE COMMAND");
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
-                default:;
-
-
-            }
-        }
-    }
-}
-
-
-void *sender(void *arg) {
-}
+              }
+          }
+      }
+  }
