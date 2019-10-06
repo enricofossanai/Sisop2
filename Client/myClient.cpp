@@ -156,6 +156,7 @@ void *clientComm(void *arg) {
         //printf("TO MANDANDO VER\n");
         ////////////////////////////////////
     sleep(200);//ALGUEM SABE PQ ESSE SLEEP TA AQUI????????
+    printf("Esperando Mensagem\n") ;
     n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)
         perror("recvfrom");

@@ -283,29 +283,33 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
   return 0;
 }
 
-//sends message to delete file
+//sends message to create, delete or modify file
 void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
     sentPacket.type = CMD;
     sentPacket.cmd = command;
+    sentPacket.checksum = makeSum(&sentPacket);
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     //sending packet
     int ack = 0;
     while (ack == 0){
+            //printf("Enviando mensagem\n") ;
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
         if (n  < 0)
             perror("sendto");
-
+            //printf("Esperando Ack\n") ;
         n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+        if (n  < 0)
+            perror("recvfrom");
         if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
             ack = 1;
-            printf("\nserver recieved delete command\n");
+            printf("\nserver recieved command\n");
         }
-
+        printf("Tentando enviar mensagem novamente\n") ;
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
@@ -319,20 +323,27 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     int n;
     cmdAndFile returnFile;
     returnFile.command = -1;
-    printf("\nEsperando Comando...");
+    //printf("\nEsperando Comando...");
+    fflush(stdout);
       n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+      if (n  < 0)
+        perror("recvfrom");
       if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
-          printf("\nserver recieved command\n");
+          printf("\nserver recieved command %d\n", sentPacket.cmd);
           sentPacket.type = ACK;
           sentPacket.cmd = rcvdPacket.cmd;
-          printf("\nEnviando ACk de Comando");
+          sentPacket.checksum = makeSum(&sentPacket);
+          //printf("\nEnviando ACk de Comando");
           n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
           if (n  < 0)
             perror("sendto");
           returnFile.command = rcvdPacket.cmd;
           strcpy(returnFile.fileName, rcvdPacket._payload);
           return returnFile;
-      }
+      } else{
+          //printf("\nERRO DE CHECKSUM NO  COMANDO");
+            fflush(stdout);
+          }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     return returnFile;
