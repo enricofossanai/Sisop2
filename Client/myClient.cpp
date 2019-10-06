@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
             send_cmd(NULL,servaddr,sockfd,LIST_SERVER);
-            
+            printf("\nRECEBENDO LISTA...\n");
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");

@@ -329,7 +329,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
       if (n  < 0)
         perror("recvfrom");
       if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
-          printf("\nserver recieved command %d\n", sentPacket.cmd);
+          printf("\nserver recieved command %d\n", rcvdPacket.cmd);
           sentPacket.type = ACK;
           sentPacket.cmd = rcvdPacket.cmd;
           sentPacket.checksum = makeSum(&sentPacket);

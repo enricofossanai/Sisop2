@@ -135,12 +135,13 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                         strcpy(sendPacket._payload,buffer);
                         sendPacket.type = DATA;
                         sendPacket.checksum = makeSum(&sendPacket);
+                        printf("\nENRIVANDO  LISTA DE ARQUIVOS\n");
                         n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
                         if (n  < 0)
                             perror("sendto");
                         fflush(stdout);
-                        
-                    }    
+
+                    }
               }
 
           }
