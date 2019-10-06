@@ -92,7 +92,9 @@ int main() {
                 /////////////////////////////////////////////////////TESTE ENRICO/////////////////////////////////
                 //displayList(head);
                 addToONlist (&head, &client);
-                //displayList(head);
+                displayList(head);
+                //rmvFromONlist (&head, &client);
+                ///displayList(head);
                 ////////////////////////////////////////////////////////////////////////////////////
                 rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
                 //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));

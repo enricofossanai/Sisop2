@@ -67,6 +67,27 @@ void addToONlist (userList **list, user *con){
   }
 }
 
+void rmvFromONlist (userList **list, user *usr){
+  int deleted = 0;
+  userList* temp1 = NULL;
+  userList* temp2 = NULL;
+  userList* traverse = *list;   // *** make a copy that we can use to traverse the list
+  while (deleted == 0)
+  {
+      if (traverse->next->connection.socket == usr->socket)//check in node ahead
+      {
+          temp1 = traverse;                           // *** Use local copy of pointer
+          temp2 = traverse->next;//the one to free    // *** Use local copy of pointer
+          temp1->next = temp2->next;
+          free(temp2);
+          deleted = 1;
+          return;
+      }
+      traverse = traverse->next;                         // *** Use local copy of pointer
+  }
+  return;
+}
+
 void displayList(userList* head){
   userList *temp;
   if(head == NULL){
@@ -75,7 +96,7 @@ void displayList(userList* head){
   }
   else{
     temp = head;
-    temp = temp->next; 
+    temp = temp->next;
     printf("\nONLINE USERS LIST:");
     while(temp != NULL){
       printf("\nUser = %s \nIP: %d", (temp->connection).username, (temp->connection).socket); // Print data of current node

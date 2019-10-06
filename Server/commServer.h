@@ -71,6 +71,8 @@ int createSocket(user client, int port);
 
 void addToONlist (userList **list, user *con);
 
+void rmvFromONlist (userList **list, user *usr);
+
 void displayList(userList* head);
 
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
