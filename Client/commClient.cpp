@@ -89,7 +89,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     if (i  < 0)
         perror("recvfrom");
     else
-        printf("Recebido : %d\n", recPacket.type);
+        printf("Conectado com  Servidor\n");
 
 
 	  fflush( stdout );
@@ -252,6 +252,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    printf("\nsaiu  de boa do send_cmd");
     return;
 }
 
