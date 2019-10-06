@@ -307,7 +307,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
             perror("recvfrom");
         if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
             ack = 1;
-            printf("\nserver recieved command\n");
+            printf("\nclient recieved command\n");
         }
         printf("Tentando enviar mensagem novamente\n") ;
     }
@@ -333,7 +333,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
           sentPacket.type = ACK;
           sentPacket.cmd = rcvdPacket.cmd;
           sentPacket.checksum = makeSum(&sentPacket);
-          //printf("\nEnviando ACk de Comando");
+          printf("\nEnviando ACk de Comando");
           n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
           if (n  < 0)
             perror("sendto");
@@ -341,10 +341,11 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
           strcpy(returnFile.fileName, rcvdPacket._payload);
           return returnFile;
       } else{
-          //printf("\nERRO DE CHECKSUM NO  COMANDO");
+            printf("\nERRO DE CHECKSUM NO  COMANDO");
             fflush(stdout);
           }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    printf("\nSAIU DO RCV_CMD");
     return returnFile;
 }
