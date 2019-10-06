@@ -74,7 +74,7 @@ void rmvFromONlist (userList **list, user *usr){
   userList* traverse = *list;   // *** make a copy that we can use to traverse the list
   while (deleted == 0)
   {
-      if (traverse->next->connection.socket == usr->socket)//check in node ahead
+      if (traverse->connection.socket == usr->socket)//check in node ahead
       {
           temp1 = traverse;                           // *** Use local copy of pointer
           temp2 = traverse->next;//the one to free    // *** Use local copy of pointer

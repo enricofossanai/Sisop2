@@ -24,9 +24,8 @@ int curPort = 8000;
 #define MAXLINE     102400
 #define MAXNUMCON   100
 
-//header da thread foda-se
-void *connect(void *arg);
 
+userList* head = (userList*)malloc(sizeof(userList));
 
 // Driver code
 int main() {
@@ -60,7 +59,7 @@ int main() {
     int cliNum = 0;                                     ///////////////////////////////////////////
     int rc1,rc2;
 
-    userList* head = (userList*)malloc(sizeof(userList));
+    //userList* head = (userList*)malloc(sizeof(userList));
     head->next = NULL;
 
     while(1){
@@ -89,13 +88,10 @@ int main() {
                 client.socket = createSocket(client, curPort);
 
 
-                /////////////////////////////////////////////////////TESTE ENRICO/////////////////////////////////
-                //displayList(head);
+                //Adicionando cliente a lista de usuoarios conectados
                 addToONlist (&head, &client);
                 displayList(head);
-                //rmvFromONlist (&head, &client);
-                ///displayList(head);
-                ////////////////////////////////////////////////////////////////////////////////////
+
                 rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
                 //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
                 cliNum++;
@@ -152,6 +148,11 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                         fflush(stdout);
 
                     }
+              }
+              else if (lastCommand.command == EXIT){
+                printf("\nRECIEVED LIST_SERVER EXIT");
+                rmvFromONlist (&head, client);
+                displayList(head);
               }
 
           }
