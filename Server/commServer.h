@@ -54,6 +54,11 @@ typedef struct cmdAndFile{
     char fileName[MAX_FILE_NAME_SIZE];
   }cmdAndFile;
 
+  typedef struct userList{
+          user connection;
+          userList *next;
+       } userList;
+
 int checkSum(packet * packet);
 
 int makeSum(packet * packet);
@@ -63,6 +68,12 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 void *cliThread(void *arg);
 
 int createSocket(user client, int port);
+
+void addToONlist (userList **list, user *con);
+
+void rmvFromONlist (userList **list, user *usr);
+
+void displayList(userList* head);
 
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 

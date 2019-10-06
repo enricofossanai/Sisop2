@@ -57,6 +57,62 @@ int makeSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
+void addToONlist (userList **list, user *con){
+  if (list!=NULL){
+    userList *newConnection = (userList*)malloc(sizeof(userList));
+    newConnection->connection = *con;
+    newConnection->next = (*list)->next;
+    (*list)->next = newConnection;
+    return;
+  }
+}
+
+void rmvFromONlist (userList **list, user *usr){
+  int deleted = 0;
+  userList* temp1 = NULL;
+  userList* temp2 = NULL;
+  userList* traverse = *list;   // *** make a copy that we can use to traverse the list
+  while (deleted == 0)
+  {
+      if (traverse->next->connection.socket == usr->socket)//check in node ahead
+      {
+          temp1 = traverse;                           // *** Use local copy of pointer
+          temp2 = traverse->next;//the one to free    // *** Use local copy of pointer
+          temp1->next = temp2->next;
+          free(temp2);
+          deleted = 1;
+          return;
+      }
+      traverse = traverse->next;                         // *** Use local copy of pointer
+  }
+  return;
+}
+
+void displayList(userList* head){
+  userList *temp;
+  if(head == NULL){
+    printf("List is empty.");
+    fflush( stdout );
+  }
+  else{
+    temp = head;
+    temp = temp->next;
+    printf("\nONLINE USERS LIST:");
+    while(temp != NULL){
+      printf("\nUser = %s \nIP: %d", (temp->connection).username, (temp->connection).socket); // Print data of current node
+      fflush( stdout );
+      temp = temp->next;                 // Move to next node
+    }
+    printf("\n");
+  }
+}
+
+
+
+
+
+
+
 int createSocket(user client, int port){
     int sockfd;
     int i,n;

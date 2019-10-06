@@ -60,7 +60,8 @@ int main() {
     int cliNum = 0;                                     ///////////////////////////////////////////
     int rc1,rc2;
 
-
+    userList* head = (userList*)malloc(sizeof(userList));
+    head->next = NULL;
 
     while(1){
         packet packetBuffer;
@@ -88,6 +89,13 @@ int main() {
                 client.socket = createSocket(client, curPort);
 
 
+                /////////////////////////////////////////////////////TESTE ENRICO/////////////////////////////////
+                //displayList(head);
+                addToONlist (&head, &client);
+                displayList(head);
+                //rmvFromONlist (&head, &client);
+                ///displayList(head);
+                ////////////////////////////////////////////////////////////////////////////////////
                 rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
                 //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
                 cliNum++;
