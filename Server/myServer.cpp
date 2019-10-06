@@ -116,6 +116,8 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         n = recvfrom(client->socket, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), &len);
         if (n < 0)
             perror("recvfrom");
+        if(recPacket.checksum!=makeSum(&recPacket))
+            perror("erro checksum");
 /*
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
@@ -133,7 +135,9 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                 case MODIFY:;
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
-                case LIST_SERVER:;
+                case LIST_SERVER:
+                    list_server(recPacket._payload); 
+                
 
 
             }

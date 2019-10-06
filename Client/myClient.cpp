@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             packet pck;
             pck.type = CMD;
-            pck.cmd = CMD_LIST_SERVER;
+            pck.cmd = LIST_SERVER;
             strcpy(pck._payload,username);
             pck.checksum = checkSum(&pck);
             i = sendto(sockfd,reinterpret_cast<void *> (&pck), 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
