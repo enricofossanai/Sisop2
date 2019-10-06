@@ -121,7 +121,7 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
-        printf("\nserver recieved command %d\n", lastCommand.command);
+        printf("\nserver recieved command %d from %s", lastCommand.command, client->username);
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {

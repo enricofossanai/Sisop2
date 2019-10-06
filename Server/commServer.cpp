@@ -391,15 +391,12 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
         sentPacket.type = ACK;
         sentPacket.cmd = rcvdPacket.cmd;
         sentPacket.checksum = makeSum(&sentPacket);
-        printf("\nEnviando ACk de Comando");
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
-        printf("\nEnviou ACk de Comando");
         fflush(stdout);
         if (n  < 0)
               perror("sendto");
         returnFile.command = rcvdPacket.cmd;
         strcpy(returnFile.fileName, rcvdPacket._payload);
-        printf("\nSAIU DO RCV_CMD");
         return returnFile;
       } else{
             printf("\nERRO DE CHECKSUM NO  COMANDO");
