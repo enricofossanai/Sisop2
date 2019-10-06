@@ -75,6 +75,7 @@ void displayList(userList* head){
   }
   else{
     temp = head;
+    temp = temp->next; 
     printf("\nONLINE USERS LIST:");
     while(temp != NULL){
       printf("\nUser = %s \nIP: %d", (temp->connection).username, (temp->connection).socket); // Print data of current node
