@@ -105,7 +105,6 @@ int main(int argc, char *argv[]) {
             fflush(stdout);                                                     //////////////////////////////////////////////
             bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
             fgets(filename, 40, stdin);      
-            i = sendFile("../revistajuca.txt" , servaddr, sockfd);
             //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");

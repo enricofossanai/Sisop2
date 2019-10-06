@@ -290,7 +290,9 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     packet sentPacket, rcvdPacket;
     sentPacket.type = CMD;
     sentPacket.cmd = command;
+    strcpy(sentPacket._payload,fileName);
     sentPacket.checksum = makeSum(&sentPacket);
+    
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));

@@ -118,16 +118,12 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECIEVED CREATE FILE COMMAND");
-                n = receiveFile("rodolfin/revistajuca.txt" , recPacket.length, client->cliaddr, client->socket);
                 // receiveFile()                     // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECIEVED DELETE FILE COMMAND");
                 n = delete_file(lastCommand.fileName,client->username);
-                if (n  < 0)
-                        perror("sendto");
-                        fflush(stdout);
               }
             else if (lastCommand.command == MODIFY){
                 printf("\nRECIEVED MODIFY FILE COMMAND");

@@ -58,19 +58,47 @@ int list_server(char *dirName, char * serverFolderSatus ){
 int delete_file(char * filename,char * username){
 
   int status;
-  DIR *dir;
-  struct dirent *dent;
-  dir = opendir((const char *) username);
-  
-  status = remove(filename);
+  char  pathname[100];
+  char  buffer[100];
+  char usernametemp [100];
  
-  if (status == 0)
+
+  printf("\nEntrou no delete\n");
+  
+  if (getcwd(buffer, sizeof(buffer)) != NULL) {
+       printf("Current working dir: %s\n", buffer);
+   } else {
+       perror("getcwd() error");
+       return 1;
+   }
+
+  append_dash(buffer);
+  strcpy(usernametemp,username);
+  append_dash(usernametemp);
+  strcat(buffer,strcat(usernametemp,filename));
+  strcpy(pathname,buffer);
+  fprintf(stderr,"pathname1: %s\n",pathname);
+  //fprintf(stderr,"pathname1: /home/rodolfo/Sisop2/Sisop2/bin/rodolfin/a.png\n");
+  fflush(stdout);
+  //status = strcmp(pathname,"/home/rodolfo/Sisop2/Sisop2/bin/rodolfin/a.png");
+  //printf("%d",status);
+
+  status = remove(pathname);
+  if (status == 0){
     printf("%s file deleted successfully.\n", filename);
+    return 1;}
   else
   {
-    printf("Unable to delete the file\n");
+    fprintf(stderr,"Unable to delete the file\n");
     return -1;
   }
+  
  
-  return 1;
+  
 };
+
+void append_dash(char* s) {
+        int len = strlen(s);
+        s[len] = '/';
+        s[len+1] = '\0';
+}
