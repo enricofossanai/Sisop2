@@ -23,9 +23,19 @@
 //global variables
 struct sockaddr_in servaddr;
 int sockfd;
+//mutex
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+
 
 int main(int argc, char *argv[]) {
-
+//mutex initialization flag
+  if (pthread_mutex_init(&mutex, NULL) != 0)
+  {
+      printf("\n mutex init failed\n");
+      return 1;
+  }
 
     int i,flag=FALSE;
 	char dirName[20],username[20],command[20],option[20], sync_dir[40];
@@ -102,8 +112,7 @@ int main(int argc, char *argv[]) {
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            send_cmd(NULL,servaddr,sockfd,LIST_SERVER);
-            printf("\nRECEBENDO LISTA...\n");
+            send_cmd("",servaddr,sockfd,LIST_SERVER);
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");

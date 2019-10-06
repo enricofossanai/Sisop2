@@ -113,9 +113,9 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
+        printf("\nserver recieved command %d\n", lastCommand.command);
 
-        //n = receiveFile("toma.jpg" , recPacket.length, client->cliaddr, client->socket);
-        if (lastCommand.command <= 0){ // if recieved command wasnt corrupted
+        if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECIEVED CREATE FILE COMMAND");
                 // receiveFile()                     // Lembrar do // nos pathname!!!!!
@@ -132,12 +132,11 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
               else if (lastCommand.command ==LIST_SERVER){
                 printf("\nRECIEVED LIST_SERVER COMMAND");
                     if (list_server(client->username, buffer)){
-                        printf("%s",buffer);
                         fflush(stdout);
                         strcpy(sendPacket._payload,buffer);
                         sendPacket.type = DATA;
                         sendPacket.checksum = makeSum(&sendPacket);
-                        printf("\nENRIVANDO  LISTA DE ARQUIVOS\n");
+                        printf("\nEnviando lista de arquivos\n");
                         n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
                         if (n  < 0)
                             perror("sendto");
@@ -149,8 +148,4 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
           }
       }
 
-}
-
-
-void *sender(void *arg) {
 }
