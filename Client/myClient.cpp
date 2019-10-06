@@ -157,13 +157,8 @@ void *clientComm(void *arg) {
     while(1){
 
         /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-<<<<<<< HEAD
-       // n = sendFile("cheng.pdf" , servaddr, sockfd);
-        printf("TO MANDANDO VER\n");
-=======
         //n = sendFile("dark_familias1.jpg" , servaddr, sockfd);
         //printf("TO MANDANDO VER\n");
->>>>>>> 02db7b1820c4c4cf69eb191f6cb168feb47a5b00
         ////////////////////////////////////
     sleep(200);//ALGUEM SABE PQ ESSE SLEEP TA AQUI????????
     printf("Esperando Mensagem\n") ;

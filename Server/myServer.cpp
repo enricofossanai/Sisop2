@@ -110,7 +110,6 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     cmdAndFile lastCommand;
 
     client = reinterpret_cast<user *> (arg);
-    cmdAndFile lastCommand;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
@@ -130,7 +129,6 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
               }
-<<<<<<< HEAD
               else if (lastCommand.command ==LIST_SERVER){
                 printf("\nRECIEVED LIST_SERVER COMMAND");
                 list_server(recPacket._payload, buffer);
@@ -154,8 +152,3 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
 
 void *sender(void *arg) {
 }
-=======
-          }
-      }
-  }
->>>>>>> 02db7b1820c4c4cf69eb191f6cb168feb47a5b00
