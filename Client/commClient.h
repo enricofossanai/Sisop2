@@ -12,8 +12,9 @@
 #include <netdb.h>
 
 
-#define MAX_PACKET_SIZE     	64000
+#define MAX_PACKET_SIZE     	62020
 #define MAX_PAYLOAD_SIZE        62000
+#define MAX_FILE_NAME_SIZE        100
 #define PORT  			        8000
 #define TRUE 1
 #define FALSE 0
@@ -52,6 +53,11 @@ typedef struct socketInfo{
     socklen_t len;
     } socketInfo;
 
+typedef struct cmdAndFile{
+    int command;
+    char fileName[MAX_FILE_NAME_SIZE];
+  }cmdAndFile;
+
 int makeSum(packet * packet);
 
 int checkSum(packet * packet);
@@ -71,11 +77,18 @@ long int sizeFile (FILE *f);
 //copies file to buffer
 long fileToBuffer (FILE *f);
 
-//sends file
+//Send file
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 
+//Self explained
+int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 
 //list files from user sync_dir
 int list_client(char * dirName);
 
-int send_del_msg(char *fileName, struct sockaddr_in addr, int sockfd);
+//send a command and wait for and ack
+//asks for the name of the file to modify, the server address, the socketfd and the command.
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command);
+
+//revieves a command and return a structure countaining the command and the name of the file to modify
+cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);

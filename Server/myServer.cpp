@@ -122,17 +122,22 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         printf("Length : %d\nRecebido de : %s\nPayload : %s\n\n", recPacket.length, client->username, recPacket._payload);
         fflush( stdout );
 
-        n = receiveFile("revistaJuca" , recPacket.length, client->cliaddr, client->socket);
-*/
+
+
+        n = receiveFile("toma.pdf" , recPacket.length, client->cliaddr, client->socket);
+
         if (recPacket.type == CMD){
             switch (recPacket.cmd) {
-                case CREATE:;
+                case CREATE:
+                break;
                 // receiveFile()                     // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
-                case DELETE:;
+                case DELETE:
+                break;
                 // sendFile()
                 //Mesma coisa do UPLOAD, só que server -> client
-                case MODIFY:;
+                case MODIFY:
+                break;
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
                 case LIST_SERVER:

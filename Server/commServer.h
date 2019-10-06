@@ -10,9 +10,10 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define MAX_PACKET_SIZE     	64000
+#define MAX_PACKET_SIZE     	62020
 #define MAX_PAYLOAD_SIZE        62000
 #define MAXNUMCON               100
+#define MAX_FILE_NAME_SIZE        100
 #define PORT  			        8000
 #define TRUE                    1
 #define FALSE                   0
@@ -48,6 +49,11 @@ typedef struct user{
     int socket;
 } user;
 
+typedef struct cmdAndFile{
+    int command;
+    char fileName[MAX_FILE_NAME_SIZE];
+  }cmdAndFile;
+
 int checkSum(packet * packet);
 
 int makeSum(packet * packet);
@@ -63,3 +69,11 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 long int sizeFile (FILE *f);
 
 void *sender(void *arg);
+
+
+//send a command and wait for and ack
+//asks for the name of the file to modify, the server address, the socketfd and the command.
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command);
+
+//revieves a command and return a structure countaining the command and the name of the file to modify
+cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);

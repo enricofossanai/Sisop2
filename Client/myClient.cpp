@@ -14,7 +14,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <bits/stdc++.h>
-//#include <iostream>
+#include <iostream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -90,12 +90,16 @@ int main(int argc, char *argv[]) {
         if(strcmp(command,"exit\n") == 0) {
             flag = TRUE;
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
-
+          printf("\nUPLOAD command chosen\n");
+          //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
-
+          printf("\nDOWNLOAD command chosen\n");
+          //NAO SAQUEI O DOWNLOAD;
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
-
+          printf("\nDELETE command chosen\n");
+          //send_cmd("PUTPATHHERE" , servaddr, sockfd, DELETE);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
+            printf("\nLIST_SERVER command chosen\n");
             packet pck;
             pck.type = CMD;
             pck.cmd = LIST_SERVER;
@@ -109,6 +113,7 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
 
         } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
+            printf("\nLIST_CLIENT command chosen\n");
             i = list_client(dirName);
             if (i  > 0)
                 printf("Leu o diretório\n");
@@ -117,6 +122,9 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
 
         } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
+            printf("\nGET_SYNC_DIR command chosen\n");
+
+
 
         } else if (strcmp(command, "teste\n") == 0) { // Pra testes
             i = sendto(sockfd, "teste do juca", 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
@@ -143,6 +151,11 @@ void *clientComm(void *arg) {
 
     while(1){
 
+        /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
+        n = sendFile("cheng.pdf" , servaddr, sockfd);
+        printf("TO MANDANDO VER\n");
+        ////////////////////////////////////
+    sleep(200);
     n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
     if (n  < 0)
         perror("recvfrom");
@@ -203,9 +216,12 @@ void *clientNotify(void *arg){
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 printf("Modificado.\n") ;
+                send_cmd(evento->name , servaddr, sockfd, MODIFY);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("Deletado.\n") ;
+                send_cmd(evento->name , servaddr, sockfd, DELETE);
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
+                send_cmd(evento->name , servaddr, sockfd, CREATE);
                 printf("Criado.\n") ;
             }
 
