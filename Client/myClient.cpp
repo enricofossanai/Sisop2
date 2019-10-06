@@ -100,15 +100,10 @@ int main(int argc, char *argv[]) {
           //send_cmd("PUTPATHHERE" , servaddr, sockfd, DELETE);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
-            packet sendPacket,recPacket;
+            packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            sendPacket.type = CMD;
-            sendPacket.cmd = LIST_SERVER;
-            strcpy(sendPacket._payload,username);
-            sendPacket.checksum = checkSum(&sendPacket);
-            i = sendto(sockfd,reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
-            if (i  < 0)
-                perror("sendto");
+            send_cmd(NULL,servaddr,sockfd,LIST_SERVER);
+            
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");

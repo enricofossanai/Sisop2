@@ -131,8 +131,7 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
               }
               else if (lastCommand.command ==LIST_SERVER){
                 printf("\nRECIEVED LIST_SERVER COMMAND");
-                list_server(recPacket._payload, buffer);
-                    if (list_server(recPacket._payload, buffer)){
+                    if (list_server(client->username, buffer)){
                         strcpy(sendPacket._payload,buffer);
                         sendPacket.type = DATA;
                         sendPacket.checksum = makeSum(&sendPacket);
