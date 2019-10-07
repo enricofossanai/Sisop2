@@ -26,9 +26,6 @@ int sockfd;
 //mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-
-
-
 int main(int argc, char *argv[]) {
 //mutex initialization flag
   if (pthread_mutex_init(&mutex, NULL) != 0)
@@ -83,6 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
 	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
+	printf("\nPorta : %d\n", servaddr.sin_port);
 
     //cria thread que envia
     pthread_t threadSender;
@@ -99,12 +97,32 @@ int main(int argc, char *argv[]) {
         // Switch for options
         if(strcmp(command,"exit\n") == 0) {
                 flag = TRUE;
+
+                send_cmd(NULL, servaddr, sockfd, EXIT, NULL);
+
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
             printf("\nEnter the file pathname: ");
+<<<<<<< HEAD
             fflush(stdout);                                                     //////////////////////////////////////////////
             bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
             fgets(filename, 40, stdin);      
+=======
+            fflush(stdout);
+            bzero(filename, 40);
+
+            fgets(filename, 40, stdin);
+
+            bzero(dirName, 100);
+            strcpy(dirName, "./");
+            strcat(dirName, username);
+            strcat(dirName, "/");
+            strcat(dirName, filename);
+
+            send_cmd(filename, servaddr, sockfd, DELETE, NULL);
+            sendFile("../revistajuca.txt" , servaddr, sockfd);
+
+>>>>>>> 6afbe3aea97f600a0e89ffdf2532accd27f45e4b
             //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
@@ -112,15 +130,15 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
             printf("\nEnter the file name: ");
-            fflush(stdout);                                                     //////////////////////////////////////////////
-            bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
-            fgets(filename, 40, stdin);
-            send_cmd(filename, servaddr, sockfd, DELETE);
+            fflush(stdout);
+            bzero(filename, 40);
+            scanf("%s", filename);
+            send_cmd(filename, servaddr, sockfd, DELETE, NULL);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            send_cmd(NULL,servaddr,sockfd,LIST_SERVER);
+            send_cmd(NULL,servaddr,sockfd,LIST_SERVER, NULL);
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");
@@ -166,17 +184,12 @@ void *clientComm(void *arg) {
     socklen_t len = sizeof(servaddr);
 	int n;
 
-    while(1){
+    while(0){
 
-        /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-        //n = sendFile("dark_familias1.jpg" , servaddr, sockfd);
-        //printf("TO MANDANDO VER\n");
-        ////////////////////////////////////
-    sleep(200);//ALGUEM SABE PQ ESSE SLEEP TA AQUI????????
     printf("Esperando Mensagem\n") ;
-    n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
-    if (n  < 0)
-        perror("recvfrom");
+    //n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
+    //if (n  < 0)
+    //    perror("recvfrom");
 
     printf("Server : %s\n", buffer);
     fflush( stdout );
@@ -189,6 +202,9 @@ void *clientNotify(void *arg){
     int i, t, l ;
     fd_set rfds ; /* para select */
     struct inotify_event *evento ;
+    char dirName [100];
+
+
 
     if((fd = inotify_init())<0) {
         perror("inotify_init") ;
@@ -200,6 +216,11 @@ void *clientNotify(void *arg){
     }
 
     while(1) {
+        bzero(dirName, 100);
+        strcpy(dirName, "./");
+        strcat(dirName, (char *) arg);
+        strcat(dirName, "/");
+
         FD_ZERO(&rfds) ;
         FD_SET(fd, &rfds) ;
 
@@ -231,16 +252,19 @@ void *clientNotify(void *arg){
                 printf("[+] Arquivo desconhecido: ") ;                               // Nome do Arquivo modificado
             }
 
+            strcat(dirName, evento->name);
+
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 printf("\nModificado.\n") ;
-                send_cmd(evento->name , servaddr, sockfd, MODIFY);
+                send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("\nDeletado.\n") ;
-                send_cmd(evento->name , servaddr, sockfd, DELETE);
+                send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                 printf("\nCriado.\n") ;
-                send_cmd(evento->name , servaddr, sockfd, CREATE);
+                send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
+                sendFile(dirName , servaddr, sockfd);
             }
 
             /* Avança para o próximo evento. */

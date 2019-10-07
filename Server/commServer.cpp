@@ -68,24 +68,26 @@ void addToONlist (userList **list, user *con){
 }
 
 void rmvFromONlist (userList **list, user *usr){
-  int deleted = 0;
-  userList* temp1 = NULL;
-  userList* temp2 = NULL;
-  userList* traverse = *list;   // *** make a copy that we can use to traverse the list
-  while (deleted == 0)
-  {
-      if (traverse->next->connection.socket == usr->socket)//check in node ahead
-      {
-          temp1 = traverse;                           // *** Use local copy of pointer
-          temp2 = traverse->next;//the one to free    // *** Use local copy of pointer
-          temp1->next = temp2->next;
-          free(temp2);
-          deleted = 1;
-          return;
-      }
-      traverse = traverse->next;                         // *** Use local copy of pointer
-  }
-  return;
+    int deleted = 0;
+    userList *temp = (*list), *prev;
+
+    if (temp != NULL && temp->connection.socket == usr->socket)
+     {
+         (*list) = temp->next;   // Changed head
+         free(temp);               // free old head
+         return;
+    }
+    while (temp != NULL && temp->connection.socket != usr->socket)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+    // If key was not present in linked list
+    if (temp == NULL) return;
+    // Unlink the node from linked list
+    prev->next = temp->next;
+    free(temp);  // Free memory
+    return;
 }
 
 void displayList(userList* head){
@@ -206,6 +208,8 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 
                 memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
 
+                printf("PASSEI AQUI\n");
+
                 sentPacket.type = ACK;
                 sentPacket.seqn = rcvdPacket.seqn;
                 sentPacket.length = 0;
@@ -287,7 +291,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             printf("Erro ao tentar ler o arquivo inteiro.\n");
             return -1;
         }
-
+/*
         sentPacket.type = CMD;
         sentPacket.cmd = 0;
         sentPacket.seqn = 0;
@@ -299,6 +303,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
         if (n  < 0)
             perror("sendto");
+*/
 
         //while still have packages to send
     	while (curSeq <= numSeqs){
@@ -347,13 +352,23 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     sentPacket.type = CMD;
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,fileName);
-    sentPacket.checksum = makeSum(&sentPacket);
-    
+
+
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     //sending packet
     int ack = 0;
+
+
+    if (command == CREATE){
+        FILE *fd = fopen( fileName, "rb" );
+        sentPacket.length = sizeFile(fd);
+        fclose(fd);
+    }
+
+    sentPacket.checksum = makeSum(&sentPacket);
+
     while (ack == 0){
             //printf("Enviando mensagem\n") ;
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
@@ -391,14 +406,13 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
         sentPacket.type = ACK;
         sentPacket.cmd = rcvdPacket.cmd;
         sentPacket.checksum = makeSum(&sentPacket);
-        printf("\nEnviando ACk de Comando");
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
-        printf("\nEnviou ACk de Comando");
         fflush(stdout);
         if (n  < 0)
-              perror("sendto");
+            perror("sendto");
         returnFile.command = rcvdPacket.cmd;
         strcpy(returnFile.fileName, rcvdPacket._payload);
+        returnFile.fileSize = rcvdPacket.length;
         printf("\nSAIU DO RCV_CMD");
         return returnFile;
       } else{

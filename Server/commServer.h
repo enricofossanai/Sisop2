@@ -29,7 +29,7 @@
 #define LIST_SERVER              3
 #define LIST_CLIENT              4
 #define GET_SYNC_DIR             5
-
+#define EXIT                    6
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -52,6 +52,7 @@ typedef struct user{
 typedef struct cmdAndFile{
     int command;
     char fileName[MAX_FILE_NAME_SIZE];
+    long int fileSize;
   }cmdAndFile;
 
   typedef struct userList{

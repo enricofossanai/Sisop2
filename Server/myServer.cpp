@@ -24,9 +24,8 @@ int curPort = 8000;
 #define MAXLINE     102400
 #define MAXNUMCON   100
 
-//header da thread foda-se
-void *connect(void *arg);
 
+userList* head = (userList*)malloc(sizeof(userList));
 
 // Driver code
 int main() {
@@ -55,18 +54,19 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    vector<pthread_t> threadsS(MAXNUMCON);              ////////////////////////////////////////////
-    vector<pthread_t> threadsR(MAXNUMCON);              // Um vetor para cada thread diferente?? //
-    int cliNum = 0;                                     ///////////////////////////////////////////
-    int rc1,rc2;
 
-    userList* head = (userList*)malloc(sizeof(userList));
+    vector<pthread_t> threads(MAXNUMCON);              // Um vetor para cada thread diferente?? //
+    int cliNum = 0;
+    int rc1;
+
+    //userList* head = (userList*)malloc(sizeof(userList));
     head->next = NULL;
 
     while(1){
         packet packetBuffer;
         int n, i;
         socklen_t len = sizeof(servaddr);
+	pthread_t new_thread;
 
         n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
         if (n < 0)
@@ -89,16 +89,13 @@ int main() {
                 client.socket = createSocket(client, curPort);
 
 
-                /////////////////////////////////////////////////////TESTE ENRICO/////////////////////////////////
-                //displayList(head);
+                //Adicionando cliente a lista de usuoarios conectados
                 addToONlist (&head, &client);
                 displayList(head);
-                //rmvFromONlist (&head, &client);
-                ///displayList(head);
-                ////////////////////////////////////////////////////////////////////////////////////
-                rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
-                //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
+
+                rc1 = pthread_create(&new_thread, NULL, cliThread, reinterpret_cast<void *> (&client));
                 cliNum++;
+		threads.push_back(new_thread);
                 }
         }
         fflush(stdout);
@@ -109,6 +106,7 @@ int main() {
 
 void *cliThread(void *arg) {                           // Cuida dos Clientes
     printf("\nCriada a thread do cliente");
+    fflush(stdout);
     int n;
     char buffer[MAX_PAYLOAD_SIZE];
     user *client;
@@ -116,17 +114,33 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     packet recPacket;
     socklen_t len = sizeof(struct sockaddr_in);
     cmdAndFile lastCommand;
+    char dirClient[200] = {};
+    char file[100] = {};
+
 
     client = reinterpret_cast<user *> (arg);
+
+    strcpy(dirClient, "./");
+    strcat(dirClient, client->username);
+    strcat(dirClient, "/");
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
+        bzero(file, 100);
+        strcpy(file, dirClient);
+
+
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
-        printf("\nserver recieved command %d\n", lastCommand.command);
+
+        //printf("\nserver recieved command %d from %s", recPacket.type , recPacket._payload );
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECIEVED CREATE FILE COMMAND");
-                // receiveFile()                     // Lembrar do // nos pathname!!!!!
+                strcat(file, lastCommand.fileName);
+                printf("FILE : %s\n", file);
+                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );    // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
             }
             else if(lastCommand.command == DELETE) {
@@ -152,6 +166,11 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                         fflush(stdout);
 
                     }
+              }
+              else if (lastCommand.command == EXIT){
+                printf("\nRECIEVED LIST_SERVER EXIT");
+                rmvFromONlist (&head, client);
+                displayList(head);
               }
 
           }
