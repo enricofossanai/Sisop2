@@ -89,7 +89,7 @@ int delete_file(char * filename,char * username){
     return 1;}
   else
   {
-    fprintf(stderr,"Unable to delete the file\n");
+    perror("remove");
     return -1;
   }
   
