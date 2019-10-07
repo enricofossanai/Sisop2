@@ -143,19 +143,19 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             printf("Erro ao tentar ler o arquivo inteiro.\n");
             return -1;
         }
-
+/*
         sentPacket.type = CMD;
         sentPacket.cmd = CREATE;
         sentPacket.seqn = 0;
         sentPacket.length = fileSize;
         sentPacket.total_size = 0;
-        strcpy(sentPacket._payload, "");
+        strcpy(sentPacket._payload, fileName);
         sentPacket.checksum = makeSum(&sentPacket);
 
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
         if (n  < 0)
             perror("sendto");
-
+*/
         //while still have packages to send
     	while (curSeq <= numSeqs){
 
@@ -172,6 +172,8 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
 
                 memcpy(sentPacket._payload, fileBuffer + placeinBuffer, bitstoSend);
                 sentPacket.checksum = makeSum(&sentPacket);
+
+                printf("PASSEI AQUI\n");
 
     			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
     			if (n  < 0)
@@ -224,7 +226,7 @@ int list_client(char *dirName){
 
 
 //sends message to create, delete or modify file
-void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, char *dir){
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
@@ -232,12 +234,19 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,fileName);
     sentPacket.checksum = makeSum(&sentPacket);
-    
+
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     //sending packet
     int ack = 0;
+
+    if (command == CREATE){
+        FILE *fd = fopen( dir, "rb" );
+        sentPacket.length = sizeFile(fd);
+        fclose(fd);
+    }
+
     while (ack == 0){
             //printf("Enviando mensagem\n") ;
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));

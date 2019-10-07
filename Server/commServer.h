@@ -52,6 +52,7 @@ typedef struct user{
 typedef struct cmdAndFile{
     int command;
     char fileName[MAX_FILE_NAME_SIZE];
+    long int fileSize;
   }cmdAndFile;
 
   typedef struct userList{

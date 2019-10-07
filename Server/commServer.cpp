@@ -206,6 +206,8 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 
                 memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
 
+                printf("PASSEI AQUI\n");
+
                 sentPacket.type = ACK;
                 sentPacket.seqn = rcvdPacket.seqn;
                 sentPacket.length = 0;
@@ -287,7 +289,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             printf("Erro ao tentar ler o arquivo inteiro.\n");
             return -1;
         }
-
+/*
         sentPacket.type = CMD;
         sentPacket.cmd = 0;
         sentPacket.seqn = 0;
@@ -299,6 +301,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
         if (n  < 0)
             perror("sendto");
+*/
 
         //while still have packages to send
     	while (curSeq <= numSeqs){
@@ -347,13 +350,24 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     sentPacket.type = CMD;
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,fileName);
-    sentPacket.checksum = makeSum(&sentPacket);
-    
+
+
+
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
     //sending packet
     int ack = 0;
+
+
+    if (command == CREATE){
+        FILE *fd = fopen( fileName, "rb" );
+        sentPacket.length = sizeFile(fd);
+        fclose(fd);
+    }
+
+    sentPacket.checksum = makeSum(&sentPacket);
+
     while (ack == 0){
             //printf("Enviando mensagem\n") ;
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
@@ -396,9 +410,10 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
         printf("\nEnviou ACk de Comando");
         fflush(stdout);
         if (n  < 0)
-              perror("sendto");
+            perror("sendto");
         returnFile.command = rcvdPacket.cmd;
         strcpy(returnFile.fileName, rcvdPacket._payload);
+        returnFile.fileSize = rcvdPacket.length;
         printf("\nSAIU DO RCV_CMD");
         return returnFile;
       } else{

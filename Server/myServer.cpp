@@ -109,6 +109,7 @@ int main() {
 
 void *cliThread(void *arg) {                           // Cuida dos Clientes
     printf("\nCriada a thread do cliente");
+    fflush(stdout);
     int n;
     char buffer[MAX_PAYLOAD_SIZE];
     user *client;
@@ -116,17 +117,30 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     packet recPacket;
     socklen_t len = sizeof(struct sockaddr_in);
     cmdAndFile lastCommand;
+    char dirClient[200] = {};
+    char file[100] = {};
 
     client = reinterpret_cast<user *> (arg);
+
+    strcpy(dirClient, "./");
+    strcat(dirClient, client->username);
+    strcat(dirClient, "/");
+
+    printf("dirClient : %s\n", dirClient);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
+        bzero(file, 100);
+        strcpy(file, dirClient);
+
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
         printf("\nserver recieved command %d\n", lastCommand.command);
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECIEVED CREATE FILE COMMAND");
-                // receiveFile()                     // Lembrar do // nos pathname!!!!!
+                strcat(file, lastCommand.fileName);
+                printf("FILE : %s\n", file);
+                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );    // Lembrar do // nos pathname!!!!!
                 // Temo que receber o arquivo do cliente
             }
             else if(lastCommand.command == DELETE) {
