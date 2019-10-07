@@ -276,7 +276,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     returnFile.command = -1;
     //printf("\nEsperando Comando...");
     fflush(stdout);
-      n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+      n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
       if (n  < 0)
         perror("recvfrom");
       if (rcvdPacket.checksum == makeSum(&rcvdPacket)){

@@ -26,9 +26,6 @@ int sockfd;
 //mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-
-
-
 int main(int argc, char *argv[]) {
 //mutex initialization flag
   if (pthread_mutex_init(&mutex, NULL) != 0)
@@ -83,6 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
 	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
+	printf("\nPorta : %d\n", servaddr.sin_port);
 
     //cria thread que envia
     pthread_t threadSender;

@@ -54,10 +54,10 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    vector<pthread_t> threadsS(MAXNUMCON);              ////////////////////////////////////////////
-    vector<pthread_t> threadsR(MAXNUMCON);              // Um vetor para cada thread diferente?? //
-    int cliNum = 0;                                     ///////////////////////////////////////////
-    int rc1,rc2;
+               
+    vector<pthread_t> threads(MAXNUMCON);              // Um vetor para cada thread diferente?? //
+    int cliNum = 0;                                     
+    int rc1;
 
     //userList* head = (userList*)malloc(sizeof(userList));
     head->next = NULL;
@@ -66,6 +66,7 @@ int main() {
         packet packetBuffer;
         int n, i;
         socklen_t len = sizeof(servaddr);
+	pthread_t new_thread;
 
         n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
         if (n < 0)
@@ -92,9 +93,9 @@ int main() {
                 addToONlist (&head, &client);
                 displayList(head);
 
-                rc1 = pthread_create(&threadsS[cliNum], NULL, cliThread, reinterpret_cast<void *> (&client));
-                //rc2 = pthread_create(&threadsR[cliNum], NULL, receiver, reinterpret_cast<void *> (&cliaddr));
+                rc1 = pthread_create(&new_thread, NULL, cliThread, reinterpret_cast<void *> (&client));
                 cliNum++;
+		threads.push_back(new_thread);
                 }
         }
         fflush(stdout);
@@ -116,20 +117,25 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     char dirClient[200] = {};
     char file[100] = {};
 
+
     client = reinterpret_cast<user *> (arg);
 
     strcpy(dirClient, "./");
     strcat(dirClient, client->username);
     strcat(dirClient, "/");
 
-    printf("dirClient : %s\n", dirClient);
+    
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         bzero(file, 100);
         strcpy(file, dirClient);
 
-        lastCommand = rcv_cmd(client->cliaddr,client->socket);
-        printf("\nserver recieved command %d from %s", lastCommand.command, client->username);
+
+        //lastCommand = rcv_cmd(client->cliaddr,client->socket);
+
+	n = recvfrom(client->socket , reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &(client->cliaddr),  &len);
+	printf("Quem sou eu : %s\nMeu socket : %d\n", client->username, client->socket);
+        printf("\nserver recieved command %d from %s", recPacket.type , recPacket._payload );
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
