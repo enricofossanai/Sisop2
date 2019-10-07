@@ -68,24 +68,26 @@ void addToONlist (userList **list, user *con){
 }
 
 void rmvFromONlist (userList **list, user *usr){
-  int deleted = 0;
-  userList* temp1 = NULL;
-  userList* temp2 = NULL;
-  userList* traverse = *list;   // *** make a copy that we can use to traverse the list
-  while (deleted == 0)
-  {
-      if (traverse->next->connection.socket == usr->socket)//check in node ahead
-      {
-          temp1 = traverse;                           // *** Use local copy of pointer
-          temp2 = traverse->next;//the one to free    // *** Use local copy of pointer
-          temp1->next = temp2->next;
-          free(temp2);
-          deleted = 1;
-          return;
-      }
-      traverse = traverse->next;                         // *** Use local copy of pointer
-  }
-  return;
+    int deleted = 0;
+    userList *temp = (*list), *prev;
+
+    if (temp != NULL && temp->connection.socket == usr->socket)
+     {
+         (*list) = temp->next;   // Changed head
+         free(temp);               // free old head
+         return;
+    }
+    while (temp != NULL && temp->connection.socket != usr->socket)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+    // If key was not present in linked list
+    if (temp == NULL) return;
+    // Unlink the node from linked list
+    prev->next = temp->next;
+    free(temp);  // Free memory
+    return;
 }
 
 void displayList(userList* head){
@@ -352,7 +354,6 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     strcpy(sentPacket._payload,fileName);
 
 
-
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
@@ -405,9 +406,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
         sentPacket.type = ACK;
         sentPacket.cmd = rcvdPacket.cmd;
         sentPacket.checksum = makeSum(&sentPacket);
-        printf("\nEnviando ACk de Comando");
         n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
-        printf("\nEnviou ACk de Comando");
         fflush(stdout);
         if (n  < 0)
             perror("sendto");
