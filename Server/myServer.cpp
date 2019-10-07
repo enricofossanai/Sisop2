@@ -54,9 +54,9 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-               
+
     vector<pthread_t> threads(MAXNUMCON);              // Um vetor para cada thread diferente?? //
-    int cliNum = 0;                                     
+    int cliNum = 0;
     int rc1;
 
     //userList* head = (userList*)malloc(sizeof(userList));
@@ -124,18 +124,16 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     strcat(dirClient, client->username);
     strcat(dirClient, "/");
 
-    
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         bzero(file, 100);
         strcpy(file, dirClient);
 
 
-        //lastCommand = rcv_cmd(client->cliaddr,client->socket);
+        lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-	n = recvfrom(client->socket , reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &(client->cliaddr),  &len);
-	printf("Quem sou eu : %s\nMeu socket : %d\n", client->username, client->socket);
-        printf("\nserver recieved command %d from %s", recPacket.type , recPacket._payload );
+        //printf("\nserver recieved command %d from %s", recPacket.type , recPacket._payload );
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {

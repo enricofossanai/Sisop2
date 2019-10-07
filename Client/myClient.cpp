@@ -98,16 +98,24 @@ int main(int argc, char *argv[]) {
         if(strcmp(command,"exit\n") == 0) {
                 flag = TRUE;
 
-                send_cmd("", servaddr, sockfd, EXIT, NULL);
+                send_cmd(NULL, servaddr, sockfd, EXIT, NULL);
 
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
             printf("\nEnter the file pathname: ");
-            fflush(stdout);                                                     //////////////////////////////////////////////
-            bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
+            fflush(stdout);
+            bzero(filename, 40);
 
             fgets(filename, 40, stdin);
-            i = sendFile("../revistajuca.txt" , servaddr, sockfd);
+
+            bzero(dirName, 100);
+            strcpy(dirName, "./");
+            strcat(dirName, username);
+            strcat(dirName, "/");
+            strcat(dirName, filename);
+
+            send_cmd(filename, servaddr, sockfd, DELETE, NULL);
+            sendFile("../revistajuca.txt" , servaddr, sockfd);
 
             //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
@@ -116,9 +124,9 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
             printf("\nEnter the file name: ");
-            fflush(stdout);                                                     //////////////////////////////////////////////
-            bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
-            fgets(filename, 40, stdin);
+            fflush(stdout);
+            bzero(filename, 40);
+            scanf("%s", filename);
             send_cmd(filename, servaddr, sockfd, DELETE, NULL);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
@@ -170,14 +178,7 @@ void *clientComm(void *arg) {
     socklen_t len = sizeof(servaddr);
 	int n;
 
-    /////////////////USANDO ESSA MERDA DE AREA PRA TESTAR
-    //n = sendFile("dark_familias1.jpg" , servaddr, sockfd);
-    //printf("TO MANDANDO VER\n");
-    ////////////////////////////////////
-
     while(0){
-
-
 
     printf("Esperando Mensagem\n") ;
     //n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
