@@ -99,7 +99,9 @@ int main(int argc, char *argv[]) {
         // Switch for options
         if(strcmp(command,"exit\n") == 0) {
                 flag = TRUE;
+
                 send_cmd("", servaddr, sockfd, EXIT, NULL);
+
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
             printf("\nEnter the file pathname: ");
