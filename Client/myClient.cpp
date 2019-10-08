@@ -97,11 +97,11 @@ int main(int argc, char *argv[]) {
 
         // Switch for options
         if(strcmp(command,"exit\n") == 0) {
-                flag = TRUE;
+            flag = TRUE;
 
-                pthread_mutex_lock(&mutex);
-                send_cmd(NULL, servaddr, sockfd, EXIT, NULL);
-                pthread_mutex_unlock(&mutex);
+            pthread_mutex_lock(&mutex);
+            send_cmd("", servaddr, sockfd, EXIT, NULL);
+            pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
@@ -122,16 +122,15 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
             bzero(filename, 40);
             scanf("%s", filename);
-            pthread_mutex_lock(&mutex);
 
-            send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
+            pthread_mutex_lock(&mutex);
 
             send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
 
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
 
-            i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
+            i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, NULL,  NULL);
             if (i < 0)
                 perror("recvfrom");
             if(!checkSum(&recPacket))
@@ -188,18 +187,7 @@ int main(int argc, char *argv[]) {
 
         } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
             printf("\nGET_SYNC_DIR command chosen\n");
-
-
-
-        } else if (strcmp(command, "teste\n") == 0) { // Pra testes
-            i = sendto(sockfd, "teste do juca", 30, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
-            if (i  < 0)
-                perror("sendto");
-            else
-                printf("Mandei\n");
-            fflush(stdout);
         }
-
     }
 
     close(sockfd);

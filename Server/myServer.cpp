@@ -135,6 +135,7 @@ void *cliThread(void *arg) {                                                    
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         bzero(file, 100);
+        strcpy(file, dirClient);
 
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
@@ -146,8 +147,9 @@ void *cliThread(void *arg) {                                                    
                 strcat(file, lastCommand.fileName);
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
 
-                send_cmd(lastCommand.fileName, client->cliaddr, client->socket, CREATE, file);
-                sendFile(file , client->cliaddr, client->socket);
+                //send_cmd(lastCommand.fileName, client->cliaddr, client->socket, CREATE, file);
+                //sendFile(file , client->cliaddr, client->socket);
+                //printf("NUNCA VOLTA??\n");
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECIEVED DELETE FILE COMMAND");
@@ -182,9 +184,12 @@ void *cliThread(void *arg) {                                                    
                     printf("\nRECIEVED DOWNLOAD COMMAND");
                     strcat(file, lastCommand.fileName);
                     printf("FILE : %s\n", file);
+
                     FILE *fd = fopen( file, "rb" );
                     sendPacket.length = sizeFile(fd);
+
                     sendPacket.checksum = makeSum(&sendPacket);
+
                     n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
                     if (n  < 0)
                         perror("sendto");

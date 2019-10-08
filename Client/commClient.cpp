@@ -217,6 +217,10 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
+
+    memset(&sentPacket, 0 , sizeof(struct packet));
+    memset(&rcvdPacket, 0 , sizeof(struct packet));
+
     sentPacket.type = CMD;
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,fileName);
@@ -300,10 +304,10 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
 
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
     FILE *fd = fopen( fileName , "wb" );
-    unsigned char *bufferFile = (unsigned char *)malloc(fileSize);
+    unsigned char *bufferFile = (unsigned char *)malloc(fileSize + 1);
 
     if (fd == NULL){
-        printf("Problema no arquivo\n");
+        printf("Deu pau no arquivo\n");
         return -1;
     }
 
@@ -313,10 +317,12 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
         int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
         int n;
         int curSeq = 0;
-        int *allSeq = (int *)malloc((numSeqs * sizeof(int)) + 1);
+        int *allSeq = (int *)malloc(sizeof(int) * (numSeqs + 1));
         packet sentPacket, rcvdPacket;
         long bitstoReceive = 0;
         long int toWrite = fileSize;
+
+        memset(allSeq, 0, sizeof(int) * (numSeqs + 1));
 
         //while still have packages to receive
         while (curSeq <= numSeqs){
@@ -326,7 +332,7 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
             else
                 bitstoReceive = fileSize;
 
-            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
             if(n < 0)
                 perror("recvfrom");
 
@@ -334,10 +340,8 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 
                 memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
 
-                printf("PASSEI AQUI\n");
-
                 sentPacket.type = ACK;
-                sentPacket.seqn = rcvdPacket.seqn;
+                sentPacket.seqn = curSeq;
                 sentPacket.length = 0;
                 sentPacket.total_size = 0;
                 strcpy(sentPacket._payload, "");
@@ -365,6 +369,7 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
         fclose(fd);
         free(allSeq);
         free(bufferFile);
+
 
         return 0;
     }

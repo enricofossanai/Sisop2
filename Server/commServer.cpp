@@ -186,6 +186,8 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
         long bitstoReceive = 0;
         long int toWrite = fileSize;
 
+        memset(allSeq, 0, sizeof(int) * (numSeqs + 1));
+
         //while still have packages to receive
         while (curSeq <= numSeqs){
 
@@ -202,10 +204,8 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 
                 memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
 
-                printf("PASSEI AQUI\n");
-
                 sentPacket.type = ACK;
-                sentPacket.seqn = rcvdPacket.seqn;
+                sentPacket.seqn = curSeq;
                 sentPacket.length = 0;
                 sentPacket.total_size = 0;
                 strcpy(sentPacket._payload, "");
@@ -272,6 +272,8 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     size_t paulo;
     unsigned char *fileBuffer = (unsigned char *)malloc(fileSize);
 
+    printf("numSeqs : %d\n", numSeqs );
+
     if (fd == NULL){
         printf("Erro no arquivo");
         fclose(fd);
@@ -286,7 +288,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             return -1;
         }
 
-        printf("VAI PASSAR %d PASSEI AQUI\n", numSeqs );
+
         //while still have packages to send
     	while (curSeq <= numSeqs){
 
@@ -303,8 +305,6 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
 
                 memcpy(sentPacket._payload, fileBuffer + placeinBuffer, bitstoSend);
                 sentPacket.checksum = makeSum(&sentPacket);
-
-                printf("PASSEI AQUI\n");
 
     			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
     			if (n  < 0)
@@ -346,6 +346,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
     int ack = 0;
 
     if (command == CREATE){
+        sleep(2);
         FILE *fd = fopen( dir, "rb" );
         sentPacket.length = sizeFile(fd);
         fclose(fd);
