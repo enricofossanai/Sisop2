@@ -22,7 +22,7 @@
 
 //global variables
 struct sockaddr_in servaddr;
-int sockfd;
+int sockfd, sockfdL;
 struct hostent *server;
 char username[20];
 //mutex
@@ -77,7 +77,14 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	servaddr = firstConnect(sockfd,server,username, 0);                       // Conecta com o famigerado Servidor
+
+    if ( (sockfdL = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("listener socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+	  servaddr = firstConnect(sockfd,server,username, 0);                       // Conecta com o famigerado Servidor
+    //connectListener(sockfdL,servaddr,username);                 //conecta o socket da thread que escuta tbm com o server
+
 
     //cria thread que envia
     pthread_t threadSender;

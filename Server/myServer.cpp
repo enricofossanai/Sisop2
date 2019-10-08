@@ -87,7 +87,7 @@ int main() {
                 curPort ++;
 
                 client.socket = createSocket(client, curPort);
-
+                //client.socket = createSocket(client, curPort);
 
 
                 Users[cliNum] = client;

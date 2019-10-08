@@ -23,6 +23,7 @@
 #define ACK			1
 #define CMD		    2
 #define CN          3               // Connect
+#define CNL          4               // Connect Listener
 
 //Commands
 #define CREATE		             0
@@ -73,6 +74,7 @@ void *clientNotify(void *arg);
 //send first message to server to connect
 struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username, int cmd);
 
+void connectListener (int sockfd , struct sockaddr_in servaddr, char * username);
 //return size of file or -1 if error
 long int sizeFile (FILE *f);
 

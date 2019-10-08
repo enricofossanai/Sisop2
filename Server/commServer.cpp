@@ -166,6 +166,38 @@ int createSocket(user client, int port){
     return sockfd;
 }
 
+
+struct sockaddr_in  getClientLSocket(user client, int port){
+  struct sockaddr_in cliaddrL;
+  memset(&cliaddrL, 0, sizeof(cliaddrL));
+	int i;
+    char buffer[MAX_PACKET_SIZE];
+	socklen_t len = sizeof(struct sockaddr_in);
+
+  // Filling packet for connect
+  packet sentPacket, recPacket;
+  sentPacket.type = ACK;
+  sentPacket.cmd = 0;
+  sentPacket.seqn = 0;
+  sentPacket.length = 0;
+  sentPacket.total_size = 0;
+/*
+  i = recvfrom();
+  if (i  < 0)
+      perror("recvfrom");
+  else
+      printf("Resebido pedido de Conexao de Listener Socket de usuario");
+
+  i = sendto();
+  if (i  < 0)
+      perror("sendto");
+*/
+
+  return cliaddrL;
+}
+
+
+
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
     FILE *fd = fopen( fileName , "wb" );
     unsigned char *bufferFile = (unsigned char *)malloc(fileSize);

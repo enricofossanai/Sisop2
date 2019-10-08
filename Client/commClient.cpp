@@ -97,6 +97,38 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
       return servaddr;
 }
 
+void connectListener (int sockfd , struct sockaddr_in servaddr, char * username){
+	int i;
+    char buffer[MAX_PACKET_SIZE];
+	socklen_t len = sizeof(struct sockaddr_in);
+
+    // Filling packet for connect
+    packet sentPacket, recPacket;
+    sentPacket.type = CNL;
+    sentPacket.cmd = 0;
+    sentPacket.seqn = 0;
+    sentPacket.length = 0;
+    sentPacket.total_size = 0;
+    strcpy(sentPacket._payload, username);
+    sentPacket.checksum = makeSum(&sentPacket);
+
+    i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+	if (i  < 0)
+        perror("sendto");
+
+    i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
+    if (i  < 0)
+        perror("recvfrom");
+    else
+        printf("Conectado Listener Socket com Server");
+
+
+	  fflush( stdout );
+
+      return;
+}
+
+
 long int sizeFile (FILE *f){
 	long int size;
 

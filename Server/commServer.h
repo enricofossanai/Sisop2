@@ -22,6 +22,7 @@
 #define ACK			1
 #define CMD			2
 #define CN          3
+#define CNL          4               // Connect Listener
 
 #define CREATE		             0
 #define DELETE		             1
@@ -71,6 +72,8 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 void *cliThread(void *arg);
 
 int createSocket(user client, int port);
+
+struct sockaddr_in getClientLSocket(user client, int port);
 
 void addToONlist (userList **list, user *con);
 
