@@ -23,6 +23,8 @@
 //global variables
 struct sockaddr_in servaddr;
 int sockfd;
+struct hostent *server;
+char username[20];
 //mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -35,11 +37,11 @@ int main(int argc, char *argv[]) {
   }
 
     int i,flag=FALSE,status;
-	char dirName[100],username[20],command[20],option[20], sync_dir[40],filename[40];
+	char dirName[100],command[20],option[20], sync_dir[40],filename[40];
     char buffer[MAX_PACKET_SIZE];
 
 
-    struct hostent *server;
+
 
     if (argc < 3) {
 		fprintf(stderr, "usage %s hostname username\n", argv[0]);
@@ -75,11 +77,11 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
+	servaddr = firstConnect(sockfd,server,username, 0);                       // Conecta com o famigerado Servidor
 
     //cria thread que envia
     pthread_t threadSender;
-    pthread_create(&threadSender, NULL, clientComm, NULL);                  // Inicia a thread
+    pthread_create(&threadSender, NULL, clientComm, NULL );                  // Inicia a thread
     pthread_detach(threadSender);
 
     pthread_t threadN;
@@ -97,7 +99,9 @@ int main(int argc, char *argv[]) {
         if(strcmp(command,"exit\n") == 0) {
                 flag = TRUE;
 
+                pthread_mutex_lock(&mutex);
                 send_cmd(NULL, servaddr, sockfd, EXIT, NULL);
+                pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
@@ -107,8 +111,10 @@ int main(int argc, char *argv[]) {
 
             scanf("%s", filename);
 
+            pthread_mutex_lock(&mutex);
             send_cmd(filename, servaddr, sockfd, CREATE, filename);
             sendFile(filename , servaddr, sockfd);
+            pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
@@ -116,19 +122,10 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
             bzero(filename, 40);
             scanf("%s", filename);
-
-            send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
-
-            packet recPacket;
-            socklen_t len = sizeof(struct sockaddr_in);
-
-            i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
-            if (i < 0)
-                perror("recvfrom");
-            if(!checkSum(&recPacket))
-                perror("erro checksum");
-            i=  receiveFile( filename ,recPacket.length ,servaddr ,sockfd );
-
+            pthread_mutex_lock(&mutex);
+            //send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
+            //i=  receiveFile( filename , lastCommand.fileSize, client->cliaddr,client->socket );
+            pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
@@ -147,17 +144,22 @@ int main(int argc, char *argv[]) {
             if (status == 0){
                 printf("%s file deleted successfully from sync_dir_%s.\n", filename,username);
                 }
+            pthread_mutex_lock(&mutex);
             send_cmd(filename, servaddr, sockfd, DELETE, NULL);
+            pthread_mutex_unlock(&mutex);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            send_cmd(NULL,servaddr,sockfd,LIST_SERVER, NULL);
+            pthread_mutex_lock(&mutex);
+            send_cmd("",servaddr,sockfd,LIST_SERVER, NULL);
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
+            pthread_mutex_unlock(&mutex);
             if (i < 0)
                 perror("recvfrom");
             if(!checkSum(&recPacket))
                 perror("erro checksum");
+
             printf("%s",recPacket._payload);
             fflush(stdout);
 
@@ -193,6 +195,7 @@ int main(int argc, char *argv[]) {
 
 void *clientComm(void *arg) {
     packet recPacket;
+    int cliSock;
     char buffer[MAX_PACKET_SIZE];
     socklen_t len = sizeof(servaddr);
 	int n;
@@ -200,11 +203,26 @@ void *clientComm(void *arg) {
     while(0){
 
     printf("Esperando Mensagem\n") ;
-    //n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
-    //if (n  < 0)
-    //    perror("recvfrom");
+    servaddr = firstConnect(cliSock,server,username, 1);
 
-    printf("Server : %s\n", buffer);
+    lastCommand = rcv_cmd(servaddr, cliSock);
+
+    if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
+        if(lastCommand.command == CREATE) {
+            printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+            strcat(file, lastCommand.fileName);
+            n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
+        }
+        else if(lastCommand.command == DELETE) {
+            printf("\nRECIEVED DELETE FILE COMMAND");
+            n = delete_file(lastCommand.fileName, username);
+        }
+        else if (lastCommand.command == MODIFY){
+            printf("\nRECIEVED MODIFY FILE COMMAND");
+            // delete (recPacket._payload)
+            // Recebe o nome do arquivo, apaga da base do Servidor
+        }
+
     fflush( stdout );
     }
 }
@@ -273,11 +291,15 @@ void *clientNotify(void *arg){
             //    send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("\nDeletado.\n") ;
+                pthread_mutex_lock(&mutex);
                 send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
+                pthread_mutex_unlock(&mutex);
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                 printf("\nCriado.\n") ;
+                pthread_mutex_lock(&mutex);
                 send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
                 sendFile(dirName , servaddr, sockfd);
+                pthread_mutex_unlock(&mutex);
             }
 
             /* Avança para o próximo evento. */

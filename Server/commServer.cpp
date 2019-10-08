@@ -109,12 +109,6 @@ void displayList(userList* head){
   }
 }
 
-
-
-
-
-
-
 int createSocket(user client, int port){
     int sockfd;
     int i,n;
@@ -291,20 +285,8 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             printf("Erro ao tentar ler o arquivo inteiro.\n");
             return -1;
         }
-/*
-        sentPacket.type = CMD;
-        sentPacket.cmd = 0;
-        sentPacket.seqn = 0;
-        sentPacket.length = fileSize;
-        sentPacket.total_size = 0;
-        strcpy(sentPacket._payload, "");
-        sentPacket.checksum = makeSum(&sentPacket);
 
-        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
-        if (n  < 0)
-            perror("sendto");
-*/
-
+        printf("VAI PASSAR %d PASSEI AQUI\n", numSeqs );
         //while still have packages to send
     	while (curSeq <= numSeqs){
 
@@ -322,11 +304,13 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
                 memcpy(sentPacket._payload, fileBuffer + placeinBuffer, bitstoSend);
                 sentPacket.checksum = makeSum(&sentPacket);
 
+                printf("PASSEI AQUI\n");
+
     			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
     			if (n  < 0)
             		perror("sendto");
 
-                n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PAYLOAD_SIZE, 0, NULL, NULL);      // TEM QUE SER PAYLOAD PQ DEUS QUER
+                n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);      // TEM QUE SER PAYLOAD PQ DEUS QUER
                 if (rcvdPacket.seqn == curAck && n > 0){
     		    	    curAck++;
                 }
@@ -345,7 +329,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
 }
 
 //sends message to create, delete or modify file
-void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, char *dir){
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
@@ -357,12 +341,12 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+
     //sending packet
     int ack = 0;
 
-
     if (command == CREATE){
-        FILE *fd = fopen( fileName, "rb" );
+        FILE *fd = fopen( dir, "rb" );
         sentPacket.length = sizeFile(fd);
         fclose(fd);
     }
@@ -378,14 +362,15 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command){
         n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
         if (n  < 0)
             perror("recvfrom");
-        if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
+        if (checkSum(&rcvdPacket)){
             ack = 1;
-            printf("\nclient recieved command\n");
+            printf("\nserver recieved command\n");
         }
-        printf("Tentando enviar mensagem novamente\n") ;
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    printf("\nsaiu  de boa do send_cmd\n");
+    fflush(stdout);
     return;
 }
 

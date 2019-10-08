@@ -84,11 +84,11 @@ int main() {
                 strcpy(client.username, packetBuffer._payload);
                 client.cliaddr = cliaddr;
 
-                                                                        // Vetor de Usuários para testar se já ta conectado
-
                 curPort ++;
-                printf("QUAL A PORTA DESSA BOSTA??? %d\n", curPort);
+
                 client.socket = createSocket(client, curPort);
+
+                
 
                 Users[cliNum] = client;
 
@@ -122,7 +122,7 @@ void *cliThread(void *arg) {                                                    
     packet recPacket;
     socklen_t len = sizeof(struct sockaddr_in);
     cmdAndFile lastCommand;
-    char dirClient[200] = {};
+    char dirClient[100] = {};
     char file[100] = {};
 
     client = reinterpret_cast<user *> (arg);
@@ -135,7 +135,7 @@ void *cliThread(void *arg) {                                                    
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         bzero(file, 100);
-        strcpy(file, dirClient);
+        bzero(servName, 100);
 
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
@@ -145,8 +145,10 @@ void *cliThread(void *arg) {                                                    
             if(lastCommand.command == CREATE) {
                 printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 strcat(file, lastCommand.fileName);
-
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+
+                send_cmd(lastCommand.fileName, client->cliaddr, client->socket, CREATE, file);
+                sendFile(file , client->cliaddr, client->socket);
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECIEVED DELETE FILE COMMAND");

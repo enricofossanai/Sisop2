@@ -54,10 +54,11 @@ typedef struct socketInfo{
     socklen_t len;
     } socketInfo;
 
-typedef struct cmdAndFile{
-    int command;
-    char fileName[MAX_FILE_NAME_SIZE];
-  }cmdAndFile;
+    typedef struct cmdAndFile{
+        int command;
+        char fileName[MAX_FILE_NAME_SIZE];
+        long int fileSize;
+      }cmdAndFile;
 
 int makeSum(packet * packet);
 
@@ -70,7 +71,7 @@ void *clientComm(void *arg);
 void *clientNotify(void *arg);
 
 //send first message to server to connect
-struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username);
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username, int cmd);
 
 //return size of file or -1 if error
 long int sizeFile (FILE *f);
