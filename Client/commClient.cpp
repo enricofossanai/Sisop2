@@ -144,7 +144,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             return -1;
         }
 
-        printf("VAI PASSAR %d PASSEI AQUI\n", numSeqs );
+
         //while still have packages to send
     	while (curSeq <= numSeqs){
 
@@ -161,8 +161,6 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
 
                 memcpy(sentPacket._payload, fileBuffer + placeinBuffer, bitstoSend);
                 sentPacket.checksum = makeSum(&sentPacket);
-
-                printf("PASSEI AQUI\n");
 
     			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
     			if (n  < 0)
@@ -231,8 +229,14 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
     //sending packet
     int ack = 0;
 
+
+
     if (command == CREATE){
+        sleep(2);
         FILE *fd = fopen( dir, "rb" );
+        if(fd == NULL)
+            printf("Erro no arquivo\n");
+
         sentPacket.length = sizeFile(fd);
         fclose(fd);
     }
@@ -255,8 +259,6 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
-    printf("\nsaiu  de boa do send_cmd\n");
-    fflush(stdout);
     return;
 }
 
@@ -299,7 +301,7 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
     unsigned char *bufferFile = (unsigned char *)malloc(fileSize);
 
     if (fd == NULL){
-        printf("Deu pau no arquivo\n");
+        printf("Problema no arquivo\n");
         return -1;
     }
 

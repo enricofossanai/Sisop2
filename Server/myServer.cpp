@@ -87,7 +87,7 @@ int main() {
                                                                         // Vetor de Usuários para testar se já ta conectado
 
                 curPort ++;
-                printf("QUAL A PORTA DESSA BOSTA??? %d\n", curPort);
+
                 client.socket = createSocket(client, curPort);
 
                 Users[cliNum] = client;

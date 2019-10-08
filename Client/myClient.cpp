@@ -97,7 +97,9 @@ int main(int argc, char *argv[]) {
         if(strcmp(command,"exit\n") == 0) {
                 flag = TRUE;
 
+                pthread_mutex_lock(&mutex);
                 send_cmd(NULL, servaddr, sockfd, EXIT, NULL);
+                pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
@@ -107,8 +109,10 @@ int main(int argc, char *argv[]) {
 
             scanf("%s", filename);
 
+            pthread_mutex_lock(&mutex);
             send_cmd(filename, servaddr, sockfd, CREATE, filename);
             sendFile(filename , servaddr, sockfd);
+            pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
@@ -117,9 +121,10 @@ int main(int argc, char *argv[]) {
             bzero(filename, 40);
 
             scanf("%s", filename);
+            pthread_mutex_lock(&mutex);
             //send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
             //i=  receiveFile( filename , lastCommand.fileSize, client->cliaddr,client->socket );
-
+            pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
@@ -138,17 +143,22 @@ int main(int argc, char *argv[]) {
             if (status == 0){
                 printf("%s file deleted successfully from sync_dir_%s.\n", filename,username);
                 }
+            pthread_mutex_lock(&mutex);
             send_cmd(filename, servaddr, sockfd, DELETE, NULL);
+            pthread_mutex_unlock(&mutex);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            send_cmd(NULL,servaddr,sockfd,LIST_SERVER, NULL);
+            pthread_mutex_lock(&mutex);
+            send_cmd("",servaddr,sockfd,LIST_SERVER, NULL);
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
+            pthread_mutex_unlock(&mutex);
             if (i < 0)
                 perror("recvfrom");
             if(!checkSum(&recPacket))
                 perror("erro checksum");
+
             printf("%s",recPacket._payload);
             fflush(stdout);
 
@@ -264,11 +274,15 @@ void *clientNotify(void *arg){
             //    send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("\nDeletado.\n") ;
+                pthread_mutex_lock(&mutex);
                 send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
+                pthread_mutex_unlock(&mutex);
             } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                 printf("\nCriado.\n") ;
+                pthread_mutex_lock(&mutex);
                 send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
                 sendFile(dirName , servaddr, sockfd);
+                pthread_mutex_unlock(&mutex);
             }
 
             /* Avança para o próximo evento. */
