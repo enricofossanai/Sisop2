@@ -107,28 +107,20 @@ int main(int argc, char *argv[]) {
 
             scanf("%s", filename);
 
-<<<<<<< HEAD
-            //send_cmd(filename, servaddr, sockfd, DELETE, NULL);
-            //sendFile("../revistajuca.txt" , servaddr, sockfd);
-=======
             send_cmd(filename, servaddr, sockfd, CREATE, filename);
             sendFile(filename , servaddr, sockfd);
->>>>>>> 97b6a0c101c15a4033cad051b058cc184cc7c36d
 
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
             printf("\nEnter the file name: ");
             fflush(stdout);
             bzero(filename, 40);
-<<<<<<< HEAD
+
             scanf("%s", filename);
             //send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
             //i=  receiveFile( filename , lastCommand.fileSize, client->cliaddr,client->socket );
 
-=======
 
-            scanf("%s", filename);
->>>>>>> 97b6a0c101c15a4033cad051b058cc184cc7c36d
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
             printf("\nEnter the file name: ");

@@ -127,7 +127,7 @@ void *cliThread(void *arg) {                                                    
 
     client = reinterpret_cast<user *> (arg);
 
-    printf("\nCriada a thread do cliente : %s\nCom Socket : %d\nDo endereço %ld\n", client->username, client->socket, client->cliaddr);
+    printf("\nCriada a thread do cliente : %s\n", client->username);
 
     strcpy(dirClient, "./");
     strcat(dirClient, client->username);
