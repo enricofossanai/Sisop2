@@ -199,7 +199,7 @@ void *clientComm(void *arg) {
     char buffer[MAX_PACKET_SIZE];
     socklen_t len = sizeof(servaddr);
 	int n;
-
+/*
     while(0){
 
     printf("Esperando Mensagem\n") ;
@@ -225,6 +225,7 @@ void *clientComm(void *arg) {
 
     fflush( stdout );
     }
+*/
 }
 
 void *clientNotify(void *arg){

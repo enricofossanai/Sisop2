@@ -88,7 +88,7 @@ int main() {
 
                 client.socket = createSocket(client, curPort);
 
-                
+
 
                 Users[cliNum] = client;
 
@@ -135,7 +135,6 @@ void *cliThread(void *arg) {                                                    
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         bzero(file, 100);
-        bzero(servName, 100);
 
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 

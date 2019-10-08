@@ -87,7 +87,7 @@ void *sender(void *arg);
 
 //send a command and wait for and ack
 //asks for the name of the file to modify, the server address, the socketfd and the command.
-void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command);
+void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, char *dir);
 
 //revieves a command and return a structure countaining the command and the name of the file to modify
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
