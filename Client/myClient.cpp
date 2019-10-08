@@ -123,8 +123,22 @@ int main(int argc, char *argv[]) {
             bzero(filename, 40);
             scanf("%s", filename);
             pthread_mutex_lock(&mutex);
-            //send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
-            //i=  receiveFile( filename , lastCommand.fileSize, client->cliaddr,client->socket );
+
+            send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
+
+            send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
+
+            packet recPacket;
+            socklen_t len = sizeof(struct sockaddr_in);
+
+            i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
+            if (i < 0)
+                perror("recvfrom");
+            if(!checkSum(&recPacket))
+                perror("erro checksum");
+
+            i =  receiveFile( filename ,recPacket.length ,servaddr ,sockfd );
+
             pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir

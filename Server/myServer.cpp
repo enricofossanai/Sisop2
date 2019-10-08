@@ -179,7 +179,7 @@ void *cliThread(void *arg) {                                                    
                 displayList(head);
               }
               else if (lastCommand.command == DOWNLOAD){
-                    printf("\nRECIEVED UPLOAD COMMAND");
+                    printf("\nRECIEVED DOWNLOAD COMMAND");
                     strcat(file, lastCommand.fileName);
                     printf("FILE : %s\n", file);
                     FILE *fd = fopen( file, "rb" );
@@ -189,7 +189,6 @@ void *cliThread(void *arg) {                                                    
                     if (n  < 0)
                         perror("sendto");
                     n =  sendFile( file , client->cliaddr,client->socket );
-
               }
 
           }
