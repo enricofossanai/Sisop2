@@ -89,7 +89,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     if (i  < 0)
         perror("recvfrom");
     else
-        printf("Conectado com  Servidor\n");
+        printf("Conectado com  Servidor no endereço : %ld\n", servaddr);
 
 
 	  fflush( stdout );
@@ -143,19 +143,8 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
             printf("Erro ao tentar ler o arquivo inteiro.\n");
             return -1;
         }
-/*
-        sentPacket.type = CMD;
-        sentPacket.cmd = CREATE;
-        sentPacket.seqn = 0;
-        sentPacket.length = fileSize;
-        sentPacket.total_size = 0;
-        strcpy(sentPacket._payload, fileName);
-        sentPacket.checksum = makeSum(&sentPacket);
 
-        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &addr,  sizeof(addr));
-        if (n  < 0)
-            perror("sendto");
-*/
+        printf("VAI PASSAR %d PASSEI AQUI\n", numSeqs );
         //while still have packages to send
     	while (curSeq <= numSeqs){
 
@@ -233,11 +222,12 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
     sentPacket.type = CMD;
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,fileName);
-    sentPacket.checksum = makeSum(&sentPacket);
+
 
     int n;
     //struct timeval timeout={2,0}; //set timeout for 2 seconds
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+
     //sending packet
     int ack = 0;
 
@@ -246,6 +236,8 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
         sentPacket.length = sizeFile(fd);
         fclose(fd);
     }
+
+    sentPacket.checksum = makeSum(&sentPacket);
 
     while (ack == 0){
             //printf("Enviando mensagem\n") ;
@@ -256,14 +248,15 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
         n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
         if (n  < 0)
             perror("recvfrom");
-        if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
+        if (checkSum(&rcvdPacket)){
             ack = 1;
             printf("\nserver recieved command\n");
         }
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
-    printf("\nsaiu  de boa do send_cmd");
+    printf("\nsaiu  de boa do send_cmd\n");
+    fflush(stdout);
     return;
 }
 
@@ -290,6 +283,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
             perror("sendto");
           returnFile.command = rcvdPacket.cmd;
           strcpy(returnFile.fileName, rcvdPacket._payload);
+
           return returnFile;
       } else{
           //printf("\nERRO DE CHECKSUM NO  COMANDO");
