@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
         if(strcmp(command,"exit\n") == 0) {
                 flag = TRUE;
 
-                send_cmd(NULL, servaddr, sockfd, EXIT, NULL);
+                send_cmd("", servaddr, sockfd, EXIT, NULL);
 
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
-            send_cmd(NULL,servaddr,sockfd,LIST_SERVER, NULL);
+            send_cmd("",servaddr,sockfd,LIST_SERVER, NULL);
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");
