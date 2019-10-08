@@ -73,7 +73,7 @@ void *cliThread(void *arg);
 
 int createSocket(user client, int port);
 
-struct sockaddr_in getClientLSocket(user client, int port);
+struct sockaddr_in getClientLSocket(user client, int socket);
 
 void addToONlist (userList **list, user *con);
 

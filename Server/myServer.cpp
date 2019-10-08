@@ -86,9 +86,9 @@ int main() {
 
                 curPort ++;
 
-                client.socket = createSocket(client, curPort);
-                //client.socket = createSocket(client, curPort);
 
+                client.socket = createSocket(client, curPort);
+                client.cliSend = getClientLSocket(client, client.socket);
 
                 Users[cliNum] = client;
 
@@ -137,31 +137,33 @@ void *cliThread(void *arg) {                                                    
         bzero(file, 100);
         strcpy(file, dirClient);
 
+        send_cmd(lastCommand.fileName, client->cliSend, client->socket, CREATE, file);
+
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-        printf("\nserver recieved command %d from %s\n", lastCommand.command ,client->username);
+        printf("\nserver received command %d from %s\n", lastCommand.command ,client->username);
 
-        if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
+        if (lastCommand.command >= 0){ // if received command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 strcat(file, lastCommand.fileName);
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
 
-                //send_cmd(lastCommand.fileName, client->cliaddr, client->socket, CREATE, file);
+                send_cmd(lastCommand.fileName, client->cliSend, client->socket, CREATE, file);
                 //sendFile(file , client->cliaddr, client->socket);
                 //printf("NUNCA VOLTA??\n");
             }
             else if(lastCommand.command == DELETE) {
-                printf("\nRECIEVED DELETE FILE COMMAND");
+                printf("\nRECEIVED DELETE FILE COMMAND");
                 n = delete_file(lastCommand.fileName,client->username);
               }
             else if (lastCommand.command == MODIFY){
-                printf("\nRECIEVED MODIFY FILE COMMAND");
+                printf("\nRECEIVED MODIFY FILE COMMAND");
                 // delete (recPacket._payload)
                 // Recebe o nome do arquivo, apaga da base do Servidor
               }
               else if (lastCommand.command ==LIST_SERVER){
-                printf("\nRECIEVED LIST_SERVER COMMAND");
+                printf("\nRECEIVED LIST_SERVER COMMAND");
                     if (list_server(client->username, buffer)){
                         fflush(stdout);
                         strcpy(sendPacket._payload,buffer);
@@ -176,12 +178,12 @@ void *cliThread(void *arg) {                                                    
                     }
               }
               else if (lastCommand.command == EXIT){
-                printf("\nRECIEVED LIST_SERVER EXIT");
+                printf("\nRECEIVED LIST_SERVER EXIT");
                 rmvFromONlist (&head, client);
                 displayList(head);
               }
               else if (lastCommand.command == DOWNLOAD){
-                    printf("\nRECIEVED DOWNLOAD COMMAND");
+                    printf("\nRECEIVED DOWNLOAD COMMAND");
                     strcat(file, lastCommand.fileName);
                     printf("FILE : %s\n", file);
 

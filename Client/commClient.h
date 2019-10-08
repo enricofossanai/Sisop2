@@ -72,9 +72,9 @@ void *clientComm(void *arg);
 void *clientNotify(void *arg);
 
 //send first message to server to connect
-struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username, int cmd);
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username);
 
-void connectListener (int sockfd , struct sockaddr_in servaddr, char * username);
+int connectListener (int sockfd , struct sockaddr_in servaddr, char * username);
 //return size of file or -1 if error
 long int sizeFile (FILE *f);
 

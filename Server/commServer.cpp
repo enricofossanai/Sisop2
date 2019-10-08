@@ -167,33 +167,33 @@ int createSocket(user client, int port){
 }
 
 
-struct sockaddr_in  getClientLSocket(user client, int port){
-  struct sockaddr_in cliaddrL;
-  memset(&cliaddrL, 0, sizeof(cliaddrL));
+struct sockaddr_in  getClientLSocket(user client, int sockfd){
+
+    struct sockaddr_in cliaddrL;
+    memset(&cliaddrL, 0, sizeof(cliaddrL));
 	int i;
-    char buffer[MAX_PACKET_SIZE];
 	socklen_t len = sizeof(struct sockaddr_in);
 
-  // Filling packet for connect
-  packet sentPacket, recPacket;
-  sentPacket.type = ACK;
-  sentPacket.cmd = 0;
-  sentPacket.seqn = 0;
-  sentPacket.length = 0;
-  sentPacket.total_size = 0;
-/*
-  i = recvfrom();
-  if (i  < 0)
-      perror("recvfrom");
-  else
-      printf("Resebido pedido de Conexao de Listener Socket de usuario");
+    // Filling packet for connect
+    packet sentPacket, rcvdPacket;
+    sentPacket.type = ACK;
+    sentPacket.cmd = 0;
+    sentPacket.seqn = 0;
+    sentPacket.length = 0;
+    strcpy(sentPacket._payload, "");
+    sentPacket.total_size = 0;
 
-  i = sendto();
-  if (i  < 0)
-      perror("sendto");
-*/
+      i = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &cliaddrL, &len);
+      if (i  < 0)
+          perror("recvfrom");
+      else if(rcvdPacket.type = CNL)
+          printf("Recebido pedido de Conexao de Listener Socket de usuario");
 
-  return cliaddrL;
+      i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &cliaddrL, sizeof(cliaddrL));
+      if (i  < 0)
+          perror("sendto");
+
+      return cliaddrL;
 }
 
 
@@ -329,7 +329,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     		else
     			bitstoSend = fileSize;
 
-    		//while didnt recieved the ack from the package
+    		//while didnt received the ack from the package
     		while (curAck == curSeq){
     	   		sentPacket.type = DATA;
     			sentPacket.seqn = curSeq;
@@ -397,12 +397,12 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
             perror("recvfrom");
         if (checkSum(&rcvdPacket)){
             ack = 1;
-            printf("\nserver recieved command\n");
+            printf("\nClient received command\n");
         }
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
-    printf("\nsaiu  de boa do send_cmd\n");
+
     fflush(stdout);
     return;
 }
@@ -420,7 +420,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     if (n  < 0)
         perror("recvfrom");
     if (checkSum(&rcvdPacket)){
-        //printf("\nserver recieved command %d\n", rcvdPacket.cmd);
+        //printf("\nserver received command %d\n", rcvdPacket.cmd);
         sentPacket.type = ACK;
         sentPacket.cmd = rcvdPacket.cmd;
         sentPacket.checksum = makeSum(&sentPacket);

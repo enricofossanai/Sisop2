@@ -58,7 +58,7 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
 
 }
 
-struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username, int cmd){
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username){
 	struct sockaddr_in servaddr;
 	int i;
     char buffer[MAX_PACKET_SIZE];
@@ -74,7 +74,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     // Filling packet for connect
     packet sentPacket, recPacket;
     sentPacket.type = CN;
-    sentPacket.cmd = cmd;
+    sentPacket.cmd = 0;
     sentPacket.seqn = 0;
     sentPacket.length = 0;
     sentPacket.total_size = 0;
@@ -97,10 +97,25 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
       return servaddr;
 }
 
-void connectListener (int sockfd , struct sockaddr_in servaddr, char * username){
+int connectListener (int sockfd , struct sockaddr_in servaddr, char * username){
 	int i;
-    char buffer[MAX_PACKET_SIZE];
+    struct sockaddr_in cliaddr;
 	socklen_t len = sizeof(struct sockaddr_in);
+
+    // Filling server information
+    cliaddr.sin_family    = AF_INET; // IPv4
+    cliaddr.sin_addr.s_addr = INADDR_ANY;
+    cliaddr.sin_port = htons(9000);                 // Valor arbitrario longe de 8000
+
+    struct timeval timeout={2,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+
+    // Bind the socket with the server address
+    if ( bind(sockfd, (const struct sockaddr *)&cliaddr, sizeof(cliaddr)) < 0 )
+    {
+        perror("bind");
+        exit(EXIT_FAILURE);
+    }
 
     // Filling packet for connect
     packet sentPacket, recPacket;
@@ -112,20 +127,27 @@ void connectListener (int sockfd , struct sockaddr_in servaddr, char * username)
     strcpy(sentPacket._payload, username);
     sentPacket.checksum = makeSum(&sentPacket);
 
-    i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
-	if (i  < 0)
-        perror("sendto");
+    recPacket.type = 10;
 
-    i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
-    if (i  < 0)
-        perror("recvfrom");
-    else
-        printf("Conectado Listener Socket com Server");
+    while(recPacket.type != ACK){
 
+        printf("CHEGA AQUI??\n");
 
+        i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+    	if (i  < 0)
+            perror("sendto");
+
+        i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
+        if (i  > 0 && recPacket.type == ACK)
+            printf("Conectado Listener Socket com Server");
+
+    }
 	  fflush( stdout );
 
-      return;
+      struct timeval notimeout={0,0}; //set timeout for 2 seconds
+      setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
+
+      return sockfd;
 }
 
 
@@ -185,7 +207,7 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     		else
     			bitstoSend = fileSize;
 
-    		//while didnt recieved the ack from the package
+    		//while didnt received the ack from the package
     		while (curAck == curSeq){
     	   		sentPacket.type = DATA;
     			sentPacket.seqn = curSeq;
@@ -290,7 +312,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
             perror("recvfrom");
         if (checkSum(&rcvdPacket)){
             ack = 1;
-            printf("\nserver recieved command\n");
+            printf("\nserver received command\n");
         }
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
@@ -311,7 +333,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     if (n  < 0)
         perror("recvfrom");
     if (checkSum(&rcvdPacket)){
-        //printf("\nserver recieved command %d\n", rcvdPacket.cmd);
+        //printf("\nserver received command %d\n", rcvdPacket.cmd);
         sentPacket.type = ACK;
         sentPacket.cmd = rcvdPacket.cmd;
         sentPacket.checksum = makeSum(&sentPacket);
