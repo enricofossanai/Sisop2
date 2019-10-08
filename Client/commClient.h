@@ -31,7 +31,8 @@
 #define LIST_SERVER              3
 #define LIST_CLIENT              4
 #define GET_SYNC_DIR             5
-#define EXIT                    6
+#define EXIT                     6
+#define DOWNLOAD                 7
 
 
 

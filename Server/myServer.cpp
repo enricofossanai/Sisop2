@@ -172,6 +172,13 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
                 rmvFromONlist (&head, client);
                 displayList(head);
               }
+              else if (lastCommand.command == DOWNLOAD){
+                  printf("\nRECIEVED UPLOAD COMMAND");
+                  strcat(file, lastCommand.fileName);
+                  printf("FILE : %s\n", file);
+                  n =  sendFile( file , client->cliaddr,client->socket );
+
+              }
 
           }
       }

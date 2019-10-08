@@ -58,35 +58,37 @@ int list_server(char *dirName, char * serverFolderSatus ){
 int delete_file(char * filename,char * username){
 
   int status;
-  char  pathname[100];
-  char  buffer[100];
+  char pathname[100];
+  
   char usernametemp [100];
+  
+  char sync_dir_ [100]= "sync_dir_";
  
 
   printf("\nEntrou no delete\n");
   
-  if (getcwd(buffer, sizeof(buffer)) != NULL) {
-       printf("Current working dir: %s\n", buffer);
+  if (getcwd(pathname, sizeof(pathname)) != NULL) {
+       printf("Current working dir: %s\n", pathname);
    } else {
        perror("getcwd() error");
        return 1;
    }
 
-  append_dash(buffer);
+  append_dash(pathname);
   strcpy(usernametemp,username);
   append_dash(usernametemp);
-  strcat(buffer,strcat(usernametemp,filename));
-  strcpy(pathname,buffer);
-  fprintf(stderr,"pathname1: %s\n",pathname);
-  //fprintf(stderr,"pathname1: /home/rodolfo/Sisop2/Sisop2/bin/rodolfin/a.png\n");
-  fflush(stdout);
-  //status = strcmp(pathname,"/home/rodolfo/Sisop2/Sisop2/bin/rodolfin/a.png");
-  //printf("%d",status);
+  
+  append_dash(sync_dir_);
+  strcat(pathname,strcat(usernametemp,filename));
+ 
+  
+  
 
   status = remove(pathname);
   if (status == 0){
-    printf("%s file deleted successfully.\n", filename);
-    return 1;}
+    printf("%s file deleted successfully from %s.\n", filename,username);
+   return 1;
+    }
   else
   {
     perror("remove");

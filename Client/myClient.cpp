@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
       return 1;
   }
 
-    int i,flag=FALSE;
-	char dirName[20],username[20],command[20],option[20], sync_dir[40],filename[40];
+    int i,flag=FALSE,status;
+	char dirName[100],username[20],command[20],option[20], sync_dir[40],filename[40];
     char buffer[MAX_PACKET_SIZE];
 
     struct hostent *server;
@@ -103,11 +103,6 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
             printf("\nEnter the file pathname: ");
-<<<<<<< HEAD
-            fflush(stdout);                                                     //////////////////////////////////////////////
-            bzero(filename, 40);                                                 // Será que o menu não é dentro da thread ????
-            fgets(filename, 40, stdin);      
-=======
             fflush(stdout);
             bzero(filename, 40);
 
@@ -119,20 +114,36 @@ int main(int argc, char *argv[]) {
             strcat(dirName, "/");
             strcat(dirName, filename);
 
-            send_cmd(filename, servaddr, sockfd, DELETE, NULL);
-            sendFile("../revistajuca.txt" , servaddr, sockfd);
+            //send_cmd(filename, servaddr, sockfd, DELETE, NULL);
+            //sendFile("../revistajuca.txt" , servaddr, sockfd);
 
->>>>>>> 6afbe3aea97f600a0e89ffdf2532accd27f45e4b
             //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
-            //NAO SAQUEI O DOWNLOAD;
+            printf("\nEnter the file name: ");
+            fflush(stdout);
+            bzero(filename, 40);
+            scanf("%s", filename);
+            //send_cmd(filename, servaddr, sockfd, DOWNLOAD, NULL);
+            //i=  receiveFile( filename , lastCommand.fileSize, client->cliaddr,client->socket );
+
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
             printf("\nEnter the file name: ");
             fflush(stdout);
             bzero(filename, 40);
             scanf("%s", filename);
+            bzero(dirName, 100);
+            getcwd(dirName, sizeof(dirName));
+            strcat(dirName, "/");
+            strcat(dirName,sync_dir);
+            strcat(dirName,"/");
+            strcat(dirName,filename);
+            printf("%s",dirName);
+            status = remove(dirName);
+            if (status == 0){
+                printf("%s file deleted successfully from sync_dir_%s.\n", filename,username);
+                }
             send_cmd(filename, servaddr, sockfd, DELETE, NULL);
         } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
