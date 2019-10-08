@@ -178,10 +178,16 @@ void *cliThread(void *arg) {                                                    
                 displayList(head);
               }
               else if (lastCommand.command == DOWNLOAD){
-                  printf("\nRECIEVED UPLOAD COMMAND");
-                  strcat(file, lastCommand.fileName);
-                  printf("FILE : %s\n", file);
-                  n =  sendFile( file , client->cliaddr,client->socket );
+                    printf("\nRECIEVED UPLOAD COMMAND");
+                    strcat(file, lastCommand.fileName);
+                    printf("FILE : %s\n", file);
+                    FILE *fd = fopen( file, "rb" );
+                    sendPacket.length = sizeFile(fd);
+                    sendPacket.checksum = makeSum(&sendPacket);
+                    n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
+                    if (n  < 0)
+                        perror("sendto");
+                    n =  sendFile( file , client->cliaddr,client->socket );
 
               }
 
