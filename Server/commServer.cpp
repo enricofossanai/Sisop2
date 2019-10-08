@@ -156,7 +156,7 @@ int createSocket(user client, int port){
         exit(EXIT_FAILURE);
     }
 
-    sendPacket.type = CMD;
+    sendPacket.type = ACK;
     sendPacket.cmd = 0;
     sendPacket.seqn = 0;
     sendPacket.length = 0;
@@ -397,8 +397,8 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     cmdAndFile returnFile;
     returnFile.command = -1;
     //printf("\nEsperando Comando...");
-    fflush(stdout);
-    n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+    //fflush(stdout);
+    n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
     if (n  < 0)
         perror("recvfrom");
     if (checkSum(&rcvdPacket)){

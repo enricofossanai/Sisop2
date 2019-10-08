@@ -89,7 +89,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     if (i  < 0)
         perror("recvfrom");
     else
-        printf("Conectado com  Servidor\n");
+        printf("Conectado com  Servidor no endereço : %ld\n", servaddr);
 
 
 	  fflush( stdout );

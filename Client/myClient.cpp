@@ -61,12 +61,7 @@ int main(int argc, char *argv[]) {
         mkdir(dirName,0777);
         printf("Directory created\n");
         }
-                                                                     // Cria o Diretório
-
-
-    pthread_t threadN;
-    pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
-
+                                                                            // Cria o Diretório
 
     server = gethostbyname(argv[1]);
 	if (server == NULL) {
@@ -81,11 +76,14 @@ int main(int argc, char *argv[]) {
     }
 
 	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
-	printf("\nPorta : %d\n", servaddr.sin_port);
 
     //cria thread que envia
     pthread_t threadSender;
     pthread_create(&threadSender, NULL, clientComm, NULL);                  // Inicia a thread
+    pthread_detach(threadSender);
+
+    pthread_t threadN;
+    pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
 
    while (flag == FALSE) {
 
@@ -134,7 +132,7 @@ int main(int argc, char *argv[]) {
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");
-            if(!checksum(&recPacket))
+            if(!checkSum(&recPacket))
                 perror("erro checksum");
             printf("%s",recPacket._payload);
             fflush(stdout);
@@ -163,7 +161,6 @@ int main(int argc, char *argv[]) {
         }
 
     }
-
 
     close(sockfd);
 

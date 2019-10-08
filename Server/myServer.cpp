@@ -32,6 +32,7 @@ int main() {
     int sockfd;
     char buffer[MAX_PAYLOAD_SIZE];
     struct sockaddr_in servaddr, cliaddr;
+    user client;
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -55,7 +56,7 @@ int main() {
     }
 
 
-    vector<pthread_t> threads(MAXNUMCON);              // Um vetor para cada thread diferente?? //
+    //vector<pthread_t> threads(MAXNUMCON);              // Um vetor para cada thread diferente?? //
     int cliNum = 0;
     int rc1;
 
@@ -66,7 +67,7 @@ int main() {
         packet packetBuffer;
         int n, i;
         socklen_t len = sizeof(servaddr);
-	pthread_t new_thread;
+	    pthread_t tid[100];
 
         n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
         if (n < 0)
@@ -78,24 +79,33 @@ int main() {
 
             if(packetBuffer.type == CN){                                 //Testa se é o firstConnect
 
-                user client;
+                memset(&client, 0 , sizeof(struct user));
 
                 strcpy(client.username, packetBuffer._payload);
                 client.cliaddr = cliaddr;
 
-                Users[cliNum] = client;                                  // Vetor de Usuários para testar se já ta conectado
+                                                                        // Vetor de Usuários para testar se já ta conectado
 
                 curPort ++;
+                printf("QUAL A PORTA DESSA BOSTA??? %d\n", curPort);
                 client.socket = createSocket(client, curPort);
 
+                Users[cliNum] = client;
 
                 //Adicionando cliente a lista de usuoarios conectados
                 addToONlist (&head, &client);
                 displayList(head);
 
-                rc1 = pthread_create(&new_thread, NULL, cliThread, reinterpret_cast<void *> (&client));
+                rc1 = pthread_create(&tid[cliNum], NULL, cliThread, reinterpret_cast<void *> (&Users[cliNum]) );
+                if(rc1 < 0)
+                    perror("pthread_create");
+
+                rc1 = pthread_detach(tid[cliNum]);
+                if(rc1 < 0)
+                    perror("pthread_detach");
+
                 cliNum++;
-		threads.push_back(new_thread);
+
                 }
         }
         fflush(stdout);
@@ -104,9 +114,7 @@ int main() {
     return 0;
 }
 
-void *cliThread(void *arg) {                           // Cuida dos Clientes
-    printf("\nCriada a thread do cliente");
-    fflush(stdout);
+void *cliThread(void *arg) {                                                    // Cuida dos Clientes
     int n;
     char buffer[MAX_PAYLOAD_SIZE];
     user *client;
@@ -117,14 +125,13 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
     char dirClient[200] = {};
     char file[100] = {};
 
-
     client = reinterpret_cast<user *> (arg);
+
+    printf("\nCriada a thread do cliente : %s\nCom Socket : %d\nDo endereço %ld\n", client->username, client->socket, client->cliaddr);
 
     strcpy(dirClient, "./");
     strcat(dirClient, client->username);
     strcat(dirClient, "/");
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     while (1){
         bzero(file, 100);
@@ -132,7 +139,7 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
 
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-        printf("\nserver recieved command %d from %s", lastCommand.command ,client->username  );
+        printf("\nserver recieved command %d from %s\n", lastCommand.command ,client->username);
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
