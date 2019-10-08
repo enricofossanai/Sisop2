@@ -101,11 +101,12 @@ int connectListener (int sockfd , struct sockaddr_in servaddr, char * username){
 	int i;
     struct sockaddr_in cliaddr;
 	socklen_t len = sizeof(struct sockaddr_in);
+    srand(time(NULL));
 
     // Filling server information
     cliaddr.sin_family    = AF_INET; // IPv4
     cliaddr.sin_addr.s_addr = INADDR_ANY;
-    cliaddr.sin_port = htons(9000);                 // Valor arbitrario longe de 8000
+    cliaddr.sin_port = htons(9000 + (rand() % 15));                 // Valor arbitrario longe de 8000
 
     struct timeval timeout={2,0}; //set timeout for 2 seconds
     setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));

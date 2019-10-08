@@ -69,23 +69,29 @@ void addToONlist (userList **list, user *con){
 
 
 //VER SE ESTA NULL QUANDO CHAMAR PARA NAO DAR SEG FAUT
-//NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARI
-struct sockaddr_in getUserList(userList **list, user *usr){
+//NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARIO
+struct sockaddr_in getUserList(userList *list, user *usr){
     struct sockaddr_in cliaddrL;
-    userList *temp = (*list), *prev;
+    userList *temp = list;
+    userList *found;
 
-    while (temp != NULL && temp->connection.socket != usr->socket)
+    cliaddrL.sin_port = 0;
+
+    while (temp != NULL)
     {
-        prev = temp;
+        if( (strcmp(temp->connection.username, usr->username) == 0) && (temp->connection.socket != usr->socket) )
+            found = temp;
         temp = temp->next;
     }
+
     // If key was not present in linked list
-    if (temp == NULL){
+    if (found == NULL){
         printf("\n sem outra maquina de usuario conectado");
-        return; //checar se buga, to tratando depois do retorno
+        return cliaddrL; //checar se buga, to tratando depois do retorno
     }
+    printf("SOCKET DO OUTRO : %d \n", (found->connection).socket );
     // Unlink the node from linked list
-    cliaddrL = temp->connection.cliSend;
+    cliaddrL = found->connection.cliSend;
     return cliaddrL;
 }
 
@@ -326,7 +332,6 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     size_t paulo;
     unsigned char *fileBuffer = (unsigned char *)malloc(fileSize);
 
-    printf("numSeqs : %d\n", numSeqs );
 
     if (fd == NULL){
         printf("Erro no arquivo");

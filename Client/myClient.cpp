@@ -216,6 +216,7 @@ void *clientComm(void *arg) {
     while(1){
         bzero(file , 100);
         strcpy(file, dirName);
+        strcat(file, "/");
         printf("Esperando Mensagem\n") ;
 
         lastCommand = rcv_cmd(servaddr, cliSock);
@@ -228,7 +229,7 @@ void *clientComm(void *arg) {
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECEIVED DELETE FILE COMMAND");
-                n = delete_file(lastCommand.fileName, username);
+            //    n = delete_file(lastCommand.fileName, username);
             }
             else if (lastCommand.command == MODIFY){
                 printf("\nRECEIVED MODIFY FILE COMMAND");

@@ -67,7 +67,7 @@ int checkSum(packet * packet);
 
 int makeSum(packet * packet);
 
-struct sockaddr_in getUserList(userList **list, user *usr);
+struct sockaddr_in getUserList(userList *list, user *usr);
 
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 

@@ -148,13 +148,14 @@ void *cliThread(void *arg) {                                                    
                 printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 strcat(file, lastCommand.fileName);
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
-                /*
-                destiny = getUserList(&head, &client);
-                if (destiny != NULL){
-                //send_cmd(lastCommand.fileName, client->cliaddr, client->socket, CREATE, file);
-                //sendFile(file , client->cliaddr, client->socket);
+
+                printf("MEU SOCKET : %d\n", client->socket );
+
+                destiny = getUserList(head, client);
+                if (destiny.sin_port != 0){
+                send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
+                sendFile(file , destiny, client->socket);
                 }
-                */
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECEIVED DELETE FILE COMMAND");
