@@ -54,10 +54,11 @@ typedef struct socketInfo{
     socklen_t len;
     } socketInfo;
 
-typedef struct cmdAndFile{
-    int command;
-    char fileName[MAX_FILE_NAME_SIZE];
-  }cmdAndFile;
+    typedef struct cmdAndFile{
+        int command;
+        char fileName[MAX_FILE_NAME_SIZE];
+        long int fileSize;
+      }cmdAndFile;
 
 int makeSum(packet * packet);
 

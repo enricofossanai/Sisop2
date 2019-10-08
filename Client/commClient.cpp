@@ -268,29 +268,31 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     cmdAndFile returnFile;
     returnFile.command = -1;
     //printf("\nEsperando Comando...");
-    fflush(stdout);
-      n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
-      if (n  < 0)
+    //fflush(stdout);
+    n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
+    if (n  < 0)
         perror("recvfrom");
-      if (rcvdPacket.checksum == checkSum(&rcvdPacket)){
-          printf("\nserver recieved command %d\n", rcvdPacket.cmd);
-          sentPacket.type = ACK;
-          sentPacket.cmd = rcvdPacket.cmd;
-          sentPacket.checksum = makeSum(&sentPacket);
-          //printf("\nEnviando ACk de Comando");
-          n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
-          if (n  < 0)
+    if (checkSum(&rcvdPacket)){
+        //printf("\nserver recieved command %d\n", rcvdPacket.cmd);
+        sentPacket.type = ACK;
+        sentPacket.cmd = rcvdPacket.cmd;
+        sentPacket.checksum = makeSum(&sentPacket);
+        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+        fflush(stdout);
+        if (n  < 0)
             perror("sendto");
-          returnFile.command = rcvdPacket.cmd;
-          strcpy(returnFile.fileName, rcvdPacket._payload);
+        returnFile.command = rcvdPacket.cmd;
+        strcpy(returnFile.fileName, rcvdPacket._payload);
+        returnFile.fileSize = rcvdPacket.length;
 
-          return returnFile;
+        return returnFile;
       } else{
-          //printf("\nERRO DE CHECKSUM NO  COMANDO");
+            printf("\nERRO DE CHECKSUM NO  COMANDO");
             fflush(stdout);
           }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    printf("\nSAIU DO RCV_CMD");
     return returnFile;
 }
 
@@ -322,13 +324,15 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
             else
                 bitstoReceive = fileSize;
 
-            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PAYLOAD_SIZE, 0, (struct sockaddr *)  &addr, &len);
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
             if(n < 0)
                 perror("recvfrom");
 
             if((checkSum(&rcvdPacket))){		                                    // Verificação de CheckSum
 
                 memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
+
+                printf("PASSEI AQUI\n");
 
                 sentPacket.type = ACK;
                 sentPacket.seqn = rcvdPacket.seqn;
