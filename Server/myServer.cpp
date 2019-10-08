@@ -84,11 +84,11 @@ int main() {
                 strcpy(client.username, packetBuffer._payload);
                 client.cliaddr = cliaddr;
 
-                                                                        // Vetor de Usuários para testar se já ta conectado
-
                 curPort ++;
 
                 client.socket = createSocket(client, curPort);
+
+                
 
                 Users[cliNum] = client;
 

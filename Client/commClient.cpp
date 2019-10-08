@@ -58,7 +58,7 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
 
 }
 
-struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username){
+struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * username, int cmd){
 	struct sockaddr_in servaddr;
 	int i;
     char buffer[MAX_PACKET_SIZE];
@@ -74,7 +74,7 @@ struct sockaddr_in firstConnect (int sockfd , struct hostent *server, char * use
     // Filling packet for connect
     packet sentPacket, recPacket;
     sentPacket.type = CN;
-    sentPacket.cmd = 0;
+    sentPacket.cmd = cmd;
     sentPacket.seqn = 0;
     sentPacket.length = 0;
     sentPacket.total_size = 0;

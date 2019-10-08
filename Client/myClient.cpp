@@ -23,6 +23,8 @@
 //global variables
 struct sockaddr_in servaddr;
 int sockfd;
+struct hostent *server;
+char username[20];
 //mutex
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -35,11 +37,11 @@ int main(int argc, char *argv[]) {
   }
 
     int i,flag=FALSE,status;
-	char dirName[100],username[20],command[20],option[20], sync_dir[40],filename[40];
+	char dirName[100],command[20],option[20], sync_dir[40],filename[40];
     char buffer[MAX_PACKET_SIZE];
 
 
-    struct hostent *server;
+
 
     if (argc < 3) {
 		fprintf(stderr, "usage %s hostname username\n", argv[0]);
@@ -75,11 +77,11 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-	servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
+	servaddr = firstConnect(sockfd,server,username, 0);                       // Conecta com o famigerado Servidor
 
     //cria thread que envia
     pthread_t threadSender;
-    pthread_create(&threadSender, NULL, clientComm, NULL);                  // Inicia a thread
+    pthread_create(&threadSender, NULL, clientComm, NULL );                  // Inicia a thread
     pthread_detach(threadSender);
 
     pthread_t threadN;
@@ -194,6 +196,7 @@ int main(int argc, char *argv[]) {
 
 void *clientComm(void *arg) {
     packet recPacket;
+    int cliSock;
     char buffer[MAX_PACKET_SIZE];
     socklen_t len = sizeof(servaddr);
 	int n;
@@ -201,11 +204,26 @@ void *clientComm(void *arg) {
     while(0){
 
     printf("Esperando Mensagem\n") ;
-    //n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &servaddr, &len);
-    //if (n  < 0)
-    //    perror("recvfrom");
+    servaddr = firstConnect(cliSock,server,username, 1);
 
-    printf("Server : %s\n", buffer);
+    lastCommand = rcv_cmd(servaddr, cliSock);
+
+    if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
+        if(lastCommand.command == CREATE) {
+            printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+            strcat(file, lastCommand.fileName);
+            n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
+        }
+        else if(lastCommand.command == DELETE) {
+            printf("\nRECIEVED DELETE FILE COMMAND");
+            n = delete_file(lastCommand.fileName, username);
+        }
+        else if (lastCommand.command == MODIFY){
+            printf("\nRECIEVED MODIFY FILE COMMAND");
+            // delete (recPacket._payload)
+            // Recebe o nome do arquivo, apaga da base do Servidor
+        }
+
     fflush( stdout );
     }
 }

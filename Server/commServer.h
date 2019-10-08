@@ -48,6 +48,7 @@ typedef struct user{
     char username [100];
     struct sockaddr_in cliaddr;
     int socket;
+    struct sockaddr_in cliSend;
 } user;
 
 typedef struct cmdAndFile{

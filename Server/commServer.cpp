@@ -109,12 +109,6 @@ void displayList(userList* head){
   }
 }
 
-
-
-
-
-
-
 int createSocket(user client, int port){
     int sockfd;
     int i,n;
