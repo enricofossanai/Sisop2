@@ -145,8 +145,10 @@ void *cliThread(void *arg) {                                                    
             if(lastCommand.command == CREATE) {
                 printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 strcat(file, lastCommand.fileName);
-
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+/*
+                send_cmd(file, servaddr, sockfd, CREATE, dirName);
+                sendFile(file , client->cliaddr, client->socket);*/
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECIEVED DELETE FILE COMMAND");
