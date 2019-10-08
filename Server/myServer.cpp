@@ -130,18 +130,16 @@ void *cliThread(void *arg) {                           // Cuida dos Clientes
         bzero(file, 100);
         strcpy(file, dirClient);
 
-
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-        //printf("\nserver recieved command %d from %s", recPacket.type , recPacket._payload );
+        printf("\nserver recieved command %d from %s", lastCommand.command ,client->username  );
 
         if (lastCommand.command >= 0){ // if recieved command wasnt corrupted
             if(lastCommand.command == CREATE) {
-                printf("\nRECIEVED CREATE FILE COMMAND");
+                printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 strcat(file, lastCommand.fileName);
-                printf("FILE : %s\n", file);
-                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );    // Lembrar do // nos pathname!!!!!
-                // Temo que receber o arquivo do cliente
+
+                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECIEVED DELETE FILE COMMAND");

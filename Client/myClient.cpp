@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
 	char dirName[20],username[20],command[20],option[20], sync_dir[40],filename[40];
     char buffer[MAX_PACKET_SIZE];
 
+
     struct hostent *server;
 
     if (argc < 3) {
@@ -102,25 +103,22 @@ int main(int argc, char *argv[]) {
 
         } else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
-            printf("\nEnter the file pathname: ");
+            printf("\nEnter the file name: ");
             fflush(stdout);
             bzero(filename, 40);
 
-            fgets(filename, 40, stdin);
+            scanf("%s", filename);
 
-            bzero(dirName, 100);
-            strcpy(dirName, "./");
-            strcat(dirName, username);
-            strcat(dirName, "/");
-            strcat(dirName, filename);
+            send_cmd(filename, servaddr, sockfd, CREATE, filename);
+            sendFile(filename , servaddr, sockfd);
 
-            send_cmd(filename, servaddr, sockfd, DELETE, NULL);
-            sendFile("../revistajuca.txt" , servaddr, sockfd);
-
-            //send_cmd("PUTPATHHERE" , servaddr, sockfd, CREATE);
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
-            //NAO SAQUEI O DOWNLOAD;
+            printf("\nEnter the file name: ");
+            fflush(stdout);
+            bzero(filename, 40);
+
+            scanf("%s", filename);
         } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
             printf("\nEnter the file name: ");
@@ -136,7 +134,7 @@ int main(int argc, char *argv[]) {
             i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &servaddr,  &len);
             if (i < 0)
                 perror("recvfrom");
-            if(recPacket.checksum!=makeSum(&recPacket))
+            if(!checksum(&recPacket))
                 perror("erro checksum");
             printf("%s",recPacket._payload);
             fflush(stdout);
@@ -251,7 +249,7 @@ void *clientNotify(void *arg){
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 printf("\nModificado.\n") ;
-                send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
+            //    send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
             } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                 printf("\nDeletado.\n") ;
                 send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);

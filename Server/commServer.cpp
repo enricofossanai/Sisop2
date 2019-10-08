@@ -401,7 +401,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
     if (n  < 0)
         perror("recvfrom");
-    if (rcvdPacket.checksum == makeSum(&rcvdPacket)){
+    if (checkSum(&rcvdPacket)){
         //printf("\nserver recieved command %d\n", rcvdPacket.cmd);
         sentPacket.type = ACK;
         sentPacket.cmd = rcvdPacket.cmd;
@@ -413,7 +413,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
         returnFile.command = rcvdPacket.cmd;
         strcpy(returnFile.fileName, rcvdPacket._payload);
         returnFile.fileSize = rcvdPacket.length;
-        printf("\nSAIU DO RCV_CMD");
+
         return returnFile;
       } else{
             printf("\nERRO DE CHECKSUM NO  COMANDO");
