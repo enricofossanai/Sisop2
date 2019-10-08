@@ -67,6 +67,28 @@ void addToONlist (userList **list, user *con){
   }
 }
 
+
+//VER SE ESTA NULL QUANDO CHAMAR PARA NAO DAR SEG FAUT
+//NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARI
+struct sockaddr_in getUserList(userList **list, user *usr){
+    struct sockaddr_in cliaddrL;
+    userList *temp = (*list), *prev;
+
+    while (temp != NULL && temp->connection.socket != usr->socket)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+    // If key was not present in linked list
+    if (temp == NULL){
+        printf("\n sem outra maquina de usuario conectado");
+        return; //checar se buga, to tratando depois do retorno
+    }
+    // Unlink the node from linked list
+    cliaddrL = temp->connection.cliSend;
+    return cliaddrL;
+}
+
 void rmvFromONlist (userList **list, user *usr){
     int deleted = 0;
     userList *temp = (*list), *prev;

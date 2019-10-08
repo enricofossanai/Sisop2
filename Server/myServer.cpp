@@ -124,6 +124,8 @@ void *cliThread(void *arg) {                                                    
     cmdAndFile lastCommand;
     char dirClient[100] = {};
     char file[100] = {};
+    struct sockaddr_in destiny;
+
 
     client = reinterpret_cast<user *> (arg);
 
@@ -146,10 +148,13 @@ void *cliThread(void *arg) {                                                    
                 printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 strcat(file, lastCommand.fileName);
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
-
+                /*
+                destiny = getUserList(&head, &client);
+                if (destiny != NULL){
                 //send_cmd(lastCommand.fileName, client->cliaddr, client->socket, CREATE, file);
                 //sendFile(file , client->cliaddr, client->socket);
-                //printf("NUNCA VOLTA??\n");
+                }
+                */
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECIEVED DELETE FILE COMMAND");
