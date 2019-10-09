@@ -156,17 +156,7 @@ int main(int argc, char *argv[]) {
             fflush(stdout);
             bzero(filename, 40);
             scanf("%s", filename);
-            bzero(dirName, 100);
-            getcwd(dirName, sizeof(dirName));
-            strcat(dirName, "/");
-            strcat(dirName,sync_dir);
-            strcat(dirName,"/");
-            strcat(dirName,filename);
-            printf("%s",dirName);
-            status = remove(dirName);
-            if (status == 0){
-                printf("%s file deleted successfully from sync_dir_%s.\n", filename,username);
-                }
+
             pthread_mutex_lock(&mutex);
             send_cmd(filename, servaddr, sockfd, DELETE, NULL);
             pthread_mutex_unlock(&mutex);
