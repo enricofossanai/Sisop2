@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
 
     int i,flag=FALSE,status;
-	char command[20],option[20], sync_dir[40],filename[40];
+	char command[20],option[20], sync_dir[40],filename[40], userfile[40];
     char buffer[MAX_PACKET_SIZE];
 
 
@@ -55,6 +55,8 @@ int main(int argc, char *argv[]) {
     strcpy (sync_dir, "sync_dir_");
     strcpy (username,argv[2]);
     strcpy(dirName,strcat(sync_dir, username));
+
+	strcpy(userfile, dirName);
 
     //Cria diretório sync_dir_username caso ele ainda nao exista
     DIR* dir = opendir(dirName);
@@ -186,7 +188,7 @@ int main(int argc, char *argv[]) {
 
         } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
             printf("\nLIST_CLIENT command chosen\n");
-            i = list_client(dirName);
+            i = list_client(userfile);
             if (i  > 0)
                 printf("Leu o diretório\n");
             else
