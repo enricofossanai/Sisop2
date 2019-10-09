@@ -137,8 +137,8 @@ int connectListener (int sockfd , struct sockaddr_in servaddr, char * username){
             perror("sendto");
 
         i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
-        if (i  > 0 && recPacket.type == ACK)
-            printf("Conectado Listener Socket com Server");
+        if (i  > 0 && recPacket.type == ACK);
+           // printf("Conectado Listener Socket com Server");
 
     }
 	  fflush( stdout );
@@ -309,7 +309,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
             perror("recvfrom");
         if (checkSum(&rcvdPacket)){
             ack = 1;
-            printf("\nserver received command\n");
+            //printf("\nserver received command\n");
         }
     }
     //struct timeval timeout={0,0}; //set timeout to return to block
@@ -351,7 +351,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
           }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
-    printf("\nSAIU DO RCV_CMD");
+    //printf("\nSAIU DO RCV_CMD");
     return returnFile;
 }
 

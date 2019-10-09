@@ -214,7 +214,7 @@ void *clientComm(void *arg) {
         bzero(file , 100);
         strcpy(file, dirName);
         strcat(file, "/");
-        printf("Esperando Mensagem\n") ;
+        // printf("Esperando Mensagem\n") ;
 
         lastCommand = rcv_cmd(servaddr, cliSock);
 
@@ -302,7 +302,7 @@ void *clientNotify(void *arg){
         pthread_mutex_lock(&mutex);
         /* Lê o máximo de eventos. */
         l = read(fd, buf, 1024 * (sizeof(struct inotify_event))) ;
-        printf("MUTEX : %d\n", notify_block );
+        //printf("MUTEX : %d\n", notify_block );
         pthread_mutex_unlock(&mutex);
         /* Percorre cada evento lido. */
         i=0 ;
@@ -319,9 +319,9 @@ void *clientNotify(void *arg){
             /* Se o campo len não é nulo, então temos
              * um nome no campo name. */
             if(evento->len) {
-                printf("[+] Arquivo `%s': ", evento->name) ;
+               // printf("[+] Arquivo `%s': ", evento->name) ;
             } else {
-                printf("[+] Arquivo desconhecido: ") ;                               // Nome do Arquivo modificado
+               // printf("[+] Arquivo desconhecido: ") ;                               // Nome do Arquivo modificado
             }
 
             strcat(dirName, evento->name);
@@ -329,8 +329,8 @@ void *clientNotify(void *arg){
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 if(notify_block == 0 && justCreated == 0){
-                    printf("\nModificado.\n") ;
-                    printf("DIR : %s\n", dirName );
+                    //printf("\nModificado.\n") ;
+                    //printf("DIR : %s\n", dirName );
                     send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
                     sendFile(dirName , servaddr, sockfd);
                     justCreated = 1;
@@ -342,7 +342,7 @@ void *clientNotify(void *arg){
             }
             else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM ) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
                     if(notify_block == 0){
-                        printf("\nDeletado.\n") ;
+                        //printf("\nDeletado.\n") ;
                         send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
                     }
 
@@ -350,7 +350,7 @@ void *clientNotify(void *arg){
             else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                     justCreated = 1;
                     if(notify_block == 0){
-                        printf("\nCriado.\n") ;
+                        //printf("\nCriado.\n") ;
                         send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
                         sendFile(dirName , servaddr, sockfd);
                     }
