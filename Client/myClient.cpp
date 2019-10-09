@@ -129,6 +129,9 @@ int main(int argc, char *argv[]) {
 
             send_cmd(filename, servaddr, sockfd, CREATE, filename);
             sendFile(filename , servaddr, sockfd);
+			
+			notify_block = 1;
+	    
             pthread_mutex_unlock(&mutex);
 
         } else if (strcmp(command, "download\n") == 0) { // download to exec folder
