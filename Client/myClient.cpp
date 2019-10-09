@@ -220,11 +220,11 @@ void *clientComm(void *arg) {
 
         if (lastCommand.command >= 0){                      // if received command wasnt corrupted
             if(lastCommand.command == CREATE) {
-                printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+                //printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
                 fflush(stdout);
                 strcat(file, lastCommand.fileName);
                 pthread_mutex_lock(&mutex);
-                printf("FILE : %s\n", file);
+                //printf("FILE : %s\n", file);
                 n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
 
                 notify_block = 1;
@@ -232,23 +232,23 @@ void *clientComm(void *arg) {
 
             }
             else if(lastCommand.command == DELETE) {
-                printf("\nRECEIVED DELETE FILE COMMAND");
+                //printf("\nRECEIVED DELETE FILE COMMAND");
                 strcat(file, lastCommand.fileName);
                 n = remove(file);
-                if (n == 0)
-                  printf("%s file deleted successfully from %s.\n", file,username);
+                if (n == 0);
+                  //printf("%s file deleted successfully from %s.\n", file,username);
                 else
                   perror("remove");
 
             }
             else if (lastCommand.command == MODIFY){
-                printf("\nRECEIVED MODIFY FILE COMMAND");
+                //printf("\nRECEIVED MODIFY FILE COMMAND");
                 strcat(file, lastCommand.fileName);
                 pthread_mutex_lock(&mutex);
 
                 n = remove(file);
-                if (n == 0)
-                  printf("%s file deleted successfully from %s.\n", file,username);
+                if (n == 0);
+                  //printf("%s file deleted successfully from %s.\n", file,username);
                 else
                   perror("remove");
 
