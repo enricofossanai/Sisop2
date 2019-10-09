@@ -405,8 +405,6 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
                 strcpy(sentPacket._payload, "");
                 sentPacket.checksum = makeSum(&sentPacket);
 
-                printf("PASSEI AQUI %d\n", curSeq);
-
                 n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
                 if (n  < 0)
                     perror("sendto");
@@ -436,4 +434,42 @@ int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, in
 
         return 0;
     }
+}
+
+void copyFile(char *source_file, char *target_file){
+
+
+    long int fileSize;
+    FILE *source, *target;
+
+   source = fopen(source_file, "rb");
+
+   if (source == NULL)
+   {
+       printf("Problema no arquivo\n");
+      return;
+   }
+   fileSize = sizeFile(source);
+   unsigned char *ch = (unsigned char *)malloc(fileSize);
+
+   target = fopen(target_file, "wb");
+
+   if (target == NULL)
+   {
+      fclose(source);
+      printf("Problema no arquivo\n");
+      return;
+   }
+
+   fread(ch, 1 , fileSize,source);
+   fwrite(ch , 1 ,fileSize, target);
+
+
+   printf("File copied successfully.\n");
+
+   fclose(source);
+   fclose(target);
+
+   return;
+
 }

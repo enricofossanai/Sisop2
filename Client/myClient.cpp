@@ -120,8 +120,13 @@ int main(int argc, char *argv[]) {
             bzero(filename, 40);
 
             scanf("%s", filename);
+            strcat(dirName, "/");
 
             pthread_mutex_lock(&mutex);
+            
+            copyFile(filename, strcat(dirName, filename));
+
+
             send_cmd(filename, servaddr, sockfd, CREATE, filename);
             sendFile(filename , servaddr, sockfd);
             pthread_mutex_unlock(&mutex);

@@ -370,8 +370,6 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
                 memcpy(sentPacket._payload, fileBuffer + placeinBuffer, bitstoSend);
                 sentPacket.checksum = makeSum(&sentPacket);
 
-                printf("PASSEI AQUI %d\n", curSeq);
-
     			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
     			if (n  < 0)
             		perror("sendto");
