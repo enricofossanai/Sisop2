@@ -149,23 +149,33 @@ void *cliThread(void *arg) {                                                    
                 strcat(file, lastCommand.fileName);
                 n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
 
-                printf("MEU SOCKET : %d\n", client->socket );
-
                 destiny = getUserList(head, client);
                 if (destiny.sin_port != 0){
-                send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
-                sendFile(file , destiny, client->socket);
+                    send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
+                    sendFile(file , destiny, client->socket);
                 }
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECEIVED DELETE FILE COMMAND");
                 n = delete_file(lastCommand.fileName,client->username);
+
+                destiny = getUserList(head, client);
+                if (destiny.sin_port != 0)
+                send_cmd(lastCommand.fileName, destiny, client->socket, DELETE, NULL);
+
               }
             else if (lastCommand.command == MODIFY){
                 printf("\nRECEIVED MODIFY FILE COMMAND");
-                // delete (recPacket._payload)
-                // Recebe o nome do arquivo, apaga da base do Servidor
-              }
+                n = delete_file(lastCommand.fileName, client->username);
+                strcat(file, lastCommand.fileName);
+                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+
+                destiny = getUserList(head, client);
+                if (destiny.sin_port != 0){
+                    send_cmd(lastCommand.fileName, destiny, client->socket, MODIFY, file);
+                    sendFile(file , destiny, client->socket);
+                }
+            }
               else if (lastCommand.command ==LIST_SERVER){
                 printf("\nRECEIVED LIST_SERVER COMMAND");
                     if (list_server(client->username, buffer)){
@@ -178,7 +188,6 @@ void *cliThread(void *arg) {                                                    
                         if (n  < 0)
                             perror("sendto");
                         fflush(stdout);
-
                     }
               }
               else if (lastCommand.command == EXIT){

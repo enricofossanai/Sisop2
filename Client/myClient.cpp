@@ -24,21 +24,23 @@
 struct sockaddr_in servaddr;
 int sockfd, sockfdL;
 struct hostent *server;
-char dirName[100];
+char dirName[100], username[20];
+int notify_block = 0;
 
 //mutex
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex;
 
 int main(int argc, char *argv[]) {
-//mutex initialization flag
-  if (pthread_mutex_init(&mutex, NULL) != 0)
-  {
-      printf("\n mutex init failed\n");
-      return 1;
-  }
+
+    if (pthread_mutex_init(&mutex, NULL) != 0)
+    {
+        printf("\n mutex init has failed\n");
+        return 1;
+    }
+
 
     int i,flag=FALSE,status;
-	char command[20],option[20], username[20], sync_dir[40],filename[40];
+	char command[20],option[20], sync_dir[40],filename[40];
     char buffer[MAX_PACKET_SIZE];
 
 
@@ -91,7 +93,6 @@ int main(int argc, char *argv[]) {
     //cria thread que envia
     pthread_t threadSender;
     pthread_create(&threadSender, NULL, clientComm, (void *) sockfdL );                  // Inicia a thread
-    pthread_detach(threadSender);
 
     pthread_t threadN;
     pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
@@ -199,6 +200,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    pthread_mutex_destroy(&mutex);
     close(sockfd);
 
     return 0;
@@ -206,7 +208,7 @@ int main(int argc, char *argv[]) {
 
 void *clientComm(void *arg) {
     packet recPacket;
-    int cliSock = (int) arg;
+    int cliSock = arg;
     char buffer[MAX_PACKET_SIZE];
     socklen_t len = sizeof(servaddr);
 	int n;
@@ -224,21 +226,47 @@ void *clientComm(void *arg) {
         if (lastCommand.command >= 0){                      // if received command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+                fflush(stdout);
                 strcat(file, lastCommand.fileName);
+                pthread_mutex_lock(&mutex);
+                printf("FILE : %s\n", file);
                 n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
+
+                notify_block = 1;
+                pthread_mutex_unlock(&mutex);
+
             }
             else if(lastCommand.command == DELETE) {
                 printf("\nRECEIVED DELETE FILE COMMAND");
-            //    n = delete_file(lastCommand.fileName, username);
+                strcat(file, lastCommand.fileName);
+                n = remove(file);
+                if (n == 0)
+                  printf("%s file deleted successfully from %s.\n", file,username);
+                else
+                  perror("remove");
+
             }
             else if (lastCommand.command == MODIFY){
                 printf("\nRECEIVED MODIFY FILE COMMAND");
-                // delete (recPacket._payload)
-                // Recebe o nome do arquivo, apaga da base do Servidor
+                strcat(file, lastCommand.fileName);
+                pthread_mutex_lock(&mutex);
+
+                n = remove(file);
+                if (n == 0)
+                  printf("%s file deleted successfully from %s.\n", file,username);
+                else
+                  perror("remove");
+
+                n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
+                notify_block = 1;
+
+                pthread_mutex_unlock(&mutex);
             }
 
         fflush( stdout );
         }
+
+
     }
 
 }
@@ -250,8 +278,7 @@ void *clientNotify(void *arg){
     fd_set rfds ; /* para select */
     struct inotify_event *evento ;
     char dirName [100];
-
-
+    int justCreated = 0;
 
     if((fd = inotify_init())<0) {
         perror("inotify_init") ;
@@ -263,10 +290,6 @@ void *clientNotify(void *arg){
     }
 
     while(1) {
-        bzero(dirName, 100);
-        strcpy(dirName, "./");
-        strcat(dirName, (char *) arg);
-        strcat(dirName, "/");
 
         FD_ZERO(&rfds) ;
         FD_SET(fd, &rfds) ;
@@ -276,18 +299,25 @@ void *clientNotify(void *arg){
         if(t<0) {
             perror("select") ;
         }
-
         /* Sem dados. */
         if(t == 0) continue ;
 
         /* Aqui temos dados. */
 
+        pthread_mutex_lock(&mutex);
         /* Lê o máximo de eventos. */
         l = read(fd, buf, 1024 * (sizeof(struct inotify_event))) ;
-
+        printf("MUTEX : %d\n", notify_block );
+        pthread_mutex_unlock(&mutex);
         /* Percorre cada evento lido. */
         i=0 ;
+
+
         while(i<l) {
+            bzero(dirName, 100);
+            strcpy(dirName, "./");
+            strcat(dirName, (char *) arg);
+            strcat(dirName, "/");
             /* Obtém dados na forma da struct. */
             evento = (struct inotify_event *)&buf[i] ;
 
@@ -303,23 +333,39 @@ void *clientNotify(void *arg){
 
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
-                printf("\nModificado.\n") ;
-            //    send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
-            } else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
-                printf("\nDeletado.\n") ;
-                pthread_mutex_lock(&mutex);
-                send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
-                pthread_mutex_unlock(&mutex);
-            } else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
-                printf("\nCriado.\n") ;
-                pthread_mutex_lock(&mutex);
-                send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
-                sendFile(dirName , servaddr, sockfd);
-                pthread_mutex_unlock(&mutex);
+                if(notify_block == 0 && justCreated == 0){
+                    printf("\nModificado.\n") ;
+                    printf("DIR : %s\n", dirName );
+                    send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
+                    sendFile(dirName , servaddr, sockfd);
+                    justCreated = 1;
+                }
+                else{
+
+                    justCreated = 0;
+                }
+            }
+            else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM ) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
+                    if(notify_block == 0){
+                        printf("\nDeletado.\n") ;
+                        send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
+                    }
+
+            }
+            else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
+                    justCreated = 1;
+                    if(notify_block == 0){
+                        printf("\nCriado.\n") ;
+                        send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
+                        sendFile(dirName , servaddr, sockfd);
+                    }
             }
 
             /* Avança para o próximo evento. */
             i += (sizeof(struct inotify_event)) + evento->len ;
+            if(i >= l)
+                notify_block = 0;
         }
+
     }
 }

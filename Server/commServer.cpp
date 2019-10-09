@@ -73,9 +73,10 @@ void addToONlist (userList **list, user *con){
 struct sockaddr_in getUserList(userList *list, user *usr){
     struct sockaddr_in cliaddrL;
     userList *temp = list;
-    userList *found;
+    userList *found = NULL;
 
     cliaddrL.sin_port = 0;
+    temp = temp->next;
 
     while (temp != NULL)
     {
@@ -228,7 +229,8 @@ struct sockaddr_in  getClientLSocket(user client, int sockfd){
 
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
     FILE *fd = fopen( fileName , "wb" );
-    unsigned char *bufferFile = (unsigned char *)malloc(fileSize);
+    unsigned char *bufferFile = (unsigned char *)malloc(fileSize + 1);
+    memset(bufferFile, 0, fileSize + 1);
 
     if (fd == NULL){
         printf("Deu pau no arquivo\n");
@@ -332,6 +334,9 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     size_t paulo;
     unsigned char *fileBuffer = (unsigned char *)malloc(fileSize);
 
+    struct timeval timeout={2,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+
 
     if (fd == NULL){
         printf("Erro no arquivo");
@@ -365,6 +370,8 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
                 memcpy(sentPacket._payload, fileBuffer + placeinBuffer, bitstoSend);
                 sentPacket.checksum = makeSum(&sentPacket);
 
+                printf("PASSEI AQUI %d\n", curSeq);
+
     			n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, MSG_CONFIRM, (struct sockaddr *) &addr,  sizeof(addr));
     			if (n  < 0)
             		perror("sendto");
@@ -381,6 +388,9 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
     	}
   }
 
+  struct timeval notimeout={0,0}; //set timeout for 2 seconds
+  setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
+
   free(fileBuffer);
   fclose(fd);
 
@@ -392,6 +402,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
   //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
+    memset(&sentPacket, 0 , sizeof(struct packet));
     sentPacket.type = CMD;
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,fileName);
@@ -404,8 +415,8 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
     //sending packet
     int ack = 0;
 
-    if (command == CREATE){
-        sleep(2);
+    if (command == CREATE || command == MODIFY){
+        sleep(3);
         FILE *fd = fopen( dir, "rb" );
         sentPacket.length = sizeFile(fd);
         fclose(fd);
