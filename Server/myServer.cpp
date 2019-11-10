@@ -247,10 +247,10 @@ void *cliThread(void *arg) {                                                    
 }
 
 void *election (void *arg){
-    size = sizeof(struct sockaddr_in);
+    int size = sizeof(struct sockaddr_in);
     int n;
     int i = 0;
-    int sockfd;
+    int socksd;
     struct sockaddr_in servaddr;
 
     if ( (socksd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -281,7 +281,7 @@ void *election (void *arg){
     while(1){
         if (primary == 1){                      // Se for o primario fica mandando ALIVE
 
-                n = sendto(socksd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(serverlist[i]), size);
+                //n = sendto(socksd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(serverlist[i]), size);
                 if(n < 0)
                     perror("sendto");
 
@@ -291,7 +291,11 @@ void *election (void *arg){
                     i = 0;
 
         }
-        else                                    // Se for backup fica ouvindo
+        else {         // Se for backup fica ouvindo
+
+
+
+        }
 
 
 
