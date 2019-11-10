@@ -43,13 +43,9 @@ int main(int argc, char *argv[]) {
 	char command[20],option[20], sync_dir[40],filename[40], userfile[40];
     char buffer[MAX_PACKET_SIZE];
 
-
-
-
     if (argc < 3) {
 		fprintf(stderr, "usage %s hostname username\n", argv[0]);
 		exit(0);
-
 	}
 
     strcpy (sync_dir, "sync_dir_");
@@ -82,14 +78,13 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-
     if ( (sockfdL = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("listener socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-     servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
-     sockfdL = connectListener(sockfdL,servaddr,username);                 //conecta o socket da thread que escuta tbm com o server
+    servaddr = firstConnect(sockfd,server,username);                       // Conecta com o famigerado Servidor
+    sockfdL = connectListener(sockfdL,servaddr,username);                 //conecta o socket da thread que escuta tbm com o server
 
 
     //cria thread que envia
@@ -97,9 +92,9 @@ int main(int argc, char *argv[]) {
     pthread_create(&threadSender, NULL, clientComm, (void *) sockfdL );                  // Inicia a thread
 
     pthread_t threadN;
-    pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);
+    pthread_create(&threadN, NULL, clientNotify, (void *) sync_dir);                    // Thread do Notify
 
-   while (flag == FALSE) {
+    while (flag == FALSE) {
 
         printf("\nEnter the Command: ");
         fflush(stdout);                                                     //////////////////////////////////////////////
@@ -115,7 +110,8 @@ int main(int argc, char *argv[]) {
             send_cmd("", servaddr, sockfd, EXIT, NULL);
             pthread_mutex_unlock(&mutex);
 
-        } else if (strcmp(command, "upload\n") == 0) { // upload from path
+        }
+        else if (strcmp(command, "upload\n") == 0) { // upload from path
             printf("\nUPLOAD command chosen\n");
             printf("\nEnter the file name: ");
             fflush(stdout);
@@ -136,7 +132,8 @@ int main(int argc, char *argv[]) {
 
             pthread_mutex_unlock(&mutex);
 
-        } else if (strcmp(command, "download\n") == 0) { // download to exec folder
+        }
+        else if (strcmp(command, "download\n") == 0) { // download to exec folder
             printf("\nDOWNLOAD command chosen\n");
             printf("\nEnter the file name: ");
             fflush(stdout);
@@ -160,7 +157,8 @@ int main(int argc, char *argv[]) {
 
             pthread_mutex_unlock(&mutex);
 
-        } else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
+        }
+        else if (strcmp(command, "delete\n") == 0) { // delete from syncd dir
             printf("\nDELETE command chosen\n");
             printf("\nEnter the file name: ");
             fflush(stdout);
@@ -170,7 +168,8 @@ int main(int argc, char *argv[]) {
             pthread_mutex_lock(&mutex);
             send_cmd(filename, servaddr, sockfd, DELETE, NULL);
             pthread_mutex_unlock(&mutex);
-        } else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
+        }
+        else if (strcmp(command, "list_server\n") == 0) { // list user's saved files on dir
             printf("\nLIST_SERVER command chosen\n");
             packet recPacket;
             socklen_t len = sizeof(struct sockaddr_in);
@@ -186,7 +185,8 @@ int main(int argc, char *argv[]) {
             printf("%s",recPacket._payload);
             fflush(stdout);
 
-        } else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
+        }
+        else if (strcmp(command, "list_client\n") == 0) { // list saved files on dir
             printf("\nLIST_CLIENT command chosen\n");
             i = list_client(userfile);
             if (i  > 0)
@@ -195,8 +195,15 @@ int main(int argc, char *argv[]) {
                 printf("Erro no list_client\n");
             fflush(stdout);
 
-        } else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
+        }
+        else if (strcmp(command, "get_sync_dir\n") == 0) { // creates sync_dir_<username> and syncs
             printf("\nGET_SYNC_DIR command chosen\n");
+        }
+        else if (strcmp(command, "teste\n") == 0){
+            packet sendPacket;
+            i = sendto(sockfd, reinterpret_cast<void *> (&sendPacket) , MAX_PACKET_SIZE, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+            if (i < 0)
+                perror("sendto");
         }
     }
 
@@ -334,7 +341,7 @@ void *clientNotify(void *arg){
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 if(justCreated == 0 && notify_block == 0){
-                    printf("\nModificado.\n") ;
+                    //printf("\nModificado.\n") ;
                     send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
                     sendFile(dirName , servaddr, sockfd);
                     justCreated = 1;
@@ -344,14 +351,14 @@ void *clientNotify(void *arg){
                 }
             }
             else if(evento->mask & IN_DELETE || evento->mask & IN_MOVED_FROM ) {    // DELETE SOFRE O PROBLEMA DO UBUNTU
-                        printf("\nDeletado.\n") ;
+                        //printf("\nDeletado.\n") ;
                         if(notify_block == 0)
                             send_cmd(evento->name , servaddr, sockfd, DELETE, dirName);
             }
             else if(evento->mask & IN_CREATE || evento->mask & IN_MOVED_TO){
                     justCreated = 1;
                     if(notify_block == 0){
-                        printf("\nCriado.\n") ;
+                        //printf("\nCriado.\n") ;
                         send_cmd(evento->name, servaddr, sockfd, CREATE, dirName);
                         sendFile(dirName , servaddr, sockfd);
                     }
@@ -359,11 +366,6 @@ void *clientNotify(void *arg){
 
             /* Avança para o próximo evento. */
             i += (sizeof(struct inotify_event)) + evento->len ;
-
-
-
-            printf("ENTREI AQUI NOTIFY : %d\n", notify_block );
-            fflush( stdout );
 
             if (notify_block == 1)
                 notify_block = 0;

@@ -18,21 +18,34 @@
 using namespace std;
 
 user Users [MAXNUMCON];
-int curPort = 8000;
+int curPort = 8002;                             // 8000 Servidor / 8001 Election / 8002 ServComm
+int primary = 0;                                // FLAG DE PRIMARIO
+int servNum = 0;
 
 #define PORT        8000
+#define BACKUPORT   7000                        // Só pra testes em mesma máquina pra evitar conflito
 #define MAXLINE     102400
 #define MAXNUMCON   100
 
 
 userList* head = (userList*)malloc(sizeof(userList));
+struct sockaddr_in serverlist [10];
 
 // Driver code
-int main() {
+int main(int argc, char *argv[]) {
     int sockfd;
     char buffer[MAX_PAYLOAD_SIZE];
-    struct sockaddr_in servaddr, cliaddr;
+    struct sockaddr_in servaddr, cliaddr, addr;
     user client;
+
+
+    if (argc < 2) {
+        fprintf(stderr, "usage %s id\nPrimary server -> id = 0\n", argv[0]);
+        exit(0);
+    }
+
+    if(argv[1] == 0)
+        primary = 1;
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -55,13 +68,23 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-
-    //vector<pthread_t> threads(MAXNUMCON);              // Um vetor para cada thread diferente?? //
     int cliNum = 0;
     int rc1;
 
-    //userList* head = (userList*)malloc(sizeof(userList));
     head->next = NULL;
+
+/////////////////////////// CRIANDO MAIS DUAS THREADS: 1(ALIVE + ELECTION)  2(COMMSERVERS)
+    pthread_t telection, commserver;
+
+    rc1 = pthread_create(&telection, NULL, election, NULL);
+    if(rc1 < 0)
+        perror("pthread_create");
+
+    rc1 = pthread_create(&commserver, NULL, serverComm, NULL);
+    if(rc1 < 0)
+        perror("pthread_create");
+
+///////////////////////////////////////////////////
 
     while(1){
         packet packetBuffer;
@@ -69,7 +92,7 @@ int main() {
         socklen_t len = sizeof(servaddr);
 	    pthread_t tid[100];
 
-        n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &cliaddr, &len);
+        n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &addr, &len);
         if (n < 0)
             printf("Error recvfrom\n");
 
@@ -77,12 +100,12 @@ int main() {
             perror("Verification failed");
         else{
 
-            if(packetBuffer.type == CN){                                 //Testa se é o firstConnect
+            if(packetBuffer.type == CN){                                 //Conexao de Cliente
 
                 memset(&client, 0 , sizeof(struct user));
 
                 strcpy(client.username, packetBuffer._payload);
-                client.cliaddr = cliaddr;
+                client.cliaddr = addr;
 
                 curPort ++;
 
@@ -107,6 +130,12 @@ int main() {
                 cliNum++;
 
                 }
+
+            if(packetBuffer.type == CS){                    // Conexão de Server Backup
+                serverlist[servNum] = addr;
+                servNum ++;                                 // VAI PRECISAR DE DUAS LISTAS
+                                                            // UMA PRA COMUNICAÇÃO E OUTRA PRA ELEIÇÃO
+            }
         }
         fflush(stdout);
     }
@@ -134,7 +163,8 @@ void *cliThread(void *arg) {                                                    
     strcpy(dirClient, "./");
     strcat(dirClient, client->username);
     strcat(dirClient, "/");
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     while (1){
         bzero(file, 100);
         strcpy(file, dirClient);
@@ -213,5 +243,67 @@ void *cliThread(void *arg) {                                                    
 
           }
       }
+
+}
+
+void *election (void *arg){
+    size = sizeof(struct sockaddr_in);
+    int n;
+    int i = 0;
+    int sockfd;
+    struct sockaddr_in servaddr;
+
+    if ( (socksd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    servaddr.sin_family = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    if (primary == 1)
+        servaddr.sin_port = htons(PORT + 1);
+    else
+        servaddr.sin_port = htons(BACKUPORT + 1);
+
+    // Bind the socket with the server address
+    if ( bind(socksd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (primary == 0){
+
+        ///////////////////// TEM QUE MANDAR PRO PRIMARIO O ENDEREÇO DE ELECTION DELE
+
+    }
+
+    while(1){
+        if (primary == 1){                      // Se for o primario fica mandando ALIVE
+
+                n = sendto(socksd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(serverlist[i]), size);
+                if(n < 0)
+                    perror("sendto");
+
+                if(i < servNum)
+                    i++;
+                else
+                    i = 0;
+
+        }
+        else                                    // Se for backup fica ouvindo
+
+
+
+
+
+    }
+}
+
+void *serverComm (void *arg){
+
+
+
+
 
 }

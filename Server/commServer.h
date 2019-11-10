@@ -22,7 +22,8 @@
 #define ACK			1
 #define CMD			2
 #define CN          3
-#define CNL          4               // Connect Listener
+#define CNL         4               // Connect Listener
+#define CS          5               // Connect Server
 
 #define CREATE		             0
 #define DELETE		             1
@@ -58,10 +59,11 @@ typedef struct cmdAndFile{
     long int fileSize;
   }cmdAndFile;
 
-  typedef struct userList{
-          user connection;
-          userList *next;
-       } userList;
+typedef struct userList{
+    user connection;
+    userList *next;
+    } userList;
+
 
 int checkSum(packet * packet);
 
@@ -72,6 +74,10 @@ struct sockaddr_in getUserList(userList *list, user *usr);
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 
 void *cliThread(void *arg);
+
+void *election(void *arg);
+
+void *serverComm(void *arg);
 
 int createSocket(user client, int port);
 

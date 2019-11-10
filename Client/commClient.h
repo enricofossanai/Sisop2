@@ -14,7 +14,7 @@
 
 #define MAX_PACKET_SIZE     	62020
 #define MAX_PAYLOAD_SIZE        62000
-#define MAX_FILE_NAME_SIZE        100
+#define MAX_FILE_NAME_SIZE      100
 #define PORT  			        8000
 #define TRUE 1
 #define FALSE 0
