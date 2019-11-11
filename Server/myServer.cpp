@@ -18,7 +18,7 @@
 using namespace std;
 
 user Users [MAXNUMCON];
-int curPort = 8002;                             // 8000 Servidor / 8001 Election / 8002 ServComm
+int curPort = 8002;                             // 8000 Servidor / 8001 Election
 int primary = 0;                                // FLAG DE PRIMARIO
 int servNum = 0;
 
@@ -37,15 +37,24 @@ int main(int argc, char *argv[]) {
     char buffer[MAX_PAYLOAD_SIZE];
     struct sockaddr_in servaddr, cliaddr, addr;
     user client;
+    struct hostent *firstser;
 
 
-    if (argc < 2) {
-        fprintf(stderr, "usage %s id\nPrimary server -> id = 0\n", argv[0]);
+    if (argc < 3) {
+        fprintf(stderr, "usage %s id primaryname\nPrimary server id = 0   name = 0\n", argv[0]);
         exit(0);
     }
-
+ 
     if(argv[1] == 0)
         primary = 1;
+    else{
+    	primary = 0;
+    	firstser = gethostbyname(argv[2]);  
+    	//  firstConnectServer()   ////////////////  CONECTA O BACKUP AO PRIMARIO
+    	  	    
+    }
+    
+
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -59,8 +68,12 @@ int main(int argc, char *argv[]) {
     // Filling server information
     servaddr.sin_family    = AF_INET; // IPv4
     servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(PORT);
-
+    if(primary == 1)
+    	servaddr.sin_port = htons(PORT);
+	else
+		servaddr.sin_port = htons(BACKUPORT);
+	
+	
     // Bind the socket with the server address
     if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
     {
@@ -73,17 +86,12 @@ int main(int argc, char *argv[]) {
 
     head->next = NULL;
 
-/////////////////////////// CRIANDO MAIS DUAS THREADS: 1(ALIVE + ELECTION)  2(COMMSERVERS)
-    pthread_t telection, commserver;
+/////////////////////////// CRIANDO MAIS UMA THREAD: (ALIVE + ELECTION)
+    pthread_t telection;
 
     rc1 = pthread_create(&telection, NULL, election, NULL);
     if(rc1 < 0)
         perror("pthread_create");
-
-    rc1 = pthread_create(&commserver, NULL, serverComm, NULL);
-    if(rc1 < 0)
-        perror("pthread_create");
-
 ///////////////////////////////////////////////////
 
     while(1){
@@ -95,6 +103,12 @@ int main(int argc, char *argv[]) {
         n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &addr, &len);
         if (n < 0)
             printf("Error recvfrom\n");
+
+	if (primary == 0){
+
+	  // USAR PARA COMUNICAÇÃO DOS BACKUPS COM O PRIMARIO
+
+	}
 
         if(!(checkSum(&packetBuffer)))		    // Verificação de CheckSum
             perror("Verification failed");
@@ -272,6 +286,7 @@ void *election (void *arg){
         exit(EXIT_FAILURE);
     }
 
+
     if (primary == 0){
 
         ///////////////////// TEM QUE MANDAR PRO PRIMARIO O ENDEREÇO DE ELECTION DELE
@@ -281,6 +296,7 @@ void *election (void *arg){
     while(1){
         if (primary == 1){                      // Se for o primario fica mandando ALIVE
 
+				// sendPacket._payload = lista de servers backup
                 //n = sendto(socksd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(serverlist[i]), size);
                 if(n < 0)
                     perror("sendto");
@@ -304,10 +320,3 @@ void *election (void *arg){
     }
 }
 
-void *serverComm (void *arg){
-
-
-
-
-
-}
