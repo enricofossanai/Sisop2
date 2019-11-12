@@ -102,3 +102,5 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
 
 //revieves a command and return a structure countaining the command and the name of the file to modify
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
+
+void connectBackup (int sockfd , struct hostent *server);

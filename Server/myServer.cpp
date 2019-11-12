@@ -44,17 +44,9 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "usage %s id primaryname\nPrimary server id = 0   name = 0\n", argv[0]);
         exit(0);
     }
- 
-    if(argv[1] == 0)
-        primary = 1;
-    else{
-    	primary = 0;
-    	firstser = gethostbyname(argv[2]);  
-    	//  firstConnectServer()   ////////////////  CONECTA O BACKUP AO PRIMARIO
-    	  	    
-    }
-    
 
+    if(strcmp(argv[1], "0") == 0)
+        primary = 1;
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -72,13 +64,19 @@ int main(int argc, char *argv[]) {
     	servaddr.sin_port = htons(PORT);
 	else
 		servaddr.sin_port = htons(BACKUPORT);
-	
-	
+
+
     // Bind the socket with the server address
     if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
     {
         perror("bind failed");
         exit(EXIT_FAILURE);
+    }
+
+    if (primary == 0){
+        firstser = gethostbyname(argv[2]);
+        connectBackup(sockfd, firstser);
+        printf("PASSEI AQUI\n");
     }
 
     int cliNum = 0;
@@ -107,6 +105,8 @@ int main(int argc, char *argv[]) {
 	if (primary == 0){
 
 	  // USAR PARA COMUNICAÇÃO DOS BACKUPS COM O PRIMARIO
+      // FAZER UMA FUNÇÂO QUE TRATE ESSE RECEIVE (CREATE DELETE MODIFY)
+      // NÂO ENCHER ESSE IF DE SWITCH CASE
 
 	}
 
@@ -149,6 +149,10 @@ int main(int argc, char *argv[]) {
                 serverlist[servNum] = addr;
                 servNum ++;                                 // VAI PRECISAR DE DUAS LISTAS
                                                             // UMA PRA COMUNICAÇÃO E OUTRA PRA ELEIÇÃO
+                n = sendto(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &addr, sizeof(addr));
+                if (n  < 0)
+                    perror("sendto");
+                printf("ENTREI AQUI CUPIXA\n");
             }
         }
         fflush(stdout);
@@ -267,6 +271,8 @@ void *election (void *arg){
     int socksd;
     struct sockaddr_in servaddr;
 
+    printf("THREAD DA ELEIÇÂO\n");
+
     if ( (socksd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");
         exit(EXIT_FAILURE);
@@ -319,4 +325,3 @@ void *election (void *arg){
 
     }
 }
-

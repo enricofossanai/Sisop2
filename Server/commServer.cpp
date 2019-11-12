@@ -478,3 +478,40 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     printf("\nSAIU DO RCV_CMD");
     return returnFile;
 }
+
+void connectBackup (int sockfd , struct hostent *server){
+	struct sockaddr_in servaddr;
+	int i;
+	socklen_t len = sizeof(struct sockaddr_in);
+
+	memset(&servaddr, 0, sizeof(servaddr));
+
+    // Filling server information
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(PORT);
+    servaddr.sin_addr = *((struct in_addr *)server->h_addr);
+
+    // Filling packet for connect
+    packet sentPacket, recPacket;
+    sentPacket.type = CS;
+    sentPacket.cmd = 0;
+    sentPacket.seqn = 0;
+    sentPacket.length = 0;
+    sentPacket.total_size = 0;
+    strcpy(sentPacket._payload, "");
+    sentPacket.checksum = makeSum(&sentPacket);
+
+    i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (const struct sockaddr *) &servaddr,  sizeof(servaddr));
+	if (i  < 0)
+        perror("sendto");
+
+    i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
+    if (i  < 0)
+        perror("recvfrom");
+    else
+        printf("Conectado com  Servidor");
+
+
+	  fflush( stdout );
+
+}
