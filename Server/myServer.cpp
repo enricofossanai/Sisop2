@@ -19,8 +19,9 @@ using namespace std;
 
 user Users [MAXNUMCON];
 int curPort = 8002;                             // 8000 Servidor / 8001 Election
-int primary = 0;                                // FLAG DE PRIMARIO
-int servNum = 0;
+int primary = 0;
+int eleNum = -1;                                // FLAG DE PRIMARIO
+
 
 #define PORT        8000
 #define BACKUPORT   7000                        // Só pra testes em mesma máquina pra evitar conflito
@@ -30,6 +31,9 @@ int servNum = 0;
 
 userList* head = (userList*)malloc(sizeof(userList));
 struct sockaddr_in serverlist [10];
+struct sockaddr_in electlist [10];
+
+struct hostent *firstser;
 
 // Driver code
 int main(int argc, char *argv[]) {
@@ -37,8 +41,6 @@ int main(int argc, char *argv[]) {
     char buffer[MAX_PAYLOAD_SIZE];
     struct sockaddr_in servaddr, cliaddr, addr;
     user client;
-    struct hostent *firstser;
-
 
     if (argc < 3) {
         fprintf(stderr, "usage %s id primaryname\nPrimary server id = 0   name = 0\n", argv[0]);
@@ -75,11 +77,11 @@ int main(int argc, char *argv[]) {
 
     if (primary == 0){
         firstser = gethostbyname(argv[2]);
-        connectBackup(sockfd, firstser);
-        printf("PASSEI AQUI\n");
+        connectBackup(sockfd, firstser, CS);
     }
 
     int cliNum = 0;
+    int servNum = -1;
     int rc1;
 
     head->next = NULL;
@@ -97,6 +99,8 @@ int main(int argc, char *argv[]) {
         int n, i;
         socklen_t len = sizeof(servaddr);
 	    pthread_t tid[100];
+
+        memset(&packetBuffer, 0 , sizeof(struct packet));
 
         n = recvfrom(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, MSG_WAITALL, ( struct sockaddr *) &addr, &len);
         if (n < 0)
@@ -146,13 +150,23 @@ int main(int argc, char *argv[]) {
                 }
 
             if(packetBuffer.type == CS){                    // Conexão de Server Backup
+                servNum ++;
                 serverlist[servNum] = addr;
-                servNum ++;                                 // VAI PRECISAR DE DUAS LISTAS
-                                                            // UMA PRA COMUNICAÇÃO E OUTRA PRA ELEIÇÃO
+
                 n = sendto(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &addr, sizeof(addr));
                 if (n  < 0)
                     perror("sendto");
                 printf("ENTREI AQUI CUPIXA\n");
+            }
+
+            if(packetBuffer.type == CE){
+                electlist[eleNum + 1] = addr;
+                eleNum++;
+
+                n = sendto(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &addr, sizeof(addr));
+                if (n  < 0)
+                    perror("sendto");
+                printf("ENTREI AQUI CUPIXA 2\n");
             }
         }
         fflush(stdout);
@@ -269,7 +283,8 @@ void *election (void *arg){
     int n;
     int i = 0;
     int socksd;
-    struct sockaddr_in servaddr;
+    struct sockaddr_in servaddr, send;
+    packet packet;
 
     printf("THREAD DA ELEIÇÂO\n");
 
@@ -292,36 +307,37 @@ void *election (void *arg){
         exit(EXIT_FAILURE);
     }
 
+    struct timeval timeout={2,0};                                                       //set timeout for 2 seconds
+    setsockopt(socksd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
-    if (primary == 0){
 
-        ///////////////////// TEM QUE MANDAR PRO PRIMARIO O ENDEREÇO DE ELECTION DELE
+    if (primary == 0)
+        connectBackup(socksd, firstser, CE);
 
-    }
 
     while(1){
         if (primary == 1){                      // Se for o primario fica mandando ALIVE
 
-				// sendPacket._payload = lista de servers backup
-                //n = sendto(socksd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(serverlist[i]), size);
-                if(n < 0)
-                    perror("sendto");
+            if(eleNum == -1)
+                continue;
 
-                if(i < servNum)
-                    i++;
-                else
-                    i = 0;
+			// sendPacket._payload = lista de servers backup
+            send = electlist[i];
+            n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
+            if(n < 0)
+                perror("sendto");
+
+            if(i < eleNum)
+                i++;
+            else
+                i = 0;
 
         }
         else {         // Se for backup fica ouvindo
 
-
-
+            n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
+            if (n  < 0)
+                printf("ACHO QUE O VAGABUNDO MORREU\n");
         }
-
-
-
-
-
     }
 }

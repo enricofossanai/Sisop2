@@ -24,6 +24,7 @@
 #define CN          3
 #define CNL         4               // Connect Listener
 #define CS          5               // Connect Server
+#define CE          6               // Connect Election address
 
 #define CREATE		             0
 #define DELETE		             1
@@ -103,4 +104,4 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
 //revieves a command and return a structure countaining the command and the name of the file to modify
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
 
-void connectBackup (int sockfd , struct hostent *server);
+void connectBackup (int sockfd , struct hostent *server, int servType);
