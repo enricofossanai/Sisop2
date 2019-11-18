@@ -176,16 +176,9 @@ int main(int argc, char *argv[]) {
 }
 
 void *cliThread(void *arg) {                                                    // Cuida dos Clientes
-    int n;
-    char buffer[MAX_PAYLOAD_SIZE];
     user *client;
-    packet sendPacket;
-    packet recPacket;
-    socklen_t len = sizeof(struct sockaddr_in);
     cmdAndFile lastCommand;
     char dirClient[100] = {};
-    char file[100] = {};
-    struct sockaddr_in destiny;
 
 
     client = reinterpret_cast<user *> (arg);
@@ -196,85 +189,14 @@ void *cliThread(void *arg) {                                                    
     strcat(dirClient, client->username);
     strcat(dirClient, "/");
 
-
     while (1){
-        bzero(file, 100);
-        strcpy(file, dirClient);
-
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
         printf("\nserver received command %d from %s\n", lastCommand.command ,client->username);
 
-        if (lastCommand.command >= 0){ // if received command wasnt corrupted
-            if(lastCommand.command == CREATE) {
-                printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
-                strcat(file, lastCommand.fileName);
-                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
-
-                destiny = getUserList(head, client);
-                if (destiny.sin_port != 0){
-                    send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
-                    sendFile(file , destiny, client->socket);
-                }
-            }
-            else if(lastCommand.command == DELETE) {
-                printf("\nRECEIVED DELETE FILE COMMAND");
-                n = delete_file(lastCommand.fileName,client->username);
-
-                destiny = getUserList(head, client);
-                if (destiny.sin_port != 0)
-                send_cmd(lastCommand.fileName, destiny, client->socket, DELETE, NULL);
-
-              }
-            else if (lastCommand.command == MODIFY){
-                printf("\nRECEIVED MODIFY FILE COMMAND");
-                n = delete_file(lastCommand.fileName, client->username);
-                strcat(file, lastCommand.fileName);
-                n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
-
-                destiny = getUserList(head, client);
-                if (destiny.sin_port != 0){
-                    send_cmd(lastCommand.fileName, destiny, client->socket, MODIFY, file);
-                    sendFile(file , destiny, client->socket);
-                }
-            }
-              else if (lastCommand.command ==LIST_SERVER){
-                printf("\nRECEIVED LIST_SERVER COMMAND");
-                    if (list_server(client->username, buffer)){
-                        fflush(stdout);
-                        strcpy(sendPacket._payload,buffer);
-                        sendPacket.type = DATA;
-                        sendPacket.checksum = makeSum(&sendPacket);
-                        printf("\nEnviando lista de arquivos\n");
-                        n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
-                        if (n  < 0)
-                            perror("sendto");
-                        fflush(stdout);
-                    }
-              }
-              else if (lastCommand.command == EXIT){
-                printf("\nRECEIVED LIST_SERVER EXIT");
-                rmvFromONlist (&head, client);
-                displayList(head);
-              }
-              else if (lastCommand.command == DOWNLOAD){
-                    printf("\nRECEIVED DOWNLOAD COMMAND");
-                    strcat(file, lastCommand.fileName);
-                    printf("FILE : %s\n", file);
-
-                    FILE *fd = fopen( file, "rb" );
-                    sendPacket.length = sizeFile(fd);
-
-                    sendPacket.checksum = makeSum(&sendPacket);
-
-                    n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
-                    if (n  < 0)
-                        perror("sendto");
-                    n =  sendFile( file , client->cliaddr,client->socket );
-              }
-
-          }
-      }
+        if (lastCommand.command >= 0) // if received command wasnt corrupted
+            make_cmd(lastCommand, client, dirClient, head);
+    }
 
 }
 
@@ -337,7 +259,7 @@ void *election (void *arg){
 
             n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
             if (n  < 0)
-                printf("ACHO QUE O VAGABUNDO MORREU\n");
+                printf("ACHO QUE O VAGABUNDO MORREU\n");        // Aqui vai a eleição
         }
     }
 }

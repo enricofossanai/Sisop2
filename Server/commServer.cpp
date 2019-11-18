@@ -475,8 +475,87 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
           }
     //struct timeval timeout={0,0}; //set timeout to return to block
     //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
-    printf("\nSAIU DO RCV_CMD");
+
     return returnFile;
+}
+
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head){
+    int n;
+    packet sendPacket;
+    char buffer[MAX_PAYLOAD_SIZE];
+    socklen_t len = sizeof(struct sockaddr_in);
+    char file[100] = {};
+    struct sockaddr_in destiny;
+
+    bzero(file, 100);
+    strcpy(file, dirClient);
+
+    if(lastCommand.command == CREATE) {
+        printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+        strcat(file, lastCommand.fileName);
+        n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+
+        destiny = getUserList(head, client);
+        if (destiny.sin_port != 0){
+            send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
+            sendFile(file , destiny, client->socket);
+        }
+    }
+    else if(lastCommand.command == DELETE) {
+        printf("\nRECEIVED DELETE FILE COMMAND");
+        n = delete_file(lastCommand.fileName,client->username);
+
+        destiny = getUserList(head, client);
+        if (destiny.sin_port != 0)
+        send_cmd(lastCommand.fileName, destiny, client->socket, DELETE, NULL);
+
+      }
+    else if (lastCommand.command == MODIFY){
+        printf("\nRECEIVED MODIFY FILE COMMAND");
+        n = delete_file(lastCommand.fileName, client->username);
+        strcat(file, lastCommand.fileName);
+        n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+
+        destiny = getUserList(head, client);
+        if (destiny.sin_port != 0){
+            send_cmd(lastCommand.fileName, destiny, client->socket, MODIFY, file);
+            sendFile(file , destiny, client->socket);
+        }
+    }
+      else if (lastCommand.command ==LIST_SERVER){
+        printf("\nRECEIVED LIST_SERVER COMMAND");
+            if (list_server(client->username, buffer)){
+                fflush(stdout);
+                strcpy(sendPacket._payload,buffer);
+                sendPacket.type = DATA;
+                sendPacket.checksum = makeSum(&sendPacket);
+                printf("\nEnviando lista de arquivos\n");
+                n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
+                if (n  < 0)
+                    perror("sendto");
+                fflush(stdout);
+            }
+      }
+      else if (lastCommand.command == EXIT){
+        printf("\nRECEIVED LIST_SERVER EXIT");
+        rmvFromONlist (&head, client);
+        displayList(head);
+      }
+      else if (lastCommand.command == DOWNLOAD){
+            printf("\nRECEIVED DOWNLOAD COMMAND");
+            strcat(file, lastCommand.fileName);
+            printf("FILE : %s\n", file);
+
+            FILE *fd = fopen( file, "rb" );
+            sendPacket.length = sizeFile(fd);
+
+            sendPacket.checksum = makeSum(&sendPacket);
+
+            n = sendto(client->socket, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &(client->cliaddr), sizeof(client->cliaddr));
+            if (n  < 0)
+                perror("sendto");
+            n =  sendFile( file , client->cliaddr,client->socket );
+      }
 }
 
 void connectBackup (int sockfd , struct hostent *server, int servType){

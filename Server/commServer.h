@@ -10,6 +10,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include "fileManager.h"
+
 #define MAX_PACKET_SIZE     	62020
 #define MAX_PAYLOAD_SIZE        62000
 #define MAXNUMCON               100
@@ -103,5 +105,7 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
 
 //revieves a command and return a structure countaining the command and the name of the file to modify
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
+
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head);
 
 void connectBackup (int sockfd , struct hostent *server, int servType);
