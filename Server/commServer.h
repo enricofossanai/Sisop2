@@ -109,3 +109,5 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
 void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uList);
 
 void connectBackup (int sockfd , struct hostent *server, int servType);
+
+int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,int ID,int socksd);

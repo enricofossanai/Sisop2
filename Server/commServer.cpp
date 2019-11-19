@@ -15,7 +15,7 @@
 #include <math.h>
 
 #include "commServer.h"
-
+#define MAX 10
 using namespace std;
 
 int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
@@ -664,5 +664,31 @@ void connectBackup (int sockfd , struct hostent *server, int servType){
     i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
     if (i  < 0)
         perror("recvfrom");
+
+}
+
+int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,int ID,int socksd){
+
+    int i,n,node;
+    packet packet;
+    struct sockaddr_in send;
+    int size = sizeof(struct sockaddr_in);
+
+    for(i=0;i<MAX;i++){
+
+        if(electlist[i].sin_port== servaddr.sin_port){
+
+            node = i;
+            packet.type = DATA;
+            strcpy(packet._payload, "Election," + ID);
+            if(node == MAX-1)
+                node = -1;
+            send = electlist[node+1];
+            n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
+            if(n < 0)
+                perror("sendto");
+
+        }
+    }
 
 }
