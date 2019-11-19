@@ -15,7 +15,7 @@
 #include <math.h>
 
 #include "commServer.h"
-
+#define MAX 10
 using namespace std;
 
 int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
@@ -57,6 +57,84 @@ int makeSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
+
+int usercmp(user user1, user user2){
+  if ((user1.username == user2.username)&&(user1.socket == user2.socket))
+      return 1;
+  else
+      return 0;
+}
+
+
+void addToONlist (user *uList, user con){
+    int i = 0, added = 0;
+    while (i < 10 && added == 0){
+        if (uList[i].username[0] == '\0'){
+          added = 1;
+          //memcpy(uList+i, &con, sizeof(user));
+          printf("TENTANDO:%d user:%s\n", uList[i].socket, uList[i].username);
+        }
+        i++;
+    }
+
+    printf("\nList of online users:\n");
+    for(i = 0; i++; i<10){
+        printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
+        fflush( stdout );
+    }
+
+
+
+    return;
+}
+
+void rmvFromONlist (user *uList, user *usr){
+    int deleting = 0, i = 0;
+    user aux;
+
+    while (!usercmp(uList[i], *usr)){
+        i++;
+    }
+    while ((i+1)<10){
+        uList[i] = uList[i+1];
+        i++;
+    }
+    uList[i] = (user){0,0,0};
+    return;
+}
+
+void displayList(user *uList){
+    int i;
+    printf("\nList of online users:\n");
+    for(i = 0; i++; i<10){
+        printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
+        fflush( stdout );
+    }
+}
+
+//NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARIO
+struct sockaddr_in getUserList(user *uList, user *usr){
+    struct sockaddr_in cliaddrL;
+    cliaddrL.sin_port = 0;
+    int i = 0;
+
+    while (i<10){
+        if( (strcmp(uList[i].username, usr->username) == 0) && (uList[i].socket != usr->socket) ){
+            cliaddrL = uList[i].cliSend;
+            printf("SOCKET DO OUTRO : %d \n", uList[i].socket );
+        }
+        i++;
+    }
+
+    // If key was not present in list
+    if (cliaddrL.sin_port == 0){
+        printf("\n sem outra maquina de usuario conectado");
+        return cliaddrL; //checar se buga, to tratando depois do retorno
+    }
+    return cliaddrL;
+}
+
+/*
 void addToONlist (userList **list, user *con){
   if (list!=NULL){
     userList *newConnection = (userList*)malloc(sizeof(userList));
@@ -137,6 +215,7 @@ void displayList(userList* head){
     printf("\n");
   }
 }
+*/
 
 void createDir(char *name){
     DIR* dir = opendir(name);
@@ -475,7 +554,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     return returnFile;
 }
 
-char * backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd){
+char* backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd){
     packet sentPacket;
     int n;
     char *username = (char *)malloc(sizeof(char)*100);
@@ -500,7 +579,7 @@ char * backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd){
     return username;
 }
 
-void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head, struct sockaddr_in serverlist [10], int eleNum){
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uList, struct sockaddr_in serverlist [10], int eleNum){
     int n, j;
     packet sendPacket;
     char buffer[MAX_PAYLOAD_SIZE];
@@ -527,7 +606,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         }
 
 
-        destiny = getUserList(head, client);
+        destiny = getUserList(uList, client);
         if (destiny.sin_port != 0){
             send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
             sendFile(file , destiny, client->socket);
@@ -546,7 +625,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         }
 
 
-        destiny = getUserList(head, client);
+        destiny = getUserList(uList, client);
         if (destiny.sin_port != 0)
         send_cmd(lastCommand.fileName, destiny, client->socket, DELETE, NULL);
 
@@ -567,7 +646,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         }
 
 
-        destiny = getUserList(head, client);
+        destiny = getUserList(uList, client);
         if (destiny.sin_port != 0){
             send_cmd(lastCommand.fileName, destiny, client->socket, MODIFY, file);
             sendFile(file , destiny, client->socket);
@@ -589,8 +668,8 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
       }
       else if (lastCommand.command == EXIT){
         printf("\nRECEIVED LIST_SERVER EXIT");
-        rmvFromONlist (&head, client);
-        displayList(head);
+        rmvFromONlist (uList, client);
+        displayList(uList);
       }
       else if (lastCommand.command == DOWNLOAD){
             printf("\nRECEIVED DOWNLOAD COMMAND");
@@ -677,5 +756,31 @@ void connectBackup (int sockfd , struct hostent *server, int servType){
     i = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
     if (i  < 0)
         perror("recvfrom");
+
+}
+
+int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,int ID,int socksd){
+
+    int i,n,node;
+    packet packet;
+    struct sockaddr_in send;
+    int size = sizeof(struct sockaddr_in);
+
+    for(i=0;i<MAX;i++){
+
+        if(electlist[i].sin_port== servaddr.sin_port){
+
+            node = i;
+            packet.type = DATA;
+            strcpy(packet._payload, "Election," + ID);
+            if(node == MAX-1)
+                node = -1;
+            send = electlist[node+1];
+            n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
+            if(n < 0)
+                perror("sendto");
+
+        }
+    }
 
 }

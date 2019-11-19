@@ -52,7 +52,7 @@ typedef struct packet{
     } packet;
 
 typedef struct user{
-    char username [100];
+    char username [24];
     struct sockaddr_in cliaddr;
     int socket;
     struct sockaddr_in cliSend;
@@ -74,8 +74,6 @@ int checkSum(packet * packet);
 
 int makeSum(packet * packet);
 
-struct sockaddr_in getUserList(userList *list, user *usr);
-
 int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd);
 
 void *cliThread(void *arg);
@@ -90,11 +88,13 @@ int createSocket(user client, int port);
 
 struct sockaddr_in getClientLSocket(user client, int socket);
 
-void addToONlist (userList **list, user *con);
+void addToONlist (user *uList, user con);
 
-void rmvFromONlist (userList **list, user *usr);
+void rmvFromONlist (user *uList, user *usr);
 
-void displayList(userList* head);
+void displayList(user* uList);
+
+struct sockaddr_in getUserList(user *uList, user *usr);
 
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd);
 
@@ -110,10 +110,12 @@ void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, c
 //revieves a command and return a structure countaining the command and the name of the file to modify
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
 
-void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head, struct sockaddr_in serverlist [10], int eleNum);
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uList, struct sockaddr_in serverlist [10], int eleNum);
 
 void server_cmd(cmdAndFile lastCommand,struct sockaddr_in addr , char *user, int sockfd);
 
 char* backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd);
 
 void connectBackup (int sockfd , struct hostent *server, int servType);
+
+int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,int ID,int socksd);

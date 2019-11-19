@@ -21,7 +21,7 @@ user Users [MAXNUMCON];
 int curPort = 8002;                             // 8000 Servidor / 8001 Election
 int primary = 0;
 int eleNum = -1;                                // FLAG DE PRIMARIO
-
+int ID;
 
 #define PORT        8000
 #define BACKUPORT   7000                        // Só pra testes em mesma máquina pra evitar conflito
@@ -29,7 +29,9 @@ int eleNum = -1;                                // FLAG DE PRIMARIO
 #define MAXNUMCON   100
 
 
-userList* head = (userList*)malloc(sizeof(userList));
+//userList* head = (userList*)malloc(sizeof(userList));
+user uList[10] = { { 0 } };
+
 struct sockaddr_in serverlist [10];
 struct sockaddr_in electlist [10];
 
@@ -86,7 +88,7 @@ int main(int argc, char *argv[]) {
     int servNum = -1;
     int rc1;
 
-    head->next = NULL;
+    //head->next = NULL;
 
 /////////////////////////// CRIANDO MAIS UMA THREAD: (ALIVE + ELECTION)
     pthread_t telection;
@@ -150,8 +152,8 @@ int main(int argc, char *argv[]) {
                     j++;
                 }
 
-                addToONlist (&head, &client);
-                displayList(head);
+                //addToONlist (&head, &client);
+                //displayList(head);
 
                 rc1 = pthread_create(&tid[cliNum], NULL, cliThread, reinterpret_cast<void *> (&Users[cliNum]) );
                 if(rc1 < 0)
@@ -211,7 +213,7 @@ void *cliThread(void *arg) {                                                    
         printf("\nserver received command %d from %s\n", lastCommand.command ,client->username);
 
         if (lastCommand.command >= 0) // if received command wasnt corrupted
-            make_cmd(lastCommand, client, dirClient, head,serverlist, eleNum);
+            make_cmd(lastCommand, client, dirClient, uList,serverlist, eleNum);
     }
 
 }
@@ -221,6 +223,8 @@ void *election (void *arg){
     int n;
     int i = 0;
     int socksd;
+    char *message,*token;
+    const char *comma;
     struct sockaddr_in servaddr, send;
     packet packet;
 
@@ -274,8 +278,22 @@ void *election (void *arg){
         else {         // Se for backup fica ouvindo
 
             n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
-            if (n  < 0)
+            if (n  < 0){
                 printf("ACHO QUE O VAGABUNDO MORREU\n");        // Aqui vai a eleição
+                makeElection(electlist,servaddr,ID,socksd);
+            }
+            else{
+                strcpy(message,packet._payload);
+                token = strtok(message, comma);
+                if(strcmp(token,"Election")==0){
+                    if(atoi(token)==ID){
+                        strcpy(packet._payload, "Elected," + ID);
+                    }
+
+                }
+
+            }
+
         }
     }
 }
