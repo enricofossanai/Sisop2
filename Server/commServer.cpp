@@ -57,6 +57,83 @@ int makeSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
+int usercmp(user user1, user user2){
+  if ((user1.username == user2.username)&&(user1.socket == user2.socket))
+      return 1;
+  else
+      return 0;
+}
+
+
+void addToONlist (user *uList, user con){
+    int i = 0, added = 0;
+    while (i < 10 && added == 0){
+        if (uList[i].username[0] == '\0'){
+          added = 1;
+          //memcpy(uList+i, &con, sizeof(user));
+          printf("TENTANDO:%d user:%s\n", uList[i].socket, uList[i].username);
+        }
+        i++;
+    }
+
+    printf("\nList of online users:\n");
+    for(i = 0; i++; i<10){
+        printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
+        fflush( stdout );
+    }
+
+
+
+    return;
+}
+
+void rmvFromONlist (user *uList, user *usr){
+    int deleting = 0, i = 0;
+    user aux;
+
+    while (!usercmp(uList[i], *usr)){
+        i++;
+    }
+    while ((i+1)<10){
+        uList[i] = uList[i+1];
+        i++;
+    }
+    uList[i] = (user){0,0,0};
+    return;
+}
+
+void displayList(user *uList){
+    int i;
+    printf("\nList of online users:\n");
+    for(i = 0; i++; i<10){
+        printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
+        fflush( stdout );
+    }
+}
+
+//NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARIO
+struct sockaddr_in getUserList(user *uList, user *usr){
+    struct sockaddr_in cliaddrL;
+    cliaddrL.sin_port = 0;
+    int i = 0;
+
+    while (i<10){
+        if( (strcmp(uList[i].username, usr->username) == 0) && (uList[i].socket != usr->socket) ){
+            cliaddrL = uList[i].cliSend;
+            printf("SOCKET DO OUTRO : %d \n", uList[i].socket );
+        }
+        i++;
+    }
+
+    // If key was not present in list
+    if (cliaddrL.sin_port == 0){
+        printf("\n sem outra maquina de usuario conectado");
+        return cliaddrL; //checar se buga, to tratando depois do retorno
+    }
+    return cliaddrL;
+}
+
+/*
 void addToONlist (userList **list, user *con){
   if (list!=NULL){
     userList *newConnection = (userList*)malloc(sizeof(userList));
@@ -137,7 +214,7 @@ void displayList(userList* head){
     printf("\n");
   }
 }
-
+*/
 int createSocket(user client, int port){
     int sockfd;
     int i,n;
@@ -479,7 +556,7 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
     return returnFile;
 }
 
-void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head){
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uList){
     int n;
     packet sendPacket;
     char buffer[MAX_PAYLOAD_SIZE];
@@ -495,7 +572,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
 
-        destiny = getUserList(head, client);
+        destiny = getUserList(uList, client);
         if (destiny.sin_port != 0){
             send_cmd(lastCommand.fileName, destiny, client->socket, CREATE, file);
             sendFile(file , destiny, client->socket);
@@ -505,7 +582,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         printf("\nRECEIVED DELETE FILE COMMAND");
         n = delete_file(lastCommand.fileName,client->username);
 
-        destiny = getUserList(head, client);
+        destiny = getUserList(uList, client);
         if (destiny.sin_port != 0)
         send_cmd(lastCommand.fileName, destiny, client->socket, DELETE, NULL);
 
@@ -516,7 +593,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
 
-        destiny = getUserList(head, client);
+        destiny = getUserList(uList, client);
         if (destiny.sin_port != 0){
             send_cmd(lastCommand.fileName, destiny, client->socket, MODIFY, file);
             sendFile(file , destiny, client->socket);
@@ -538,8 +615,8 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
       }
       else if (lastCommand.command == EXIT){
         printf("\nRECEIVED LIST_SERVER EXIT");
-        rmvFromONlist (&head, client);
-        displayList(head);
+        rmvFromONlist (uList, client);
+        displayList(uList);
       }
       else if (lastCommand.command == DOWNLOAD){
             printf("\nRECEIVED DOWNLOAD COMMAND");

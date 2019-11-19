@@ -29,7 +29,9 @@ int eleNum = -1;                                // FLAG DE PRIMARIO
 #define MAXNUMCON   100
 
 
-userList* head = (userList*)malloc(sizeof(userList));
+//userList* head = (userList*)malloc(sizeof(userList));
+user uList[10] = { { 0 } };
+
 struct sockaddr_in serverlist [10];
 struct sockaddr_in electlist [10];
 
@@ -84,7 +86,7 @@ int main(int argc, char *argv[]) {
     int servNum = -1;
     int rc1;
 
-    head->next = NULL;
+    //head->next = NULL;
 
 /////////////////////////// CRIANDO MAIS UMA THREAD: (ALIVE + ELECTION)
     pthread_t telection;
@@ -134,8 +136,10 @@ int main(int argc, char *argv[]) {
                 Users[cliNum] = client;
 
                 //Adicionando cliente a lista de usuoarios conectados
-                addToONlist (&head, &client);
-                displayList(head);
+                /*
+                addToONlist (uList, client);
+                displayList(uList);
+*/
 
                 rc1 = pthread_create(&tid[cliNum], NULL, cliThread, reinterpret_cast<void *> (&Users[cliNum]) );
                 if(rc1 < 0)
@@ -195,7 +199,7 @@ void *cliThread(void *arg) {                                                    
         printf("\nserver received command %d from %s\n", lastCommand.command ,client->username);
 
         if (lastCommand.command >= 0) // if received command wasnt corrupted
-            make_cmd(lastCommand, client, dirClient, head);
+            make_cmd(lastCommand, client, dirClient, uList);
     }
 
 }
