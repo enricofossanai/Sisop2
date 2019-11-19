@@ -124,12 +124,6 @@ int main(int argc, char *argv[]) {
 
             copyFile(filename, strcat(dirName, filename));
 
-
-            //send_cmd(filename, servaddr, sockfd, CREATE, filename);
-            //sendFile(filename , servaddr, sockfd);
-
-			//notify_block = 1;
-
             pthread_mutex_unlock(&mutex);
 
         }

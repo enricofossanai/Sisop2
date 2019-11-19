@@ -50,6 +50,8 @@ int main(int argc, char *argv[]) {
     if(strcmp(argv[1], "0") == 0)
         primary = 1;
 
+    int id = ((int)argv[1] - '0');
+
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");
@@ -65,7 +67,7 @@ int main(int argc, char *argv[]) {
     if(primary == 1)
     	servaddr.sin_port = htons(PORT);
 	else
-		servaddr.sin_port = htons(BACKUPORT);
+		servaddr.sin_port = htons(BACKUPORT + (id % 10));
 
 
     // Bind the socket with the server address
@@ -96,9 +98,12 @@ int main(int argc, char *argv[]) {
 
     while(1){
         packet packetBuffer;
-        int n, i;
+        int n, i, j;
         socklen_t len = sizeof(servaddr);
 	    pthread_t tid[100];
+        struct sockaddr_in send;
+        cmdAndFile lastCommand;
+        char *username = (char *)malloc(sizeof(char) * 100);
 
         memset(&packetBuffer, 0 , sizeof(struct packet));
 
@@ -107,11 +112,14 @@ int main(int argc, char *argv[]) {
             printf("Error recvfrom\n");
 
 	if (primary == 0){
+        printf("1\n");
+        username = backup_rcvd(packetBuffer, addr, sockfd);
+        printf("2\n");
+        lastCommand = rcv_cmd(addr, sockfd);
+        printf("3\n");
+        server_cmd(lastCommand, addr, username, sockfd);
 
-	  // USAR PARA COMUNICAÇÃO DOS BACKUPS COM O PRIMARIO
-      // FAZER UMA FUNÇÂO QUE TRATE ESSE RECEIVE (CREATE DELETE MODIFY)
-      // NÂO ENCHER ESSE IF DE SWITCH CASE
-
+        printf("4 :%d\n", lastCommand.command);
 	}
 
         if(!(checkSum(&packetBuffer)))		    // Verificação de CheckSum
@@ -127,13 +135,21 @@ int main(int argc, char *argv[]) {
 
                 curPort ++;
 
-
                 client.socket = createSocket(client, curPort);
                 client.cliSend = getClientLSocket(client, client.socket);
 
                 Users[cliNum] = client;
 
                 //Adicionando cliente a lista de usuoarios conectados
+                j = 0;
+                while(j <= eleNum){
+                    send = serverlist[j];
+                    send_cmd(client.username, send, sockfd, NAME, NULL);
+                    sleep(1);
+                    send_cmd(client.username, send, sockfd, CLIENT, NULL);
+                    j++;
+                }
+
                 addToONlist (&head, &client);
                 displayList(head);
 
@@ -195,7 +211,7 @@ void *cliThread(void *arg) {                                                    
         printf("\nserver received command %d from %s\n", lastCommand.command ,client->username);
 
         if (lastCommand.command >= 0) // if received command wasnt corrupted
-            make_cmd(lastCommand, client, dirClient, head);
+            make_cmd(lastCommand, client, dirClient, head,serverlist, eleNum);
     }
 
 }

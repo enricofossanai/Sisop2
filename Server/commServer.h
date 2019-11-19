@@ -36,6 +36,8 @@
 #define GET_SYNC_DIR             5
 #define EXIT                     6
 #define DOWNLOAD                 7
+#define CLIENT                   8
+#define NAME                     9
 
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
@@ -82,6 +84,8 @@ void *election(void *arg);
 
 void *serverComm(void *arg);
 
+void createDir(char *name);
+
 int createSocket(user client, int port);
 
 struct sockaddr_in getClientLSocket(user client, int socket);
@@ -101,11 +105,15 @@ void *sender(void *arg);
 
 //send a command and wait for and ack
 //asks for the name of the file to modify, the server address, the socketfd and the command.
-void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, char *dir);
+void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, char *dir);
 
 //revieves a command and return a structure countaining the command and the name of the file to modify
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd);
 
-void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head);
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head, struct sockaddr_in serverlist [10], int eleNum);
+
+void server_cmd(cmdAndFile lastCommand,struct sockaddr_in addr , char *user, int sockfd);
+
+char* backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd);
 
 void connectBackup (int sockfd , struct hostent *server, int servType);

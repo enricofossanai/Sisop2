@@ -138,6 +138,18 @@ void displayList(userList* head){
   }
 }
 
+void createDir(char *name){
+    DIR* dir = opendir(name);
+    if(dir){
+        printf("Directory already exists\n");
+        closedir(dir);
+    }
+    else{
+        mkdir(name,0777);
+        printf("Directory created\n");
+        }
+}
+
 int createSocket(user client, int port){
     int sockfd;
     int i,n;
@@ -153,15 +165,7 @@ int createSocket(user client, int port){
     }
 
     //Create dir for client
-    DIR* dir = opendir(client.username);
-    if(dir){
-        printf("Directory already exists\n");
-        closedir(dir);
-    }
-    else{
-        mkdir(client.username,0777);
-        printf("Directory created\n");
-        }
+    createDir(client.username);
     memset(&servaddr, 0, sizeof(servaddr));
 
 
@@ -396,19 +400,17 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
 }
 
 //sends message to create, delete or modify file
-void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, char *dir){
-  //filling packet info
+void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, char *dir){
+    int n;
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
+
     memset(&sentPacket, 0 , sizeof(struct packet));
+    memset(&rcvdPacket, 0 , sizeof(struct packet));
+
     sentPacket.type = CMD;
     sentPacket.cmd = command;
-    strcpy(sentPacket._payload,fileName);
-
-
-    int n;
-    //struct timeval timeout={2,0}; //set timeout for 2 seconds
-    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
+    strcpy(sentPacket._payload,payload);
 
     //sending packet
     int ack = 0;
@@ -436,22 +438,18 @@ void send_cmd(char *fileName, struct sockaddr_in addr, int sockfd, int command, 
             printf("\nClient received command\n");
         }
     }
-    //struct timeval timeout={0,0}; //set timeout to return to block
-    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
     fflush(stdout);
     return;
 }
 
 cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
-  //filling packet info
     socklen_t len = sizeof(struct sockaddr_in);
     packet sentPacket, rcvdPacket;
     int n;
     cmdAndFile returnFile;
     returnFile.command = -1;
-    //printf("\nEsperando Comando...");
-    //fflush(stdout);
+
     n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, NULL, NULL);
     if (n  < 0)
         perror("recvfrom");
@@ -473,18 +471,42 @@ cmdAndFile rcv_cmd(struct sockaddr_in addr, int sockfd){
             printf("\nERRO DE CHECKSUM NO  COMANDO");
             fflush(stdout);
           }
-    //struct timeval timeout={0,0}; //set timeout to return to block
-    //setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
     return returnFile;
 }
 
-void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head){
+char * backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd){
+    packet sentPacket;
     int n;
+    char *username = (char *)malloc(sizeof(char)*100);
+
+    if (checkSum(&rcvdPacket)){
+        sentPacket.type = ACK;
+        sentPacket.cmd = rcvdPacket.cmd;
+        sentPacket.checksum = makeSum(&sentPacket);
+        n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+        fflush(stdout);
+        if (n  < 0)
+            perror("sendto");
+
+        strcpy(username, rcvdPacket._payload);
+        return username;
+      }
+     else{
+        printf("\nERRO DE CHECKSUM NO  COMANDO");
+        fflush(stdout);
+          }
+
+    return username;
+}
+
+void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *head, struct sockaddr_in serverlist [10], int eleNum){
+    int n, j;
     packet sendPacket;
     char buffer[MAX_PAYLOAD_SIZE];
     socklen_t len = sizeof(struct sockaddr_in);
     char file[100] = {};
+    struct sockaddr_in send;
     struct sockaddr_in destiny;
 
     bzero(file, 100);
@@ -494,6 +516,16 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+
+        j = 0;
+        while(j <= eleNum){
+            send = serverlist[j];
+            send_cmd(client->username, send, client->socket, NAME, NULL);
+            send_cmd(lastCommand.fileName, send, client->socket, CREATE, file);
+            sendFile(file, send, client->socket);
+            j++;
+        }
+
 
         destiny = getUserList(head, client);
         if (destiny.sin_port != 0){
@@ -505,6 +537,15 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         printf("\nRECEIVED DELETE FILE COMMAND");
         n = delete_file(lastCommand.fileName,client->username);
 
+        j = 0;
+        while(j <= eleNum){
+            send = serverlist[j];
+            send_cmd(client->username, send, client->socket, NAME, NULL);
+            send_cmd(lastCommand.fileName, send, client->socket, DELETE, NULL);
+            j++;
+        }
+
+
         destiny = getUserList(head, client);
         if (destiny.sin_port != 0)
         send_cmd(lastCommand.fileName, destiny, client->socket, DELETE, NULL);
@@ -515,6 +556,16 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
         n = delete_file(lastCommand.fileName, client->username);
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
+
+        j = 0;
+        while(j <= eleNum){
+            send = serverlist[j];
+            send_cmd(client->username, send, client->socket, NAME, NULL);
+            send_cmd(lastCommand.fileName, send, client->socket, MODIFY, file);
+            sendFile(file, send, client->socket);
+            j++;
+        }
+
 
         destiny = getUserList(head, client);
         if (destiny.sin_port != 0){
@@ -556,6 +607,45 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, userList *
                 perror("sendto");
             n =  sendFile( file , client->cliaddr,client->socket );
       }
+}
+
+void server_cmd(cmdAndFile lastCommand,struct sockaddr_in addr , char *user, int sockfd){
+    int n;
+    packet sendPacket;
+    char buffer[MAX_PAYLOAD_SIZE];
+    socklen_t len = sizeof(struct sockaddr_in);
+    char file[200] = {};
+    char dirClient[200] = {};
+
+    strcpy(dirClient, "./");
+    strcat(dirClient, user);
+    strcat(dirClient, "/");
+
+    bzero(file, 200);
+    strcpy(file, dirClient);
+
+    if(lastCommand.command == CREATE) {
+        printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+        strcat(file, lastCommand.fileName);
+        fflush(stdout);
+        n =  receiveFile( file , lastCommand.fileSize, addr, sockfd);
+
+        printf("CHEGUEI AQUI??\n");
+    }
+    else if(lastCommand.command == DELETE) {
+        printf("\nRECEIVED DELETE FILE COMMAND");
+        n = delete_file(lastCommand.fileName, user);
+
+    }
+    else if (lastCommand.command == MODIFY){
+        printf("\nRECEIVED MODIFY FILE COMMAND");
+        n = delete_file(lastCommand.fileName, user);
+        strcat(file, lastCommand.fileName);
+        n =  receiveFile( file , lastCommand.fileSize, addr, sockfd);
+    }
+    else if(lastCommand.command == CLIENT){
+        createDir(user);
+    }
 }
 
 void connectBackup (int sockfd , struct hostent *server, int servType){
