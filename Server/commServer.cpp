@@ -791,9 +791,9 @@ void deleteElement(struct sockaddr_in *list, struct sockaddr_in x){
     aux.sin_port = htons(0);
 
     int i;
-    for (i=0; i<10; i++){
+    for (i=0; i<MAX; i++){
         if (list[i].sin_port== x.sin_port) {
-            for (int j=i; j<9; j++)
+            for (int j=i; j< MAX - 1; j++)
                 list[j] = list[j+1];
             list[9] = aux;
         }

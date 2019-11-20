@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     if(primary == 1)
     	servaddr.sin_port = htons(PORT);
 	else
-		servaddr.sin_port = htons(BACKUPORT + (ID % 10));
+		servaddr.sin_port = htons(BACKUPORT + (ID * 2));
 
 
     // Bind the socket with the server address
@@ -234,7 +234,7 @@ void *election (void *arg){
     if (primary == 1)
         servaddr.sin_port = htons(PORT + 1);
     else
-        servaddr.sin_port = htons(BACKUPORT + 1 + (ID % 10));
+        servaddr.sin_port = htons(BACKUPORT + ID);
 
     // Bind the socket with the server address
     if ( bind(socksd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
@@ -261,6 +261,7 @@ void *election (void *arg){
             memcpy(lists.elist, electlist, sizeof(lists.elist));
             lists.eNum = eleNum;
 
+
             packet.type = ALIVE;
 			memcpy(packet._payload, &lists, sizeof(lists));
             send = electlist[i];
@@ -285,7 +286,6 @@ void *election (void *arg){
                     deleteElement(serverlist, *mainaddr);
                     deleteElement(electlist, servaddr);
                     eleNum--;
-
                 }
                 else
                     vote = makeElection(electlist,servaddr,ID,socksd, eleNum);
@@ -294,6 +294,7 @@ void *election (void *arg){
             else{
                 if(packet.type == ELECTION){
                     if(packet.cmd == ID){    //ELEITO
+/*
                         packet.type = ELECTED;
                         while(j <= eleNum){
                             send = electlist[j];
@@ -304,12 +305,26 @@ void *election (void *arg){
 
                             j++;
                         }
+
                         j = 0;
+*/
                         primary = 1;
+
+                        for(int n = 0; n < 10; n++)
+                            printf("ListaS : %d\n", serverlist[n].sin_port);
+
+                        for(int n = 0; n < 10; n++)
+                            printf("ListaE : %d\n", electlist[n].sin_port);
 
                         deleteElement(serverlist, *mainaddr);
                         deleteElement(electlist, servaddr);
                         eleNum--;
+
+                        for(int n = 0; n < 10; n++)
+                            printf("ListaS : %d\n", serverlist[n].sin_port);
+
+                        for(int n = 0; n < 10; n++)
+                            printf("ListaE : %d\n", electlist[n].sin_port);
 
                     }
                     if(packet.cmd < ID && vote == 0)     // MAIOR QUE O QUE CHEGOU
@@ -317,16 +332,17 @@ void *election (void *arg){
                     if(packet.cmd > ID)     // MENOR QUE O QUE CHEGOU
                         vote = makeElection(electlist,servaddr,packet.cmd,socksd, eleNum);
                 }
-                if(packet.type == ELECTED)
-                    ;
 
-                if(packet.type == ALIVE)
-                    memcpy(&lists, packet._payload, sizeof(lists)); // RECEBE AS LISTAS AQUI
+                //if(packet.type == ELECTED);
+
+                if(packet.type == ALIVE){
+                    memcpy(&lists, packet._payload, sizeof(lists));                 // RECEBE AS LISTAS AQUI
 
                     memcpy(serverlist,lists.slist, sizeof(lists.slist));
                     memcpy(electlist,lists.elist, sizeof(lists.elist));
                     eleNum = lists.eNum;
 
+                }
             }
         }
     }
