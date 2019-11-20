@@ -784,3 +784,28 @@ int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,
     }
     return 1;
 }
+
+void deleteElement(struct sockaddr_in *list, struct sockaddr_in x){
+    struct sockaddr_in aux;
+
+    aux.sin_port = htons(0);
+
+    int i;
+    for (i=0; i<10; i++){
+        if (list[i].sin_port== x.sin_port) {
+            for (int j=i; j<9; j++)
+                list[j] = list[j+1];
+            list[9] = aux;
+        }
+   }
+}
+
+backupComm changePrimary (backupComm lists, struct sockaddr_in addr ){
+
+    //deleteElement(lists.slist, addr);
+    deleteElement(lists.elist, addr);
+    lists.eNum = lists.eNum - 1;
+
+    return lists;
+
+}

@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 /////////////////////////// CRIANDO MAIS UMA THREAD: (ALIVE + ELECTION)
     pthread_t telection;
 
-    rc1 = pthread_create(&telection, NULL, election, NULL);
+    rc1 = pthread_create(&telection, NULL, election, reinterpret_cast<void *> (&servaddr));
     if(rc1 < 0)
         perror("pthread_create");
 ///////////////////////////////////////////////////
@@ -155,10 +155,6 @@ int main(int argc, char *argv[]) {
                 if(rc1 < 0)
                     perror("pthread_create");
 
-                rc1 = pthread_detach(tid[cliNum]);
-                if(rc1 < 0)
-                    perror("pthread_detach");
-
                 cliNum++;
 
                 }
@@ -180,7 +176,7 @@ int main(int argc, char *argv[]) {
                 n = sendto(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &addr, sizeof(addr));
                 if (n  < 0)
                     perror("sendto");
-                printf("ENTREI AQUI CUPIXA 2\n");
+                printf("ENTREI AQUI CUPIXA : %d\n", eleNum);
             }
         }
         fflush(stdout);
@@ -193,6 +189,7 @@ void *cliThread(void *arg) {                                                    
     user *client;
     cmdAndFile lastCommand;
     char dirClient[100] = {};
+
 
 
     client = reinterpret_cast<user *> (arg);
@@ -222,6 +219,8 @@ void *election (void *arg){
     int vote = 0;           // Se vote = 0 (Não entrou na votação)  se vote = 1 (Tá participante)
     struct sockaddr_in servaddr, send;
     packet packet;
+    backupComm lists;
+    struct sockaddr_in *mainaddr = reinterpret_cast<struct sockaddr_in *> (arg);
 
     printf("THREAD DA ELEIÇÂO\n");
 
@@ -235,7 +234,7 @@ void *election (void *arg){
     if (primary == 1)
         servaddr.sin_port = htons(PORT + 1);
     else
-        servaddr.sin_port = htons(BACKUPORT + 11);
+        servaddr.sin_port = htons(BACKUPORT + 1 + (ID % 10));
 
     // Bind the socket with the server address
     if ( bind(socksd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
@@ -258,7 +257,12 @@ void *election (void *arg){
             if(eleNum == -1)
                 continue;
 
-			// sendPacket._payload = lista de servers backup
+            memcpy(lists.slist, serverlist, sizeof(lists.slist));
+            memcpy(lists.elist, electlist, sizeof(lists.elist));
+            lists.eNum = eleNum;
+
+            packet.type = ALIVE;
+			memcpy(packet._payload, &lists, sizeof(lists));
             send = electlist[i];
             n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
             if(n < 0)
@@ -274,10 +278,14 @@ void *election (void *arg){
 
             n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
             if (n  < 0){
-                printf("ACHO QUE O VAGABUNDO MORREU\n");        // Aqui vai a eleição
+                printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
                 if (eleNum == 0){
-                    primary = 1;                                // Tá sozinho no rolê
-                    printf("SOU O PRIMARIO\n");
+                    primary = 1;                                            // Tá sozinho no rolê
+
+                    deleteElement(serverlist, *mainaddr);
+                    deleteElement(electlist, servaddr);
+                    eleNum--;
+
                 }
                 else
                     vote = makeElection(electlist,servaddr,ID,socksd, eleNum);
@@ -298,7 +306,11 @@ void *election (void *arg){
                         }
                         j = 0;
                         primary = 1;
-                        printf("SOU O PRIMARIO\n");
+
+                        deleteElement(serverlist, *mainaddr);
+                        deleteElement(electlist, servaddr);
+                        eleNum--;
+
                     }
                     if(packet.cmd < ID && vote == 0)     // MAIOR QUE O QUE CHEGOU
                         vote = makeElection(electlist,servaddr,ID,socksd, eleNum);
@@ -306,10 +318,15 @@ void *election (void *arg){
                         vote = makeElection(electlist,servaddr,packet.cmd,socksd, eleNum);
                 }
                 if(packet.type == ELECTED)
-                    primary = 0;
+                    ;
 
                 if(packet.type == ALIVE)
-                ; // RECEBE AS LISTAS AQUI
+                    memcpy(&lists, packet._payload, sizeof(lists)); // RECEBE AS LISTAS AQUI
+
+                    memcpy(serverlist,lists.slist, sizeof(lists.slist));
+                    memcpy(electlist,lists.elist, sizeof(lists.elist));
+                    eleNum = lists.eNum;
+
             }
         }
     }

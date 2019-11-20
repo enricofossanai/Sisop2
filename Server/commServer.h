@@ -68,6 +68,13 @@ typedef struct cmdAndFile{
     long int fileSize;
   }cmdAndFile;
 
+typedef struct backupComm{
+    struct sockaddr_in slist [10];
+    struct sockaddr_in elist [10];
+    int eNum;
+    //user uList[10];
+    }backupComm;
+
 typedef struct userList{
     user connection;
     userList *next;
@@ -123,3 +130,7 @@ char* backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd);
 void connectBackup (int sockfd , struct hostent *server, int servType);
 
 int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,int ID,int socksd, int eleNum);
+
+backupComm changePrimary (backupComm lists, struct sockaddr_in addr );
+
+void deleteElement(struct sockaddr_in *list, struct sockaddr_in x);
