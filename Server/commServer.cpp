@@ -759,7 +759,7 @@ void connectBackup (int sockfd , struct hostent *server, int servType){
 
 }
 
-int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,int ID,int socksd){
+int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,int ID,int socksd, int eleNum){
 
     int i,n,node;
     packet packet;
@@ -771,9 +771,9 @@ int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,in
         if(electlist[i].sin_port== servaddr.sin_port){
 
             node = i;
-            packet.type = DATA;
-            strcpy(packet._payload, "Election," + ID);
-            if(node == MAX-1)
+            packet.type = ELECTION;
+            packet.cmd = ID;
+            if((node == MAX-1) || (node == eleNum))
                 node = -1;
             send = electlist[node+1];
             n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
@@ -782,5 +782,5 @@ int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,in
 
         }
     }
-
+    return 1;
 }

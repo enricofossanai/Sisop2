@@ -21,7 +21,7 @@ user Users [MAXNUMCON];
 int curPort = 8002;                             // 8000 Servidor / 8001 Election
 int primary = 0;
 int eleNum = -1;                                // FLAG DE PRIMARIO
-int ID;
+int ID = 0;
 
 #define PORT        8000
 #define BACKUPORT   7000                        // Só pra testes em mesma máquina pra evitar conflito
@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
 
     if(strcmp(argv[1], "0") == 0)
         primary = 1;
-
-    int id = ((int)argv[1] - '0');
+    else
+        ID = atoi(argv[1]);
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     if(primary == 1)
     	servaddr.sin_port = htons(PORT);
 	else
-		servaddr.sin_port = htons(BACKUPORT + (id % 10));
+		servaddr.sin_port = htons(BACKUPORT + (ID % 10));
 
 
     // Bind the socket with the server address
@@ -114,14 +114,10 @@ int main(int argc, char *argv[]) {
             printf("Error recvfrom\n");
 
 	if (primary == 0){
-        printf("1\n");
         username = backup_rcvd(packetBuffer, addr, sockfd);
-        printf("2\n");
         lastCommand = rcv_cmd(addr, sockfd);
-        printf("3\n");
         server_cmd(lastCommand, addr, username, sockfd);
-
-        printf("4 :%d\n", lastCommand.command);
+        printf("Recebeu o comando: %d\n", lastCommand.command);
 	}
 
         if(!(checkSum(&packetBuffer)))		    // Verificação de CheckSum
@@ -210,7 +206,7 @@ void *cliThread(void *arg) {                                                    
     while (1){
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-        printf("\nserver received command %d from %s\n", lastCommand.command ,client->username);
+        printf("\nServer received command %d from %s\n", lastCommand.command ,client->username);
 
         if (lastCommand.command >= 0) // if received command wasnt corrupted
             make_cmd(lastCommand, client, dirClient, uList,serverlist, eleNum);
@@ -220,11 +216,10 @@ void *cliThread(void *arg) {                                                    
 
 void *election (void *arg){
     int size = sizeof(struct sockaddr_in);
-    int n;
+    int n , j = 0;
     int i = 0;
     int socksd;
-    char *message,*token;
-    const char *comma;
+    int vote = 0;           // Se vote = 0 (Não entrou na votação)  se vote = 1 (Tá participante)
     struct sockaddr_in servaddr, send;
     packet packet;
 
@@ -240,7 +235,7 @@ void *election (void *arg){
     if (primary == 1)
         servaddr.sin_port = htons(PORT + 1);
     else
-        servaddr.sin_port = htons(BACKUPORT + 1);
+        servaddr.sin_port = htons(BACKUPORT + 11);
 
     // Bind the socket with the server address
     if ( bind(socksd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
@@ -280,20 +275,42 @@ void *election (void *arg){
             n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
             if (n  < 0){
                 printf("ACHO QUE O VAGABUNDO MORREU\n");        // Aqui vai a eleição
-                makeElection(electlist,servaddr,ID,socksd);
-            }
-            else{
-                strcpy(message,packet._payload);
-                token = strtok(message, comma);
-                if(strcmp(token,"Election")==0){
-                    if(atoi(token)==ID){
-                        strcpy(packet._payload, "Elected," + ID);
-                    }
-
+                if (eleNum == 0){
+                    primary = 1;                                // Tá sozinho no rolê
+                    printf("SOU O PRIMARIO\n");
                 }
-
+                else
+                    vote = makeElection(electlist,servaddr,ID,socksd, eleNum);
             }
 
+            else{
+                if(packet.type == ELECTION){
+                    if(packet.cmd == ID){    //ELEITO
+                        packet.type = ELECTED;
+                        while(j <= eleNum){
+                            send = electlist[j];
+
+                            n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
+                            if(n < 0)
+                                perror("sendto");
+
+                            j++;
+                        }
+                        j = 0;
+                        primary = 1;
+                        printf("SOU O PRIMARIO\n");
+                    }
+                    if(packet.cmd < ID && vote == 0)     // MAIOR QUE O QUE CHEGOU
+                        vote = makeElection(electlist,servaddr,ID,socksd, eleNum);
+                    if(packet.cmd > ID)     // MENOR QUE O QUE CHEGOU
+                        vote = makeElection(electlist,servaddr,packet.cmd,socksd, eleNum);
+                }
+                if(packet.type == ELECTED)
+                    primary = 0;
+
+                if(packet.type == ALIVE)
+                ; // RECEBE AS LISTAS AQUI
+            }
         }
     }
 }

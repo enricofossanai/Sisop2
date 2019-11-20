@@ -39,6 +39,10 @@
 #define CLIENT                   8
 #define NAME                     9
 
+#define ALIVE                    0
+#define ELECTION                 1
+#define ELECTED                  2
+
 
 //LEMBRAR DE MUDAR LENGTH PARA LONG
 typedef struct packet{
@@ -118,4 +122,4 @@ char* backup_rcvd (packet rcvdPacket, struct sockaddr_in addr, int sockfd);
 
 void connectBackup (int sockfd , struct hostent *server, int servType);
 
-int makeElection ( struct sockaddr_in electlist[],struct sockaddr_in servaddr,int ID,int socksd);
+int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,int ID,int socksd, int eleNum);
