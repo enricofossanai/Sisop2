@@ -57,43 +57,28 @@ int makeSum(packet * packet) //faz a soma dos dados do pacote
     return Sum;
 }
 
-
-int usercmp(user user1, user user2){
-  if ((user1.username == user2.username)&&(user1.socket == user2.socket))
-      return 1;
-  else
-      return 0;
-}
-
-
-void addToONlist (user *uList, user con){
+void addToONlist (user *uList, user usr){
     int i = 0, added = 0;
     while (i < 10 && added == 0){
+        //printf("TENTANDO:%d user:%s\n", usr.socket, usr.username);
         if (uList[i].username[0] == '\0'){
           added = 1;
-          //memcpy(uList+i, &con, sizeof(user));
-          printf("TENTANDO:%d user:%s\n", uList[i].socket, uList[i].username);
+          memcpy(&uList[0]+i, &usr, sizeof(user));
+          //printf("CHECANDO:%d user:%s\n", uList[i].socket, uList[i].username);
         }
         i++;
     }
-
-    printf("\nList of online users:\n");
-    for(i = 0; i++; i<10){
-        printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
-        fflush( stdout );
-    }
-
-
-
     return;
 }
 
 void rmvFromONlist (user *uList, user *usr){
     int deleting = 0, i = 0;
     user aux;
-
-    while (!usercmp(uList[i], *usr)){
+    //printf("comparando:%s%d - %s%d\n",uList[i].username, uList[i].socket, usr->username, usr->socket);
+    while ((uList[i].username != usr->username)&&(uList[i].socket != usr->socket)&&(i<10)){
         i++;
+        //printf("checando na pocicao %d\n", i);
+        //printf("comparando:%s%d - %s%d\n",uList[i].username, uList[i].socket, usr->username, usr->socket);
     }
     while ((i+1)<10){
         uList[i] = uList[i+1];
@@ -106,9 +91,13 @@ void rmvFromONlist (user *uList, user *usr){
 void displayList(user *uList){
     int i;
     printf("\nList of online users:\n");
-    for(i = 0; i++; i<10){
+    for(i = 0; i<10; i++){
+        printf("bunscando em %d\n", i);
+        if (uList[i].username[0] != '\0'){
+        printf("tem %d\n", i);
         printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
         fflush( stdout );
+        }
     }
 }
 
@@ -121,7 +110,7 @@ struct sockaddr_in getUserList(user *uList, user *usr){
     while (i<10){
         if( (strcmp(uList[i].username, usr->username) == 0) && (uList[i].socket != usr->socket) ){
             cliaddrL = uList[i].cliSend;
-            printf("SOCKET DO OUTRO : %d \n", uList[i].socket );
+            //printf("SOCKET DO OUTRO : %d \n", uList[i].socket );
         }
         i++;
     }
@@ -134,88 +123,6 @@ struct sockaddr_in getUserList(user *uList, user *usr){
     return cliaddrL;
 }
 
-/*
-void addToONlist (userList **list, user *con){
-  if (list!=NULL){
-    userList *newConnection = (userList*)malloc(sizeof(userList));
-    newConnection->connection = *con;
-    newConnection->next = (*list)->next;
-    (*list)->next = newConnection;
-    return;
-  }
-}
-
-
-//VER SE ESTA NULL QUANDO CHAMAR PARA NAO DAR SEG FAUT
-//NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARIO
-struct sockaddr_in getUserList(userList *list, user *usr){
-    struct sockaddr_in cliaddrL;
-    userList *temp = list;
-    userList *found = NULL;
-
-    cliaddrL.sin_port = 0;
-    temp = temp->next;
-
-    while (temp != NULL)
-    {
-        if( (strcmp(temp->connection.username, usr->username) == 0) && (temp->connection.socket != usr->socket) )
-            found = temp;
-        temp = temp->next;
-    }
-
-    // If key was not present in linked list
-    if (found == NULL){
-        printf("\n sem outra maquina de usuario conectado");
-        return cliaddrL; //checar se buga, to tratando depois do retorno
-    }
-    printf("SOCKET DO OUTRO : %d \n", (found->connection).socket );
-    // Unlink the node from linked list
-    cliaddrL = found->connection.cliSend;
-    return cliaddrL;
-}
-
-void rmvFromONlist (userList **list, user *usr){
-    int deleted = 0;
-    userList *temp = (*list), *prev;
-
-    if (temp != NULL && temp->connection.socket == usr->socket)
-     {
-         (*list) = temp->next;   // Changed head
-         free(temp);               // free old head
-         return;
-    }
-    while (temp != NULL && temp->connection.socket != usr->socket)
-    {
-        prev = temp;
-        temp = temp->next;
-    }
-    // If key was not present in linked list
-    if (temp == NULL) return;
-    // Unlink the node from linked list
-    prev->next = temp->next;
-    free(temp);  // Free memory
-    return;
-}
-
-void displayList(userList* head){
-  userList *temp;
-  if(head == NULL){
-    printf("List is empty.");
-    fflush( stdout );
-  }
-  else{
-    temp = head;
-    temp = temp->next;
-    printf("\nONLINE USERS LIST:");
-    while(temp != NULL){
-      printf("\nUser = %s \nIP: %d", (temp->connection).username, (temp->connection).socket); // Print data of current node
-      fflush( stdout );
-      temp = temp->next;                 // Move to next node
-    }
-    printf("\n");
-  }
-}
-*/
 
 void createDir(char *name){
     DIR* dir = opendir(name);

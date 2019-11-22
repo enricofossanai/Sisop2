@@ -30,7 +30,7 @@ int ID = 0;
 
 
 //userList* head = (userList*)malloc(sizeof(userList));
-user uList[10] = { { 0 } };
+struct user uList[10];
 
 struct sockaddr_in serverlist [10];
 struct sockaddr_in electlist [10];
@@ -148,8 +148,8 @@ int main(int argc, char *argv[]) {
                     j++;
                 }
 
-                //addToONlist (&head, &client);
-                //displayList(head);
+                addToONlist (uList, client);
+                displayList(uList);
 
                 rc1 = pthread_create(&tid[cliNum], NULL, cliThread, reinterpret_cast<void *> (&Users[cliNum]) );
                 if(rc1 < 0)

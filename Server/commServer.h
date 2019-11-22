@@ -99,7 +99,7 @@ int createSocket(user client, int port);
 
 struct sockaddr_in getClientLSocket(user client, int socket);
 
-void addToONlist (user *uList, user con);
+void addToONlist (user *uList, user usr);
 
 void rmvFromONlist (user *uList, user *usr);
 
