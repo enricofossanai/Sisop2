@@ -34,6 +34,7 @@
 #define GET_SYNC_DIR             5
 #define EXIT                     6
 #define DOWNLOAD                 7
+#define SERVER                   10
 
 
 

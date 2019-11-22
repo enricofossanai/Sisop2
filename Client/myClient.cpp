@@ -226,6 +226,8 @@ void *clientComm(void *arg) {
 
         pthread_mutex_lock(&mutex);
 
+        notify_block = 1;
+
         if (lastCommand.command >= 0){                      // if received command wasnt corrupted
             if(lastCommand.command == CREATE) {
                 //printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
@@ -257,13 +259,17 @@ void *clientComm(void *arg) {
 
                 n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
             }
+            else if (lastCommand.command == SERVER){
+
+                n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
+                if (n < 0)
+                    perror("recvfrom");
+
+                notify_block = 0;
+            }
         }
 
-
-        notify_block = 1;
-
         pthread_mutex_unlock(&mutex);
-        printf("PASSEI AQUI NOTIFY : %d\n", notify_block );
         fflush( stdout );
     }
 

@@ -38,6 +38,7 @@
 #define DOWNLOAD                 7
 #define CLIENT                   8
 #define NAME                     9
+#define SERVER                   10
 
 #define ALIVE                    0
 #define ELECTION                 1
@@ -72,7 +73,7 @@ typedef struct backupComm{
     struct sockaddr_in slist [10];
     struct sockaddr_in elist [10];
     int eNum;
-    //user uList[10];
+    user uList[10];
     }backupComm;
 
 typedef struct userList{
@@ -131,6 +132,6 @@ void connectBackup (int sockfd , struct hostent *server, int servType);
 
 int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,int ID,int socksd, int eleNum);
 
-backupComm changePrimary (backupComm lists, struct sockaddr_in addr );
-
 void deleteElement(struct sockaddr_in *list, struct sockaddr_in x);
+
+int send_cli(user *uList, int socksd, int port);

@@ -92,13 +92,10 @@ void displayList(user *uList){
     int i;
     printf("\nList of online users:\n");
     for(i = 0; i<10; i++){
-        printf("bunscando em %d\n", i);
-        if (uList[i].username[0] != '\0'){
-        printf("tem %d\n", i);
-        printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
-        fflush( stdout );
-        }
+        if (uList[i].username[0] != '\0')
+            printf("n:%d user:%s\n", uList[i].socket, uList[i].username);
     }
+    fflush( stdout );
 }
 
 //NO MOMENTO SO PROPAGA PARA PRIMEIRO USUARIO
@@ -421,7 +418,7 @@ void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, c
             perror("recvfrom");
         if (checkSum(&rcvdPacket)){
             ack = 1;
-            printf("\nClient received command\n");
+            //printf("\nClient received command\n");
         }
     }
 
@@ -707,12 +704,23 @@ void deleteElement(struct sockaddr_in *list, struct sockaddr_in x){
    }
 }
 
-backupComm changePrimary (backupComm lists, struct sockaddr_in addr ){
+int send_cli(user *uList, int socksd, int port){
+    struct sockaddr_in send;
+    pthread_t tid;
+    int rc1;
 
-    //deleteElement(lists.slist, addr);
-    deleteElement(lists.elist, addr);
-    lists.eNum = lists.eNum - 1;
+    for(int i = 0; i<10; i++){
+        if (uList[i].username[0] != '\0'){
+            send = uList[i].cliSend;
+            send_cmd(uList[i].username, send, socksd, SERVER, NULL);
+            uList[i].socket = createSocket(uList[i], port);
+            port ++;
 
-    return lists;
+            rc1 = pthread_create(&tid, NULL, cliThread, reinterpret_cast<void *> (&uList[i]));
+            if(rc1 < 0)
+                perror("pthread_create");
+            }
+    }
 
+    return port;
 }

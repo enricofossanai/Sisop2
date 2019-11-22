@@ -126,6 +126,8 @@ int main(int argc, char *argv[]) {
 
             if(packetBuffer.type == CN){                                 //Conexao de Cliente
 
+                cliNum = (curPort - 2) % 8000;
+
                 memset(&client, 0 , sizeof(struct user));
 
                 strcpy(client.username, packetBuffer._payload);
@@ -155,8 +157,6 @@ int main(int argc, char *argv[]) {
                 if(rc1 < 0)
                     perror("pthread_create");
 
-                cliNum++;
-
                 }
 
             if(packetBuffer.type == CS){                    // Conexão de Server Backup
@@ -166,7 +166,6 @@ int main(int argc, char *argv[]) {
                 n = sendto(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &addr, sizeof(addr));
                 if (n  < 0)
                     perror("sendto");
-                printf("ENTREI AQUI CUPIXA\n");
             }
 
             if(packetBuffer.type == CE){
@@ -176,7 +175,7 @@ int main(int argc, char *argv[]) {
                 n = sendto(sockfd, reinterpret_cast<void *> (&packetBuffer), MAX_PACKET_SIZE, 0, ( struct sockaddr *)  &addr, sizeof(addr));
                 if (n  < 0)
                     perror("sendto");
-                printf("ENTREI AQUI CUPIXA : %d\n", eleNum);
+                printf("Servidor backup nº%d conectado\n", eleNum + 1);
             }
         }
         fflush(stdout);
@@ -189,8 +188,6 @@ void *cliThread(void *arg) {                                                    
     user *client;
     cmdAndFile lastCommand;
     char dirClient[100] = {};
-
-
 
     client = reinterpret_cast<user *> (arg);
 
@@ -222,7 +219,7 @@ void *election (void *arg){
     backupComm lists;
     struct sockaddr_in *mainaddr = reinterpret_cast<struct sockaddr_in *> (arg);
 
-    printf("THREAD DA ELEIÇÂO\n");
+    //printf("THREAD DA ELEIÇÂO\n");
 
     if ( (socksd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
         perror("socket creation failed");
@@ -259,6 +256,7 @@ void *election (void *arg){
 
             memcpy(lists.slist, serverlist, sizeof(lists.slist));
             memcpy(lists.elist, electlist, sizeof(lists.elist));
+            memcpy(lists.uList, uList, sizeof(lists.uList));
             lists.eNum = eleNum;
 
 
@@ -282,10 +280,12 @@ void *election (void *arg){
                 printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
                 if (eleNum == 0){
                     primary = 1;                                            // Tá sozinho no rolê
-
+                    printf("NOVO PRIMARIO\n");
                     deleteElement(serverlist, *mainaddr);
                     deleteElement(electlist, servaddr);
                     eleNum--;
+
+                    curPort = send_cli(uList, socksd, curPort);
                 }
                 else
                     vote = makeElection(electlist,servaddr,ID,socksd, eleNum);
@@ -294,37 +294,15 @@ void *election (void *arg){
             else{
                 if(packet.type == ELECTION){
                     if(packet.cmd == ID){    //ELEITO
-/*
-                        packet.type = ELECTED;
-                        while(j <= eleNum){
-                            send = electlist[j];
 
-                            n = sendto(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &(send), size);
-                            if(n < 0)
-                                perror("sendto");
-
-                            j++;
-                        }
-
-                        j = 0;
-*/
                         primary = 1;
-
-                        for(int n = 0; n < 10; n++)
-                            printf("ListaS : %d\n", serverlist[n].sin_port);
-
-                        for(int n = 0; n < 10; n++)
-                            printf("ListaE : %d\n", electlist[n].sin_port);
+                        printf("NOVO PRIMARIO\n");
 
                         deleteElement(serverlist, *mainaddr);
                         deleteElement(electlist, servaddr);
                         eleNum--;
 
-                        for(int n = 0; n < 10; n++)
-                            printf("ListaS : %d\n", serverlist[n].sin_port);
-
-                        for(int n = 0; n < 10; n++)
-                            printf("ListaE : %d\n", electlist[n].sin_port);
+                        curPort = send_cli(uList, socksd, curPort);
 
                     }
                     if(packet.cmd < ID && vote == 0)     // MAIOR QUE O QUE CHEGOU
@@ -340,7 +318,9 @@ void *election (void *arg){
 
                     memcpy(serverlist,lists.slist, sizeof(lists.slist));
                     memcpy(electlist,lists.elist, sizeof(lists.elist));
+                    memcpy(uList,lists.uList, sizeof(lists.uList));
                     eleNum = lists.eNum;
+
 
                 }
             }
