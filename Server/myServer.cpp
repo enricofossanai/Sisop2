@@ -277,7 +277,7 @@ void *election (void *arg){
 
             n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
             if (n  < 0){
-                printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
+                //printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
                 if (eleNum == 0){
                     primary = 1;                                            // Tá sozinho no rolê
                     printf("NOVO PRIMARIO\n");

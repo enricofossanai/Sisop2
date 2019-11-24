@@ -124,7 +124,7 @@ struct sockaddr_in getUserList(user *uList, user *usr){
 void createDir(char *name){
     DIR* dir = opendir(name);
     if(dir){
-        printf("Directory already exists\n");
+        //printf("Directory already exists\n");
         closedir(dir);
     }
     else{
@@ -151,8 +151,6 @@ int createSocket(user client, int port){
     createDir(client.username);
     memset(&servaddr, 0, sizeof(servaddr));
 
-
-    printf("Criando Socket do Cliente : %s\n", client.username);
 
     // Filling server information
     servaddr.sin_family    = AF_INET; // IPv4
@@ -203,7 +201,7 @@ struct sockaddr_in  getClientLSocket(user client, int sockfd){
       if (i  < 0)
           perror("recvfrom");
       else if(rcvdPacket.type = CNL)
-          printf("Recebido pedido de Conexao de Listener Socket de usuario");
+          printf("Recebido pedido de Conexao de usuario");
 
       i = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &cliaddrL, sizeof(cliaddrL));
       if (i  < 0)
@@ -612,8 +610,6 @@ void server_cmd(cmdAndFile lastCommand,struct sockaddr_in addr , char *user, int
         strcat(file, lastCommand.fileName);
         fflush(stdout);
         n =  receiveFile( file , lastCommand.fileSize, addr, sockfd);
-
-        printf("CHEGUEI AQUI??\n");
     }
     else if(lastCommand.command == DELETE) {
         printf("\nRECEIVED DELETE FILE COMMAND");

@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     //Cria diretório sync_dir_username caso ele ainda nao exista
     DIR* dir = opendir(dirName);
     if(dir){
-        printf("Directory already exits\n");
+        //printf("Directory already exits\n");
         closedir(dir);
     }
     else{
@@ -226,6 +226,7 @@ void *clientComm(void *arg) {
 
         pthread_mutex_lock(&mutex);
 
+
         notify_block = 1;
 
         if (lastCommand.command >= 0){                      // if received command wasnt corrupted
@@ -258,6 +259,7 @@ void *clientComm(void *arg) {
                   perror("remove");
 
                 n =  receiveFile( file , lastCommand.fileSize, servaddr , cliSock );
+                notify_block++;
             }
             else if (lastCommand.command == SERVER){
 
@@ -312,9 +314,6 @@ void *clientNotify(void *arg){
         l = read(fd, buf, 1024 * (sizeof(struct inotify_event))) ;
         //printf("MUTEX : %d\n", notify_block );
 
-
-
-
         /* Percorre cada evento lido. */
         i=0 ;
 
@@ -327,14 +326,6 @@ void *clientNotify(void *arg){
             strcat(dirName, "/");
             /* Obtém dados na forma da struct. */
             evento = (struct inotify_event *)&buf[i] ;
-
-            /* Se o campo len não é nulo, então temos
-             * um nome no campo name. */
-            if(evento->len) {
-               // printf("[+] Arquivo `%s': ", evento->name) ;
-            } else {
-               // printf("[+] Arquivo desconhecido: ") ;                               // Nome do Arquivo modificado
-            }
 
             strcat(dirName, evento->name);
 
@@ -367,8 +358,8 @@ void *clientNotify(void *arg){
             /* Avança para o próximo evento. */
             i += (sizeof(struct inotify_event)) + evento->len ;
 
-            if (notify_block == 1)
-                notify_block = 0;
+            if (notify_block > 0)
+                notify_block--;
 
             pthread_mutex_unlock(&mutex);
         }
