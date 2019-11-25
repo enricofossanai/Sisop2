@@ -709,11 +709,12 @@ int send_cli(user *uList, int socksd, int port){
 
     for(int i = 0; i<10; i++){
         if (uList[i].username[0] != '\0'){
-            printf("ENTREI : %s\n\n", uList[i].username);
+            port ++;
+
             send = uList[i].cliSend;
             send_cmd(uList[i].username, send, socksd, SERVER, NULL);
             uList[i].socket = createSocket(uList[i], port);
-            port ++;
+            
 
             rc1 = pthread_create(&tid, NULL, cliThread, reinterpret_cast<void *> (&uList[i]));
             if(rc1 < 0)
