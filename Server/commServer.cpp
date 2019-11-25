@@ -709,6 +709,7 @@ int send_cli(user *uList, int socksd, int port){
 
     for(int i = 0; i<10; i++){
         if (uList[i].username[0] != '\0'){
+            printf("ENTREI : %s\n\n", uList[i].username);
             send = uList[i].cliSend;
             send_cmd(uList[i].username, send, socksd, SERVER, NULL);
             uList[i].socket = createSocket(uList[i], port);

@@ -240,7 +240,7 @@ void *election (void *arg){
         exit(EXIT_FAILURE);
     }
 
-    struct timeval timeout={2,0};                                                       //set timeout for 2 seconds
+    struct timeval timeout={4,0};                                                       //set timeout for 2 seconds
     setsockopt(socksd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
 
