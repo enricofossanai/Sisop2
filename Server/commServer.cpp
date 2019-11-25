@@ -704,6 +704,8 @@ int send_cli(user *uList, int socksd, int port){
     struct sockaddr_in send;
     pthread_t tid;
     int rc1;
+    
+    displayList(uList);
 
     for(int i = 0; i<10; i++){
         if (uList[i].username[0] != '\0'){

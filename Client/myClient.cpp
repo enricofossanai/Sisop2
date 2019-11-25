@@ -268,6 +268,7 @@ void *clientComm(void *arg) {
                     perror("recvfrom");
                 
                 printf("RECEBI NOVO SERVIDOR");
+                fflush(stdout);
 
                 notify_block = 0;
             }

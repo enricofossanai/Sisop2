@@ -251,8 +251,7 @@ void *election (void *arg){
     while(1){
         if (primary == 1){                      // Se for o primario fica mandando ALIVE
 
-          printf("ELEIÇÂO ELENUM: %d", eleNum);
-            if(eleNum == -1)
+          if(eleNum == -1)
                 continue;
             
 
@@ -282,7 +281,7 @@ void *election (void *arg){
                 printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
                 if (eleNum == 0){
                     primary = 1;                                            // Tá sozinho no rolê
-                    printf("NOVO PRIMARIO\n");
+                    printf("NOVO PRIMARIO 1\n");
                     deleteElement(serverlist, *mainaddr);
                     deleteElement(electlist, servaddr);
                     eleNum--;
@@ -298,7 +297,7 @@ void *election (void *arg){
                     if(packet.cmd == ID){    //ELEITO
 
                         primary = 1;
-                        printf("NOVO PRIMARIO\n");
+                        printf("NOVO PRIMARIO 2\n");
 
                         deleteElement(serverlist, *mainaddr);
                         deleteElement(electlist, servaddr);
