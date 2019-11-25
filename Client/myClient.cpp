@@ -266,6 +266,8 @@ void *clientComm(void *arg) {
                 n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
                 if (n < 0)
                     perror("recvfrom");
+                
+                printf("RECEBI NOVO SERVIDOR");
 
                 notify_block = 0;
             }
@@ -332,7 +334,7 @@ void *clientNotify(void *arg){
             /* Obtém o evento. */
             if(evento->mask & IN_MODIFY)     {                                        // SOFRE O PROBLEMA DO GEDIT
                 if(justCreated == 0 && notify_block == 0){
-                    //printf("\nModificado.\n") ;
+                    printf("\nModificado.\n") ;
                     send_cmd(evento->name , servaddr, sockfd, MODIFY, dirName);
                     sendFile(dirName , servaddr, sockfd);
                     justCreated = 1;

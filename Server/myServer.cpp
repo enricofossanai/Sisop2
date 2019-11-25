@@ -251,8 +251,10 @@ void *election (void *arg){
     while(1){
         if (primary == 1){                      // Se for o primario fica mandando ALIVE
 
+          printf("ELEIÇÂO ELENUM: %d", eleNum);
             if(eleNum == -1)
                 continue;
+            
 
             memcpy(lists.slist, serverlist, sizeof(lists.slist));
             memcpy(lists.elist, electlist, sizeof(lists.elist));
@@ -277,7 +279,7 @@ void *election (void *arg){
 
             n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
             if (n  < 0){
-                //printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
+                printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
                 if (eleNum == 0){
                     primary = 1;                                            // Tá sozinho no rolê
                     printf("NOVO PRIMARIO\n");
