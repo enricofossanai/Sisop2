@@ -533,7 +533,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uLis
 
       }
     else if (lastCommand.command == MODIFY){
-        printf("\nRECEIVED MODIFY FILE COMMAND");
+        printf("\nRECEIVED MODIFY FILE COMMAND\n");
         n = delete_file(lastCommand.fileName, client->username);
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
@@ -555,7 +555,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uLis
         }
     }
       else if (lastCommand.command ==LIST_SERVER){
-        printf("\nRECEIVED LIST_SERVER COMMAND");
+        printf("\nRECEIVED LIST_SERVER COMMAND\n");
             if (list_server(client->username, buffer)){
                 fflush(stdout);
                 strcpy(sendPacket._payload,buffer);
@@ -569,12 +569,12 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uLis
             }
       }
       else if (lastCommand.command == EXIT){
-        printf("\nRECEIVED LIST_SERVER EXIT");
+        printf("\nRECEIVED LIST_SERVER EXIT\n");
         rmvFromONlist (uList, client);
         displayList(uList);
       }
       else if (lastCommand.command == DOWNLOAD){
-            printf("\nRECEIVED DOWNLOAD COMMAND");
+            printf("\nRECEIVED DOWNLOAD COMMAND\n");
             strcat(file, lastCommand.fileName);
             printf("FILE : %s\n", file);
 
@@ -606,18 +606,18 @@ void server_cmd(cmdAndFile lastCommand,struct sockaddr_in addr , char *user, int
     strcpy(file, dirClient);
 
     if(lastCommand.command == CREATE) {
-        printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+        printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld\n", lastCommand.fileSize);
         strcat(file, lastCommand.fileName);
         fflush(stdout);
         n =  receiveFile( file , lastCommand.fileSize, addr, sockfd);
     }
     else if(lastCommand.command == DELETE) {
-        printf("\nRECEIVED DELETE FILE COMMAND");
+        printf("RECEIVED DELETE FILE COMMAND\n");
         n = delete_file(lastCommand.fileName, user);
 
     }
     else if (lastCommand.command == MODIFY){
-        printf("\nRECEIVED MODIFY FILE COMMAND");
+        printf("RECEIVED MODIFY FILE COMMAND\n");
         n = delete_file(lastCommand.fileName, user);
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, addr, sockfd);

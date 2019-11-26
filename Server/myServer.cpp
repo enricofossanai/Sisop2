@@ -200,7 +200,7 @@ void *cliThread(void *arg) {                                                    
     while (1){
         lastCommand = rcv_cmd(client->cliaddr,client->socket);
 
-        printf("\nServer received command %d from %s\n", lastCommand.command ,client->username);
+        printf("\nServer received command %d in %d from %s\n", lastCommand.command , client->socket , client->username);
 
         if (lastCommand.command >= 0) // if received command wasnt corrupted
             make_cmd(lastCommand, client, dirClient, uList,serverlist, eleNum);
