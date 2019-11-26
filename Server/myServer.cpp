@@ -253,7 +253,7 @@ void *election (void *arg){
 
           if(eleNum == -1)
                 continue;
-            
+
 
             memcpy(lists.slist, serverlist, sizeof(lists.slist));
             memcpy(lists.elist, electlist, sizeof(lists.elist));
@@ -276,7 +276,7 @@ void *election (void *arg){
         }
         else {         // Se for backup fica ouvindo
 
-            n = recv(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0);
+            n = recvfrom(socksd, reinterpret_cast<void *> (&packet), MAX_PACKET_SIZE, 0, NULL , NULL);
             if (n  < 0){
                 printf("ACHO QUE O VAGABUNDO MORREU: %d\n", eleNum);        // Aqui vai a eleição
                 if (eleNum == 0){

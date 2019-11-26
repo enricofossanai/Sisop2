@@ -266,7 +266,7 @@ void *clientComm(void *arg) {
                 n = recvfrom(sockfd, reinterpret_cast<void *> (&recPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &servaddr, &len);
                 if (n < 0)
                     perror("recvfrom");
-                
+
                 printf("RECEBI NOVO SERVIDOR");
                 fflush(stdout);
 
@@ -315,12 +315,14 @@ void *clientNotify(void *arg){
 
         /* Lê o máximo de eventos. */
         l = read(fd, buf, 1024 * (sizeof(struct inotify_event))) ;
-        //printf("MUTEX : %d\n", notify_block );
+
 
         /* Percorre cada evento lido. */
         i=0 ;
 
         pthread_mutex_lock(&mutex);
+        printf("MUTEX : %d e CREATED : %d L : %d\n", notify_block, justCreated , l);
+        fflush(stdout);
 
         while(i<l) {
             bzero(dirName, 100);
@@ -363,10 +365,8 @@ void *clientNotify(void *arg){
 
             if (notify_block > 0)
                 notify_block--;
-
-            pthread_mutex_unlock(&mutex);
         }
 
-
+        pthread_mutex_unlock(&mutex);
     }
 }
