@@ -267,7 +267,7 @@ void *clientComm(void *arg) {
                 if (n < 0)
                     perror("recvfrom");
 
-                printf("RECEBI NOVO SERVIDOR");
+                printf("\nRECEBI NOVO SERVIDOR\n");
                 fflush(stdout);
 
                 notify_block = 0;

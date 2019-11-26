@@ -494,7 +494,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uLis
     strcpy(file, dirClient);
 
     if(lastCommand.command == CREATE) {
-        printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld", lastCommand.fileSize);
+        printf("\nRECEIVED CREATE FILE COMMAND WITH SIZE: %ld\n", lastCommand.fileSize);
         strcat(file, lastCommand.fileName);
         n =  receiveFile( file , lastCommand.fileSize, client->cliaddr,client->socket );
 
@@ -704,7 +704,7 @@ int send_cli(user *uList, int socksd, int port){
     struct sockaddr_in send;
     pthread_t tid;
     int rc1;
-    
+
     displayList(uList);
 
     for(int i = 0; i<10; i++){
@@ -714,7 +714,7 @@ int send_cli(user *uList, int socksd, int port){
             send = uList[i].cliSend;
             send_cmd(uList[i].username, send, socksd, SERVER, NULL);
             uList[i].socket = createSocket(uList[i], port);
-            
+
 
             rc1 = pthread_create(&tid, NULL, cliThread, reinterpret_cast<void *> (&uList[i]));
             if(rc1 < 0)
