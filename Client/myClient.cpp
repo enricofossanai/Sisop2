@@ -321,7 +321,7 @@ void *clientNotify(void *arg){
         i=0 ;
 
         pthread_mutex_lock(&mutex);
-        printf("MUTEX : %d e CREATED : %d L : %d\n", notify_block, justCreated , l);
+        //printf("MUTEX : %d e CREATED : %d L : %d\n", notify_block, justCreated , l);
         fflush(stdout);
 
         while(i<l) {

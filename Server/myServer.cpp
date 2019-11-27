@@ -255,7 +255,7 @@ void *election (void *arg){
         exit(EXIT_FAILURE);
     }
 
-    struct timeval timeout={20,0};                                                       //set timeout for 2 seconds
+    struct timeval timeout={10,0};                                                       //set timeout for 2 seconds
     setsockopt(socksd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
 
@@ -275,9 +275,6 @@ void *election (void *arg){
             memcpy(lists.uList, uList, sizeof(lists.uList));
             lists.eNum = eleNum;
             
-            for(int l = 0; l < 10; l++)
-              printf("Lista : %d\n", electlist[l].sin_port);
-
 
             packet.type = ALIVE;
 			memcpy(packet._payload, &lists, sizeof(lists));
