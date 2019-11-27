@@ -617,6 +617,10 @@ int send_cli(user *uList, int socksd, int port){
             rc1 = pthread_create(&tid, NULL, cliThread, reinterpret_cast<void *> (&uList[i]));
             if(rc1 < 0)
                 perror("pthread_create");
+            
+            rc1 = pthread_detach(tid);
+            if(rc1 < 0)
+              perror("pthread_detach");
             }
     }
 

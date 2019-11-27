@@ -103,6 +103,10 @@ int main(int argc, char *argv[]) {
     rc1 = pthread_create(&telection, NULL, election, reinterpret_cast<void *> (&servaddr));
     if(rc1 < 0)
         perror("pthread_create");
+    
+    rc1 = pthread_detach(telection);
+    if(rc1 < 0)
+      perror("pthread_detach");
 ///////////////////////////////////////////////////
 
     while(1){
@@ -251,7 +255,7 @@ void *election (void *arg){
         exit(EXIT_FAILURE);
     }
 
-    struct timeval timeout={10,0};                                                       //set timeout for 2 seconds
+    struct timeval timeout={20,0};                                                       //set timeout for 2 seconds
     setsockopt(socksd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
 
@@ -270,6 +274,9 @@ void *election (void *arg){
             memcpy(lists.elist, electlist, sizeof(lists.elist));
             memcpy(lists.uList, uList, sizeof(lists.uList));
             lists.eNum = eleNum;
+            
+            for(int l = 0; l < 10; l++)
+              printf("Lista : %d", electlist[i].sin_port);
 
 
             packet.type = ALIVE;
