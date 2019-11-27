@@ -18,8 +18,7 @@
 #define MAX 10
 using namespace std;
 
-int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo( retorna 1 caso for o mesmo, -1 caso contrario)
-{
+int checkSum(packet * packet){
     int Sum = 0,Sumchar=0,i;
     int type=packet->type,seqn=packet->seqn,lenght=packet->type,total_size=packet->total_size;
 
@@ -41,8 +40,7 @@ int checkSum(packet * packet) //verifica se o valor da soma dos dados é a mesmo
 
 }
 
-int makeSum(packet * packet) //faz a soma dos dados do pacote
-{
+int makeSum(packet * packet){
     int Sum = 0,Sumchar=0,i;
     int type=packet->type,seqn=packet->seqn,lenght=packet->type,total_size=packet->total_size;
 
@@ -56,6 +54,8 @@ int makeSum(packet * packet) //faz a soma dos dados do pacote
 
     return Sum;
 }
+
+/////////////////////////////////////////////////////////////////////////////////
 
 void addToONlist (user *uList, user usr){
     int i = 0, added = 0;
@@ -120,66 +120,7 @@ struct sockaddr_in getUserList(user *uList, user *usr){
     return cliaddrL;
 }
 
-
-void createDir(char *name){
-    DIR* dir = opendir(name);
-    if(dir){
-        //printf("Directory already exists\n");
-        closedir(dir);
-    }
-    else{
-        mkdir(name,0777);
-        printf("Directory created\n");
-        }
-}
-
-int createSocket(user client, int port){
-    int sockfd;
-    int i,n;
-    struct sockaddr_in servaddr;
-    packet sendPacket;
-    socklen_t len = sizeof(servaddr);
-
-
-    // Creating socket file descriptor
-    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-        perror("socket");
-        exit(EXIT_FAILURE);
-    }
-
-    //Create dir for client
-    createDir(client.username);
-    memset(&servaddr, 0, sizeof(servaddr));
-
-
-    // Filling server information
-    servaddr.sin_family    = AF_INET; // IPv4
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(port);
-
-    // Bind the socket with the server address
-    if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-
-    sendPacket.type = ACK;
-    sendPacket.cmd = 0;
-    sendPacket.seqn = 0;
-    sendPacket.length = 0;
-    sendPacket.total_size = 0;
-    strcpy(sendPacket._payload, "");
-    sendPacket.checksum = checkSum(&sendPacket);
-
-    n = sendto(sockfd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,( struct sockaddr *) &(client.cliaddr), sizeof(struct sockaddr));
-    if (n < 0)
-        perror("sendto");
-
-    fflush( stdout );
-    return sockfd;
-}
-
+////////////////////////////////////////////////////////////////////////////////
 
 struct sockaddr_in  getClientLSocket(user client, int sockfd){
 
@@ -208,99 +149,6 @@ struct sockaddr_in  getClientLSocket(user client, int sockfd){
           perror("sendto");
 
       return cliaddrL;
-}
-
-
-
-int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
-    FILE *fd = fopen( fileName , "wb" );
-    unsigned char *bufferFile = (unsigned char *)malloc(fileSize + 1);
-    memset(bufferFile, 0, fileSize + 1);
-
-    if (fd == NULL){
-        printf("Deu pau no arquivo\n");
-        return -1;
-    }
-
-    else{
-        socklen_t len = sizeof(struct sockaddr_in);
-
-        int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
-        int n;
-        int curSeq = 0;
-        int *allSeq = (int *)malloc((numSeqs * sizeof(int)) + 1);
-        packet sentPacket, rcvdPacket;
-        long bitstoReceive = 0;
-        long int toWrite = fileSize;
-
-        memset(allSeq, 0, sizeof(int) * (numSeqs + 1));
-
-        //while still have packages to receive
-        while (curSeq <= numSeqs){
-
-            if (fileSize > MAX_PAYLOAD_SIZE)
-                bitstoReceive = MAX_PAYLOAD_SIZE;
-            else
-                bitstoReceive = fileSize;
-
-            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
-            if(n < 0)
-                perror("recvfrom");
-
-            if((checkSum(&rcvdPacket))){		                                    // Verificação de CheckSum
-
-                memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
-
-                sentPacket.type = ACK;
-                sentPacket.seqn = curSeq;
-                sentPacket.length = 0;
-                sentPacket.total_size = 0;
-                strcpy(sentPacket._payload, "");
-                sentPacket.checksum = makeSum(&sentPacket);
-
-                n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
-                if (n  < 0)
-                    perror("sendto");
-
-                if (allSeq[rcvdPacket.seqn] == 0){
-                    fileSize = fileSize - bitstoReceive;
-                    curSeq++;
-                    allSeq[rcvdPacket.seqn] = 1;
-                }
-            }
-        }
-
-        //closes file and free the buffer
-        size_t jubileu = fwrite(bufferFile, 1, toWrite, fd);
-        if(jubileu != toWrite) {
-            printf("Erro ao tentar escrever o arquivo inteiro.\n");
-            return -1;
-        }
-
-        fclose(fd);
-        free(allSeq);
-        free(bufferFile);
-
-        return 0;
-    }
-}
-
-
-long int sizeFile (FILE *f){
-	long int size;
-
-	if (f != NULL) {
-    fseek(f, 0, SEEK_END);
-    // pega a posição corrente de leitura no arquivo
-    size = ftell(f);
-		fseek(f,0,SEEK_SET);
-		return size;
-
-    } else {
-        printf("Arquivo inexistente");
-		return -1;
-    }
-
 }
 
 int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
@@ -380,6 +228,89 @@ int sendFile(char *fileName, struct sockaddr_in addr, int sockfd){
   return 0;
 }
 
+int receiveFile(char *fileName , long int fileSize,  struct sockaddr_in addr, int sockfd){
+    FILE *fd = fopen( fileName , "wb" );
+    unsigned char *bufferFile = (unsigned char *)malloc(fileSize + 1);
+    memset(bufferFile, 0, fileSize + 1);
+
+    if (fd == NULL){
+        printf("Deu pau no arquivo\n");
+        return -1;
+    }
+
+    else{
+        socklen_t len = sizeof(struct sockaddr_in);
+
+        int numSeqs = (fileSize/MAX_PAYLOAD_SIZE);
+        int n;
+        int curSeq = 0;
+        int *allSeq = (int *)malloc((numSeqs * sizeof(int)) + 1);
+        packet sentPacket, rcvdPacket;
+        long bitstoReceive = 0;
+        long int toWrite = fileSize;
+
+        memset(allSeq, 0, sizeof(int) * (numSeqs + 1));
+
+        //while still have packages to receive
+        while (curSeq <= numSeqs){
+
+            if (fileSize > MAX_PAYLOAD_SIZE)
+                bitstoReceive = MAX_PAYLOAD_SIZE;
+            else
+                bitstoReceive = fileSize;
+
+            n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
+            if(n < 0)
+                perror("recvfrom");
+
+            if(rcvdPacket.type == DATA){
+
+                if((checkSum(&rcvdPacket))){		                                    // Verificação de CheckSum
+
+                    memcpy((bufferFile + (MAX_PAYLOAD_SIZE * rcvdPacket.seqn)), rcvdPacket._payload, bitstoReceive);
+
+                    sentPacket.type = ACK;
+                    sentPacket.seqn = curSeq;
+                    sentPacket.length = 0;
+                    sentPacket.total_size = 0;
+                    strcpy(sentPacket._payload, "");
+                    sentPacket.checksum = makeSum(&sentPacket);
+
+                    n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+                    if (n  < 0)
+                        perror("sendto");
+
+                    if (allSeq[rcvdPacket.seqn] == 0){
+                        fileSize = fileSize - bitstoReceive;
+                        curSeq++;
+                        allSeq[rcvdPacket.seqn] = 1;
+                    }
+                }
+            }
+                else{
+                    sentPacket.type = ACK;
+
+                    n = sendto(sockfd, reinterpret_cast<void *> (&sentPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *) &addr,  sizeof(addr));
+                    if (n  < 0)
+                        perror("sendto");
+                }
+        }
+
+        //closes file and free the buffer
+        size_t jubileu = fwrite(bufferFile, 1, toWrite, fd);
+        if(jubileu != toWrite) {
+            printf("Erro ao tentar escrever o arquivo inteiro.\n");
+            return -1;
+        }
+
+        fclose(fd);
+        free(allSeq);
+        free(bufferFile);
+
+        return 0;
+    }
+}
+
 //sends message to create, delete or modify file
 void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, char *dir){
     int n;
@@ -392,6 +323,9 @@ void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, c
     sentPacket.type = CMD;
     sentPacket.cmd = command;
     strcpy(sentPacket._payload,payload);
+
+    struct timeval timeout={2,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));
 
     //sending packet
     int ack = 0;
@@ -413,12 +347,15 @@ void send_cmd(char *payload, struct sockaddr_in addr, int sockfd, int command, c
             //printf("Esperando Ack\n") ;
         n = recvfrom(sockfd, reinterpret_cast<void *> (&rcvdPacket), MAX_PACKET_SIZE, 0, (struct sockaddr *)  &addr, &len);
         if (n  < 0)
-            perror("recvfrom");
-        if (checkSum(&rcvdPacket)){
+            ack = 0;
+        else if (checkSum(&rcvdPacket) && rcvdPacket.type == ACK){
             ack = 1;
-            //printf("\nClient received command\n");
         }
+        printf("\nCommand received\n");
     }
+
+    struct timeval notimeout={0,0}; //set timeout for 2 seconds
+    setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&notimeout,sizeof(struct timeval));
 
     fflush(stdout);
     return;
@@ -573,7 +510,7 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uLis
 
         rmvFromONlist (uList, client);
         displayList(uList);
-        
+
       }
       else if (lastCommand.command == DOWNLOAD){
             printf("\nRECEIVED DOWNLOAD COMMAND\n");
@@ -661,6 +598,31 @@ void connectBackup (int sockfd , struct hostent *server, int servType){
 
 }
 
+int send_cli(user *uList, int socksd, int port){
+    struct sockaddr_in send;
+    pthread_t tid;
+    int rc1;
+
+    displayList(uList);
+
+    for(int i = 0; i<10; i++){
+        if (uList[i].username[0] != '\0'){
+            port ++;
+
+            send = uList[i].cliSend;
+            send_cmd(uList[i].username, send, socksd, SERVER, NULL);
+            uList[i].socket = createSocket(uList[i], port);
+
+
+            rc1 = pthread_create(&tid, NULL, cliThread, reinterpret_cast<void *> (&uList[i]));
+            if(rc1 < 0)
+                perror("pthread_create");
+            }
+    }
+
+    return port;
+}
+
 int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,int ID,int socksd, int eleNum){
 
     int i,n,node;
@@ -687,6 +649,8 @@ int makeElection ( struct sockaddr_in electlist[10],struct sockaddr_in servaddr,
     return 1;
 }
 
+///////////////////////////////////////////////////////////////////////
+
 void deleteElement(struct sockaddr_in *list, struct sockaddr_in x){
     struct sockaddr_in aux;
 
@@ -702,27 +666,78 @@ void deleteElement(struct sockaddr_in *list, struct sockaddr_in x){
    }
 }
 
-int send_cli(user *uList, int socksd, int port){
-    struct sockaddr_in send;
-    pthread_t tid;
-    int rc1;
+void createDir(char *name){
+    DIR* dir = opendir(name);
+    if(dir){
+        //printf("Directory already exists\n");
+        closedir(dir);
+    }
+    else{
+        mkdir(name,0777);
+        printf("Directory created\n");
+        }
+}
 
-    displayList(uList);
-
-    for(int i = 0; i<10; i++){
-        if (uList[i].username[0] != '\0'){
-            port ++;
-
-            send = uList[i].cliSend;
-            send_cmd(uList[i].username, send, socksd, SERVER, NULL);
-            uList[i].socket = createSocket(uList[i], port);
+int createSocket(user client, int port){
+    int sockfd;
+    int i,n;
+    struct sockaddr_in servaddr;
+    packet sendPacket;
+    socklen_t len = sizeof(servaddr);
 
 
-            rc1 = pthread_create(&tid, NULL, cliThread, reinterpret_cast<void *> (&uList[i]));
-            if(rc1 < 0)
-                perror("pthread_create");
-            }
+    // Creating socket file descriptor
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket");
+        exit(EXIT_FAILURE);
     }
 
-    return port;
+    //Create dir for client
+    createDir(client.username);
+    memset(&servaddr, 0, sizeof(servaddr));
+
+
+    // Filling server information
+    servaddr.sin_family    = AF_INET; // IPv4
+    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(port);
+
+    // Bind the socket with the server address
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0 )
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    sendPacket.type = ACK;
+    sendPacket.cmd = 0;
+    sendPacket.seqn = 0;
+    sendPacket.length = 0;
+    sendPacket.total_size = 0;
+    strcpy(sendPacket._payload, "");
+    sendPacket.checksum = checkSum(&sendPacket);
+
+    n = sendto(sockfd, reinterpret_cast<void *> (&sendPacket), MAX_PACKET_SIZE, 0,( struct sockaddr *) &(client.cliaddr), sizeof(struct sockaddr));
+    if (n < 0)
+        perror("sendto");
+
+    fflush( stdout );
+    return sockfd;
+}
+
+long int sizeFile (FILE *f){
+	long int size;
+
+	if (f != NULL) {
+    fseek(f, 0, SEEK_END);
+    // pega a posição corrente de leitura no arquivo
+    size = ftell(f);
+		fseek(f,0,SEEK_SET);
+		return size;
+
+    } else {
+        printf("Arquivo inexistente");
+		return -1;
+    }
+
 }
