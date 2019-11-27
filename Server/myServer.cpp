@@ -276,7 +276,7 @@ void *election (void *arg){
             lists.eNum = eleNum;
             
             for(int l = 0; l < 10; l++)
-              printf("Lista : %d", electlist[i].sin_port);
+              printf("Lista : %d\n", electlist[l].sin_port);
 
 
             packet.type = ALIVE;
