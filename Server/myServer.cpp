@@ -29,7 +29,8 @@ int ID = 0;
 #define MAXNUMCON   100
 
 
-//userList* head = (userList*)malloc(sizeof(userList));
+pthread_mutex_t mlist;
+
 struct user uList[10];
 
 struct sockaddr_in serverlist [10];
@@ -47,6 +48,12 @@ int main(int argc, char *argv[]) {
     if (argc < 3) {
         fprintf(stderr, "usage %s id primaryname\nPrimary server id = 0   name = 0\n", argv[0]);
         exit(0);
+    }
+
+    if (pthread_mutex_init(&mlist, NULL) != 0)
+    {
+        printf("\n mutex init has failed\n");
+        return 1;
     }
 
     if(strcmp(argv[1], "0") == 0)
@@ -150,8 +157,10 @@ int main(int argc, char *argv[]) {
                     j++;
                 }
 
+                pthread_mutex_lock(&mlist);
                 addToONlist (uList, client);
                 displayList(uList);
+                pthread_mutex_unlock(&mlist);
 
                 rc1 = pthread_create(&tid[cliNum], NULL, cliThread, reinterpret_cast<void *> (&Users[cliNum]) );
                 if(rc1 < 0)
@@ -202,8 +211,10 @@ void *cliThread(void *arg) {                                                    
 
         printf("\nServer received command %d in %d from %s\n", lastCommand.command , client->socket , client->username);
 
+        pthread_mutex_lock(&mlist);
         if (lastCommand.command >= 0) // if received command wasnt corrupted
             make_cmd(lastCommand, client, dirClient, uList,serverlist, eleNum);
+        pthread_mutex_unlock(&mlist);
     }
 
 }

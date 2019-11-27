@@ -570,8 +570,10 @@ void make_cmd (cmdAndFile lastCommand, user *client, char *dirClient, user *uLis
       }
       else if (lastCommand.command == EXIT){
         printf("\nRECEIVED LIST_SERVER EXIT\n");
+
         rmvFromONlist (uList, client);
         displayList(uList);
+        
       }
       else if (lastCommand.command == DOWNLOAD){
             printf("\nRECEIVED DOWNLOAD COMMAND\n");

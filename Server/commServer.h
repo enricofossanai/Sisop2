@@ -82,6 +82,7 @@ typedef struct userList{
     } userList;
 
 
+
 int checkSum(packet * packet);
 
 int makeSum(packet * packet);
