@@ -21,8 +21,8 @@ int list_server(char *dirName, char * serverFolderSatus ){
     DIR *dir;
     struct dirent *dent;
     dir = opendir((const char *) dirName);
-    
-     
+
+
 
     if(dir!=NULL)
     {
@@ -38,7 +38,7 @@ int list_server(char *dirName, char * serverFolderSatus ){
             strcat(serverFolderSatus,"\n-Creation Time:");
             strcat(serverFolderSatus,4+ctime(&info.st_ctime));
 
-            
+
         }
 
         //printf("%s",serverFolderSatus);
@@ -59,16 +59,14 @@ int delete_file(char * filename,char * username){
 
   int status;
   char pathname[100];
-  
-  char usernametemp [100];
-  
-  char sync_dir_ [100]= "sync_dir_";
- 
 
-  printf("\nEntrou no delete\n");
-  
+  char usernametemp [100];
+
+  char sync_dir_ [100]= "sync_dir_";
+
+
   if (getcwd(pathname, sizeof(pathname)) != NULL) {
-       printf("Current working dir: %s\n", pathname);
+       //printf("Current working dir: %s\n", pathname);
    } else {
        perror("getcwd() error");
        return 1;
@@ -77,12 +75,9 @@ int delete_file(char * filename,char * username){
   append_dash(pathname);
   strcpy(usernametemp,username);
   append_dash(usernametemp);
-  
+
   append_dash(sync_dir_);
   strcat(pathname,strcat(usernametemp,filename));
- 
-  
-  
 
   status = remove(pathname);
   if (status == 0){
@@ -94,9 +89,9 @@ int delete_file(char * filename,char * username){
     perror("remove");
     return -1;
   }
-  
- 
-  
+
+
+
 };
 
 void append_dash(char* s) {
